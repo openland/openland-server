@@ -567,64 +567,32 @@ export class ConferenceScalablePeersCountFactory extends AtomicIntegerFactory {
         super(storage, subspace);
     }
 
-    byId(id: number) {
-        return this._findById([id]);
+    byId(id: number, category: number) {
+        return this._findById([id, category]);
     }
 
-    get(ctx: Context, id: number) {
-        return this._get(ctx, [id]);
+    get(ctx: Context, id: number, category: number) {
+        return this._get(ctx, [id, category]);
     }
 
-    snapshotGet(ctx: Context, id: number) {
-        return this._snapshotGet(ctx, [id]);
+    snapshotGet(ctx: Context, id: number, category: number) {
+        return this._snapshotGet(ctx, [id, category]);
     }
 
-    set(ctx: Context, id: number, value: number) {
-        return this._set(ctx, [id], value);
+    set(ctx: Context, id: number, category: number, value: number) {
+        return this._set(ctx, [id, category], value);
     }
 
-    add(ctx: Context, id: number, value: number) {
-        return this._add(ctx, [id], value);
+    add(ctx: Context, id: number, category: number, value: number) {
+        return this._add(ctx, [id, category], value);
     }
 
-    increment(ctx: Context, id: number) {
-        return this._increment(ctx, [id]);
+    increment(ctx: Context, id: number, category: number) {
+        return this._increment(ctx, [id, category]);
     }
 
-    decrement(ctx: Context, id: number) {
-        return this._decrement(ctx, [id]);
-    }
-}
-
-export class ConferenceScalablePeersFactory extends AtomicBooleanFactory {
-
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('conferenceScalablePeers');
-        return new ConferenceScalablePeersFactory(storage, directory);
-    }
-
-    private constructor(storage: EntityStorage, subspace: Subspace) {
-        super(storage, subspace);
-    }
-
-    byId(cid: number, pid: number) {
-        return this._findById([cid, pid]);
-    }
-
-    get(ctx: Context, cid: number, pid: number) {
-        return this._get(ctx, [cid, pid]);
-    }
-
-    snapshotGet(ctx: Context, cid: number, pid: number) {
-        return this._snapshotGet(ctx, [cid, pid]);
-    }
-
-    set(ctx: Context, cid: number, pid: number, value: boolean) {
-        return this._set(ctx, [cid, pid], value);
-    }
-
-    invert(ctx: Context, cid: number, pid: number) {
-        return this._invert(ctx, [cid, pid]);
+    decrement(ctx: Context, id: number, category: number) {
+        return this._decrement(ctx, [id, category]);
     }
 }
 
@@ -25947,7 +25915,6 @@ export interface Store extends BaseStore {
     readonly ConferenceKitchenTransportsCount: ConferenceKitchenTransportsCountFactory;
     readonly ConferenceScalableStarted: ConferenceScalableStartedFactory;
     readonly ConferenceScalablePeersCount: ConferenceScalablePeersCountFactory;
-    readonly ConferenceScalablePeers: ConferenceScalablePeersFactory;
     readonly FeedChannelMembersCount: FeedChannelMembersCountFactory;
     readonly FeedChannelPostsCount: FeedChannelPostsCountFactory;
     readonly UserCounter: UserCounterFactory;
@@ -26172,7 +26139,7 @@ export interface Store extends BaseStore {
     readonly ConferencePeerKeepAliveDirectory: Subspace;
     readonly EndStreamDirectory: Subspace;
     readonly ConferenceSchedulingDirectory: Subspace;
-    readonly ConferenceScalableDirectory: Subspace;
+    readonly ConferenceScalablePeersDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
     readonly EventStorageDirectory: Subspace;
@@ -26202,6 +26169,7 @@ export interface Store extends BaseStore {
     readonly KitchenConsumerCreateQueue: QueueStorage;
     readonly KitchenConsumerUnpauseQueue: QueueStorage;
     readonly KitchenConsumerDeleteQueue: QueueStorage;
+    readonly ConferenceScalableQueueQueue: QueueStorage;
     readonly FeedAutoSubscriptionQueue: QueueStorage;
     readonly FeedAutoSubscriptionMultipleQueue: QueueStorage;
     readonly FeedDeliveryQueue: QueueStorage;
@@ -26286,7 +26254,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConferenceKitchenTransportsCountPromise = ConferenceKitchenTransportsCountFactory.open(storage);
     let ConferenceScalableStartedPromise = ConferenceScalableStartedFactory.open(storage);
     let ConferenceScalablePeersCountPromise = ConferenceScalablePeersCountFactory.open(storage);
-    let ConferenceScalablePeersPromise = ConferenceScalablePeersFactory.open(storage);
     let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
     let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
     let UserCounterPromise = UserCounterFactory.open(storage);
@@ -26498,7 +26465,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConferencePeerKeepAliveDirectoryPromise = storage.resolveCustomDirectory('conferencePeerKeepAlive');
     let EndStreamDirectoryPromise = storage.resolveCustomDirectory('endStream');
     let ConferenceSchedulingDirectoryPromise = storage.resolveCustomDirectory('conferenceScheduling');
-    let ConferenceScalableDirectoryPromise = storage.resolveCustomDirectory('conferenceScalable');
+    let ConferenceScalablePeersDirectoryPromise = storage.resolveCustomDirectory('conferenceScalablePeers');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
     let EventStorageDirectoryPromise = storage.resolveCustomDirectory('eventStorage');
@@ -26541,6 +26508,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let KitchenConsumerCreateQueuePromise = QueueStorage.open('KitchenConsumerCreate', storage);
     let KitchenConsumerUnpauseQueuePromise = QueueStorage.open('KitchenConsumerUnpause', storage);
     let KitchenConsumerDeleteQueuePromise = QueueStorage.open('KitchenConsumerDelete', storage);
+    let ConferenceScalableQueueQueuePromise = QueueStorage.open('ConferenceScalableQueue', storage);
     let FeedAutoSubscriptionQueuePromise = QueueStorage.open('FeedAutoSubscription', storage);
     let FeedAutoSubscriptionMultipleQueuePromise = QueueStorage.open('FeedAutoSubscriptionMultiple', storage);
     let FeedDeliveryQueuePromise = QueueStorage.open('FeedDelivery', storage);
@@ -26569,7 +26537,6 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConferenceKitchenTransportsCount: await ConferenceKitchenTransportsCountPromise,
         ConferenceScalableStarted: await ConferenceScalableStartedPromise,
         ConferenceScalablePeersCount: await ConferenceScalablePeersCountPromise,
-        ConferenceScalablePeers: await ConferenceScalablePeersPromise,
         FeedChannelMembersCount: await FeedChannelMembersCountPromise,
         FeedChannelPostsCount: await FeedChannelPostsCountPromise,
         UserCounter: await UserCounterPromise,
@@ -26781,7 +26748,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConferencePeerKeepAliveDirectory: await ConferencePeerKeepAliveDirectoryPromise,
         EndStreamDirectory: await EndStreamDirectoryPromise,
         ConferenceSchedulingDirectory: await ConferenceSchedulingDirectoryPromise,
-        ConferenceScalableDirectory: await ConferenceScalableDirectoryPromise,
+        ConferenceScalablePeersDirectory: await ConferenceScalablePeersDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
         EventStorageDirectory: await EventStorageDirectoryPromise,
@@ -26824,6 +26791,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         KitchenConsumerCreateQueue: await KitchenConsumerCreateQueuePromise,
         KitchenConsumerUnpauseQueue: await KitchenConsumerUnpauseQueuePromise,
         KitchenConsumerDeleteQueue: await KitchenConsumerDeleteQueuePromise,
+        ConferenceScalableQueueQueue: await ConferenceScalableQueueQueuePromise,
         FeedAutoSubscriptionQueue: await FeedAutoSubscriptionQueuePromise,
         FeedAutoSubscriptionMultipleQueue: await FeedAutoSubscriptionMultipleQueuePromise,
         FeedDeliveryQueue: await FeedDeliveryQueuePromise,

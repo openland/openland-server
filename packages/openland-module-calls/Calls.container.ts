@@ -4,7 +4,7 @@ import { MediaKitchenRepository } from './kitchen/MediaKitchenRepository';
 import { container } from 'openland-modules/Modules.container';
 import { CallsModule } from './CallsModule';
 import { CallRepository } from './repositories/CallRepository';
-import { CallSchedulerKitchenScalable } from './repositories/CallSchedulerKitchenScalable';
+import { CallSchedulerScalable } from './repositories/CallSchedulerScalable';
 
 export function loadCallsModule() {
     container.bind(CallsModule).toSelf().inSingletonScope();
@@ -12,5 +12,5 @@ export function loadCallsModule() {
     container.bind('MediaKitchenRepository').to(MediaKitchenRepository).inSingletonScope();
     container.bind('CallSchedulerKitchen').to(CallSchedulerKitchen).inSingletonScope();
     container.bind('CallSchedulerKitchenTransport').to(CallSchedulerKitchenTransport).inSingletonScope();
-    container.bind('CallSchedulerKitchenScalable').to(CallSchedulerKitchenScalable).inSingletonScope();
+    container.bind('CallSchedulerScalable').to(CallSchedulerScalable).inSingletonScope();
 }

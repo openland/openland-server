@@ -5,12 +5,12 @@ import {
     integer,
     primaryKey
 } from '@openland/foundationdb-compiler';
-import { taskQueue } from 'openland-module-workers/compiler';
+import { taskQueue } from '../../openland-module-workers/compiler';
 
 export function scalableStore() {
-    
+
     // State
-    customDirectory('ConferenceScalable');
+    customDirectory('ConferenceScalablePeers');
 
     // Queue
     taskQueue('ConferenceScalableQueue');
@@ -21,9 +21,6 @@ export function scalableStore() {
     });
     atomicInt('ConferenceScalablePeersCount', () => {
         primaryKey('id', integer());
-    });
-    atomicBool('ConferenceScalablePeers', () => {
-        primaryKey('cid', integer());
-        primaryKey('pid', integer());
+        primaryKey('category', integer());
     });
 }

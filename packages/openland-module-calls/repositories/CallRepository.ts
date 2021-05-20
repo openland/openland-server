@@ -1,4 +1,4 @@
-import { CallSchedulerKitchenScalable } from './CallSchedulerKitchenScalable';
+import { CallSchedulerScalable } from './CallSchedulerScalable';
 import { Config } from 'openland-config/Config';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CallSchedulerKitchen } from './CallSchedulerKitchen';
@@ -87,8 +87,8 @@ export class CallRepository {
 
     @lazyInject('CallSchedulerKitchen')
     readonly schedulerKitchen!: CallSchedulerKitchen;
-    @lazyInject('CallSchedulerKitchenScalable')
-    readonly schedulerKitchenScalable!: CallSchedulerKitchenScalable;
+    @lazyInject('CallSchedulerScalable')
+    readonly schedulerScalable!: CallSchedulerScalable;
     @lazyInject('DeliveryMediator')
     readonly delivery!: DeliveryMediator;
 
@@ -145,7 +145,7 @@ export class CallRepository {
         } else if (kind === 'async-sfu') {
             return this.asyncKitchen;
         } else if (kind === 'scalable-sfu') {
-            return this.schedulerKitchenScalable;
+            return this.schedulerScalable;
         } else {
             throw Error('Unsupported scheduler: ' + kind);
         }
