@@ -21,6 +21,7 @@ import { declareConsumerUnpauseWorker } from './worker/declareConsumerUnpauseWor
 import { declareWorkerCleanerWorker } from './worker/declareWorkerCleaner';
 import { declarePeerWorker } from './worker/declarePeerWorker';
 import { declareScalableWorker } from './worker/declareScalableWorker';
+import { declareScalablePurgeWorker } from './worker/declareScalablePurgeWorker';
 
 @injectable()
 export class CallsModule {
@@ -43,6 +44,7 @@ export class CallsModule {
             startCallReaper();
             startWorkerTracker(this.mediaKitchen, this.mediaKitchenRepo);
             declareScalableWorker(this.repo);
+            declareScalablePurgeWorker(this.repo);
             for (let i = 0; i < 40; i++) {
                 declareRouterCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
                 declareRouterDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);

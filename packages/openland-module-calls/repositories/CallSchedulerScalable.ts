@@ -1,3 +1,4 @@
+import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { inTx } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
 import { CallRepository } from './CallRepository';
@@ -19,6 +20,7 @@ export class CallSchedulerScalable implements CallScheduler {
 
     // Scalable conference worker
     readonly producersWorker = new SyncWorkerQueue<number, ScalableProducerPeerTask>(Store.ConferenceScalableQueueQueue, { maxAttempts: 'infinite', type: 'external' });
+    readonly purgeWorker = new BetterWorkerQueue<{ cid: number, sid: string }>(Store.ConferenceScalablePurgeQueueQueue, { maxAttempts: 'infinite', type: 'external' });
 
     // Scalable mediator
     readonly mediator = new ScalableMediator();
@@ -39,7 +41,7 @@ export class CallSchedulerScalable implements CallScheduler {
 
             // Producers
             if (role === 'speaker') {
-                if ((await this.mediator.repo.addPeer(ctx, cid, pid, true)).wasAdded) {
+                if ((await this.mediator.repo.addPeer(ctx, cid, pid, 'listener')).wasAdded) {
                     await this.producersWorker.pushWork(ctx, cid, { type: 'add', cid, pid });
                 }
             }
@@ -55,11 +57,11 @@ export class CallSchedulerScalable implements CallScheduler {
 
             // Producers
             if (role === 'speaker') {
-                if ((await this.mediator.repo.addPeer(ctx, cid, pid, true)).wasAdded) {
+                if ((await this.mediator.repo.addPeer(ctx, cid, pid, 'listener')).wasAdded) {
                     await this.producersWorker.pushWork(ctx, cid, { type: 'add', cid, pid });
                 }
             } else {
-                if ((await this.mediator.repo.removePeer(ctx, cid, pid, true)).wasRemoved) {
+                if ((await this.mediator.repo.removePeer(ctx, cid, pid, 'listener')).wasRemoved) {
                     await this.producersWorker.pushWork(ctx, cid, { type: 'remove', cid, pid });
                 }
             }
@@ -74,7 +76,7 @@ export class CallSchedulerScalable implements CallScheduler {
         await inTx(parent, async (ctx) => {
 
             // Producers
-            if ((await this.mediator.repo.removePeer(ctx, cid, pid, true)).wasRemoved) {
+            if ((await this.mediator.repo.removePeer(ctx, cid, pid, 'listener')).wasRemoved) {
                 await this.producersWorker.pushWork(ctx, cid, { type: 'remove', cid, pid });
             }
 

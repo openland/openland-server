@@ -14,7 +14,7 @@ describe('ScalableRepository', () => {
         for (let i = 0; i < 15000; i++) {
             p.push(inTx(parent, async (ctx) => {
                 total++;
-                (await repo.addPeer(ctx, 3, i, true));
+                (await repo.addPeer(ctx, 3, i, 'speaker'));
             }));
         }
         await Promise.all(p);
@@ -29,7 +29,7 @@ describe('ScalableRepository', () => {
         for (let i = 0; i < 100; i++) {
             p.push(inTx(parent, async (ctx) => {
                 total++;
-                return (await repo.addPeer(ctx, 1, i, true));
+                return (await repo.addPeer(ctx, 1, i, 'speaker'));
             }));
         }
         let res = await Promise.all(p);
@@ -48,7 +48,7 @@ describe('ScalableRepository', () => {
         for (let i = 0; i < 100; i++) {
             p.push(inTx(parent, async (ctx) => {
                 total++;
-                return (await repo.addPeer(ctx, 1, i + 100, true));
+                return (await repo.addPeer(ctx, 1, i + 100, 'speaker'));
             }));
         }
         res = await Promise.all(p);
@@ -67,7 +67,7 @@ describe('ScalableRepository', () => {
         // Register default
         await inTx(parent, async (ctx) => {
             for (let i = 0; i < 100; i++) {
-                await repo.addPeer(ctx, 2, i, true);
+                await repo.addPeer(ctx, 2, i, 'speaker');
             }
         });
 
@@ -77,7 +77,7 @@ describe('ScalableRepository', () => {
         for (let i = 0; i < 100; i++) {
             p.push(inTx(parent, async (ctx) => {
                 total++;
-                await repo.removePeer(ctx, 2, i, true);
+                await repo.removePeer(ctx, 2, i, 'speaker');
             }));
         }
         await Promise.all(p);

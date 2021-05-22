@@ -14,6 +14,7 @@ export function scalableStore() {
 
     // Queue
     taskQueue('ConferenceScalableQueue');
+    taskQueue('ConferenceScalablePurgeQueue');
 
     // Started flags
     atomicBool('ConferenceScalableStarted', () => {

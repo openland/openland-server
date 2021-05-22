@@ -46,8 +46,63 @@ export class ScalableMediator {
         // Resolve router and worker
         let def = await inTx(parent, async (ctx) => {
 
-            // Resolve worker
-            let workerId = await this.repo.getProducerWorkerId(ctx, cid);
+            //
+            // Resolve Session
+            //
+
+            // TODO: Handle worker lost
+
+            let session = (await this.repo.getActiveSession(ctx, cid));
+            let shouldCreateSession = false;
+            let shouldDeleteSession = false;
+            for (let t of tasks) {
+                if (t.type === 'add') {
+                    await this.repo.addPeer(ctx, cid, t.pid, 'producer');
+                }
+                if (t.type === 'remove') {
+                    await this.repo.removePeer(ctx, cid, t.pid, 'producer');
+                }
+            }
+            let peersCount = await this.repo.getPeersCount(ctx, cid, 'producer');
+            if (peersCount > 0 && session === null) {
+                shouldCreateSession = true;
+            }
+            if (peersCount === 0 && session !== null) {
+                shouldDeleteSession = true;
+            }
+
+            //
+            // Delete session
+            //
+
+            if (shouldDeleteSession) {
+                await this.repo.sessionStop(ctx, cid, session!);
+                Modules.Calls.repo.schedulerScalable.purgeWorker.pushWork(ctx, { sid: session!, cid });
+                session = null;
+            }
+
+            //
+            // Create Session
+            //
+
+            if (shouldCreateSession) {
+                await this.repo.sessionCreate(ctx, cid, randomKey());
+                session = randomKey();
+            }
+
+            // 
+            // If no active session exists - nothing to do
+            //
+
+            if (!session) {
+                return null;
+            }
+
+            //
+            // Pick worker
+            //
+
+            let workerId = await this.repo.getSessionWorkerId(ctx, cid, session);
             if (!workerId) {
 
                 // TODO: Better algo
@@ -58,46 +113,58 @@ export class ScalableMediator {
                 workerId = active[0].id;
 
                 // Save worker
-                this.repo.setProducerWorkerId(ctx, cid, workerId);
+                this.repo.setSessionWorkerId(ctx, cid, session, workerId);
             }
 
-            // Resolve router
-            let routerId = await this.repo.getProducerRouterId(ctx, cid);
+            //
+            // Router
+            //
+
+            let routerId = await this.repo.getSessionRouterId(ctx, cid, session);
             if (!routerId) {
                 routerId = randomKey();
-                this.repo.setProducerRouterId(ctx, cid, routerId);
+                this.repo.setSessionRouterId(ctx, cid, session, routerId);
             }
 
+            //
             // Resolve added peers
+            //
+
             let addedTransports: { pid: number, id: string }[] = [];
             for (let t of tasks) {
                 if (t.type === 'add') {
-                    let transportId = await this.repo.getSpeakerProducerTransport(ctx, cid, t.pid);
+                    let transportId = await this.repo.getProducerTransport(ctx, cid, t.pid, session);
                     if (!transportId) {
                         transportId = randomKey();
-                        this.repo.setSpeakerProducerTransport(ctx, cid, t.pid, transportId);
+                        this.repo.setProducerTransport(ctx, cid, t.pid, session, transportId);
                         this.createProducerEndStream(ctx, t.pid, transportId);
                     }
                     addedTransports.push({ pid: t.pid, id: transportId });
                 }
             }
 
+            //
             // Resolve offers
+            //
+
             let offers: { pid: number, id: string, sdp: string }[] = [];
             for (let t of tasks) {
                 if (t.type === 'offer') {
-                    let transportId = await this.repo.getSpeakerProducerTransport(ctx, cid, t.pid);
+                    let transportId = await this.repo.getProducerTransport(ctx, cid, t.pid, session);
                     if (transportId || t.sid === transportId) {
                         offers.push({ pid: t.pid, id: t.sid, sdp: t.sdp });
                     }
                 }
             }
 
+            //
             // Resolve paused peers
+            //
+
             let pausedTransports: { pid: number, id: string }[] = [];
             for (let t of tasks) {
                 if (t.type === 'remove') {
-                    let transportId = await this.repo.getSpeakerProducerTransport(ctx, cid, t.pid);
+                    let transportId = await this.repo.getProducerTransport(ctx, cid, t.pid, session);
                     if (transportId) {
                         pausedTransports.push({ pid: t.pid, id: transportId });
                     }
@@ -106,6 +173,11 @@ export class ScalableMediator {
 
             return { workerId, routerId, addedTransports, pausedTransports, offers };
         });
+
+        // No operations needed
+        if (!def) {
+            return;
+        }
 
         // Get router if needed
         let router = await service.getOrCreateRouter(def.workerId, def.routerId);
