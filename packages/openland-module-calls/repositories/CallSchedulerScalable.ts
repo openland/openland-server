@@ -19,7 +19,7 @@ export class CallSchedulerScalable implements CallScheduler {
 
     // Scalable conference worker
     readonly sessionWorker = new SyncWorkerQueue<number, ScalableSessionTask>(Store.ConferenceScalableSessionQueue, { maxAttempts: 'infinite', type: 'transactional' });
-    readonly shardWorker = new SyncWorkerQueue<string, ScalableShardTask>(Store.ConferenceScalableProducersQueue, { maxAttempts: 'infinite', type: 'external' });
+    readonly shardWorker = new SyncWorkerQueue<string, ScalableShardTask>(Store.ConferenceScalableShardsQueue, { maxAttempts: 'infinite', type: 'external' });
 
     // Scalable mediator
     readonly mediator = new ScalableMediator();
