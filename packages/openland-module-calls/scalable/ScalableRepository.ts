@@ -53,7 +53,7 @@ export class ScalableRepository {
         this.shards = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.int16LE)
-            .subspace([6]);
+            .subspace([11]);
         this.shardPeers = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
