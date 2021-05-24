@@ -7195,21 +7195,21 @@ media-typer@0.3.0:
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
   integrity sha1-hxDXrwqmJvj/+hzgAWhUUmMlV0g=
 
-mediakitchen-common@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/mediakitchen-common/-/mediakitchen-common-1.0.0.tgz#90aba4ce00e40db46f8fd833ae9df9001fbe3684"
-  integrity sha512-4cXe05cHTG5NswiSVe28JicDJ3KKycPKKEg5UPXBQc9SU2xQeuWLsrBJdK0Jfj439ylbmcUdeE8g0LuJS7YuYA==
+mediakitchen-common@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/mediakitchen-common/-/mediakitchen-common-2.0.0.tgz#de49b4bc71d1c491a685859dbaa88d37f1edcc63"
+  integrity sha512-qWPgSBGaOLYCNlWEMxGuXX0+Uxx56Jrw2B7rgpIkXd7zGS/9evwk0JmfadqNub98YBaxBcc+ZmjGJAsKxuj8Zw==
   dependencies:
     fp-ts "^2.5.3"
     io-ts "^2.1.3"
     ts-nats "^1.2.12"
 
-mediakitchen@1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/mediakitchen/-/mediakitchen-1.2.2.tgz#3b1da5812185f9a163259b8d02d3495baedf979e"
-  integrity sha512-Bux1i5No8C5KvJFtN8B9utBU59hXKqzouV9nwGs3Nt1Ix35gJcDCQ9kVTO4IXv2NBCJS0/vo+Q1KJ2SEAEMqcg==
+mediakitchen@2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/mediakitchen/-/mediakitchen-2.0.1.tgz#36a4821278317189ba6be16236d34e546c3936b3"
+  integrity sha512-GO76lVO8CCTSXRq63peRJP0jieDCKfVim6MPcAdaCpL40Xxi+QvSpLjw39o+KZywp7RxhUSEvkdSIJ3Amq5n8w==
   dependencies:
-    mediakitchen-common "1.0.0"
+    mediakitchen-common "2.0.0"
 
 mem@^1.1.0:
   version "1.1.0"

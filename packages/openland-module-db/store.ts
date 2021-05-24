@@ -26139,6 +26139,7 @@ export interface Store extends BaseStore {
     readonly ConferencePeerKeepAliveDirectory: Subspace;
     readonly EndStreamDirectory: Subspace;
     readonly ConferenceSchedulingDirectory: Subspace;
+    readonly ConferenceScalableStateDirectory: Subspace;
     readonly ConferenceScalablePeersDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
@@ -26169,7 +26170,10 @@ export interface Store extends BaseStore {
     readonly KitchenConsumerCreateQueue: QueueStorage;
     readonly KitchenConsumerUnpauseQueue: QueueStorage;
     readonly KitchenConsumerDeleteQueue: QueueStorage;
+    readonly ConferenceScalableSessionQueue: QueueStorage;
+    readonly ConferenceScalableShardsQueue: QueueStorage;
     readonly ConferenceScalableQueueQueue: QueueStorage;
+    readonly ConferenceScalablePurgeQueueQueue: QueueStorage;
     readonly FeedAutoSubscriptionQueue: QueueStorage;
     readonly FeedAutoSubscriptionMultipleQueue: QueueStorage;
     readonly FeedDeliveryQueue: QueueStorage;
@@ -26465,6 +26469,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConferencePeerKeepAliveDirectoryPromise = storage.resolveCustomDirectory('conferencePeerKeepAlive');
     let EndStreamDirectoryPromise = storage.resolveCustomDirectory('endStream');
     let ConferenceSchedulingDirectoryPromise = storage.resolveCustomDirectory('conferenceScheduling');
+    let ConferenceScalableStateDirectoryPromise = storage.resolveCustomDirectory('conferenceScalableState');
     let ConferenceScalablePeersDirectoryPromise = storage.resolveCustomDirectory('conferenceScalablePeers');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
@@ -26508,7 +26513,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let KitchenConsumerCreateQueuePromise = QueueStorage.open('KitchenConsumerCreate', storage);
     let KitchenConsumerUnpauseQueuePromise = QueueStorage.open('KitchenConsumerUnpause', storage);
     let KitchenConsumerDeleteQueuePromise = QueueStorage.open('KitchenConsumerDelete', storage);
+    let ConferenceScalableSessionQueuePromise = QueueStorage.open('ConferenceScalableSession', storage);
+    let ConferenceScalableShardsQueuePromise = QueueStorage.open('ConferenceScalableShards', storage);
     let ConferenceScalableQueueQueuePromise = QueueStorage.open('ConferenceScalableQueue', storage);
+    let ConferenceScalablePurgeQueueQueuePromise = QueueStorage.open('ConferenceScalablePurgeQueue', storage);
     let FeedAutoSubscriptionQueuePromise = QueueStorage.open('FeedAutoSubscription', storage);
     let FeedAutoSubscriptionMultipleQueuePromise = QueueStorage.open('FeedAutoSubscriptionMultiple', storage);
     let FeedDeliveryQueuePromise = QueueStorage.open('FeedDelivery', storage);
@@ -26748,6 +26756,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConferencePeerKeepAliveDirectory: await ConferencePeerKeepAliveDirectoryPromise,
         EndStreamDirectory: await EndStreamDirectoryPromise,
         ConferenceSchedulingDirectory: await ConferenceSchedulingDirectoryPromise,
+        ConferenceScalableStateDirectory: await ConferenceScalableStateDirectoryPromise,
         ConferenceScalablePeersDirectory: await ConferenceScalablePeersDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,
@@ -26791,7 +26800,10 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         KitchenConsumerCreateQueue: await KitchenConsumerCreateQueuePromise,
         KitchenConsumerUnpauseQueue: await KitchenConsumerUnpauseQueuePromise,
         KitchenConsumerDeleteQueue: await KitchenConsumerDeleteQueuePromise,
+        ConferenceScalableSessionQueue: await ConferenceScalableSessionQueuePromise,
+        ConferenceScalableShardsQueue: await ConferenceScalableShardsQueuePromise,
         ConferenceScalableQueueQueue: await ConferenceScalableQueueQueuePromise,
+        ConferenceScalablePurgeQueueQueue: await ConferenceScalablePurgeQueueQueuePromise,
         FeedAutoSubscriptionQueue: await FeedAutoSubscriptionQueuePromise,
         FeedAutoSubscriptionMultipleQueue: await FeedAutoSubscriptionMultipleQueuePromise,
         FeedDeliveryQueue: await FeedDeliveryQueuePromise,

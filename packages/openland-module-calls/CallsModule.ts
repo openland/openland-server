@@ -20,7 +20,7 @@ import { declareConsumerDeleteWorker } from './worker/declareConsumerDeleteWorke
 import { declareConsumerUnpauseWorker } from './worker/declareConsumerUnpauseWorker';
 import { declareWorkerCleanerWorker } from './worker/declareWorkerCleaner';
 import { declarePeerWorker } from './worker/declarePeerWorker';
-import { declareScalableWorker } from './worker/declareScalableWorker';
+import { declareScalableWorkers } from './worker/declareScalableWorkers';
 
 @injectable()
 export class CallsModule {
@@ -42,7 +42,7 @@ export class CallsModule {
         if (serverRoleEnabled('calls')) {
             startCallReaper();
             startWorkerTracker(this.mediaKitchen, this.mediaKitchenRepo);
-            declareScalableWorker(this.repo);
+            declareScalableWorkers(this.repo);
             for (let i = 0; i < 40; i++) {
                 declareRouterCreateWorker(this.mediaKitchen, this.mediaKitchenRepo);
                 declareRouterDeleteWorker(this.mediaKitchen, this.mediaKitchenRepo);

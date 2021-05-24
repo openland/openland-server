@@ -203,54 +203,6 @@ export class AsyncLock {
     }
 }
 
-export class AsyncLockMap {
-    private isLocked = new Map<string, true>();
-    private promiseResolverQueue = new Map<string, Array<(v: boolean) => void>>();
-
-    async inLock<T>(key: string, func: () => Promise<T> | T): Promise<T> {
-        try {
-            await this.lock(key);
-            return await func();
-        } finally {
-            this.unlock(key);
-        }
-    }
-
-    private async lock(key: string) {
-        if (this.isLocked.get(key)) {
-            this.isLocked.delete(key);
-            return;
-        }
-        await new Promise<boolean>(resolve => {
-            let ex = this.promiseResolverQueue.get(key);
-            if (ex) {
-                ex.push(resolve);
-            } else {
-                this.promiseResolverQueue.set(key, [resolve]);
-            }
-        });
-    }
-
-    private unlock(key: string) {
-        if (!this.isLocked.get(key)) {
-            throw new Error('Unable to unlock if not locked');
-        }
-
-        let queue = this.promiseResolverQueue.get(key);
-        if (!queue) {
-            this.isLocked.delete(key);
-        } else if (queue.length === 0) {
-            this.isLocked.delete(key);
-            this.promiseResolverQueue.delete(key);
-        } else {
-            const nextResolver = queue.shift()!;
-            setTimeout(() => {
-                nextResolver(true);
-            }, 0);
-        }
-    }
-}
-
 export const ddMMYYYYFormat = (date: Date) =>
     ('00' + date.getDate()).slice(-2) + '/' +
     ('00' + (date.getMonth() + 1)).slice(-2) + '/' +
