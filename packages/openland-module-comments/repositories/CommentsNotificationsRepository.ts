@@ -5,6 +5,7 @@ import { Context } from '@openland/context';
 import { CommentPeerType } from './CommentsRepository';
 import { Modules } from '../../openland-modules/Modules';
 import { MessageSpan } from '../../openland-module-messaging/MessageInput';
+import { NotificationInput } from '../../openland-module-notification-center/repositories/NotificationCenterRepository';
 
 @injectable()
 export class CommentsNotificationsRepository {
@@ -66,6 +67,9 @@ export class CommentsNotificationsRepository {
             }
 
             let subscriptions = await Store.CommentsSubscription.peer.findAll(ctx, comment.peerType, comment.peerId);
+
+            let notificationsToSend: { uid: number, notificationInput: NotificationInput }[] = [];
+
             await Promise.all(subscriptions.map(async subscription => {
                 if (comment.uid === subscription.uid) {
                     // ignore self comment
@@ -100,8 +104,15 @@ export class CommentsNotificationsRepository {
                     return;
                 }
 
-                await Modules.NotificationCenter.sendNotification(ctx, subscription.uid, { content: [{ type: 'new_comment', commentId: comment.id }] });
+                notificationsToSend.push({
+                    uid: subscription.uid,
+                    notificationInput: { content: [{ type: 'new_comment', commentId: comment.id }] }
+                });
             }));
+
+            for (let notification of notificationsToSend) {
+                await Modules.NotificationCenter.sendNotification(ctx, notification.uid, notification.notificationInput);
+            }
         });
     }
 

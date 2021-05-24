@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'dc430fbc47fd02457c72fc07b3d7a210';
+export const GQL_SPEC_VERSION = '02e74cdd41628e58ad2653e7ccc9d210';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2088,6 +2088,7 @@ export namespace GQL {
         debugKickAllFromVoiceChats: boolean;
         debugMigrateChatCounters: boolean;
         debugActivateUser: boolean;
+        debugIncrementSequence: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2571,6 +2572,10 @@ export namespace GQL {
     export interface MutationDebugMigrateChatCountersArgs { }
     export interface MutationDebugActivateUserArgs {
         id: string;
+    }
+    export interface MutationDebugIncrementSequenceArgs {
+        id: string;
+        by: number;
     }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
@@ -4034,6 +4039,7 @@ export namespace GQL {
         debugUnreadChatsDirect: string[];
         debugUserAuthPoints: Nullable<AuthPoint>;
         debugGeo: string;
+        debugUserSettings: Settings;
         dialogs: DialogsConnection;
         settings: Settings;
         authPoints: AuthPoint;
@@ -4332,6 +4338,9 @@ export namespace GQL {
         id: string;
     }
     export interface QueryDebugGeoArgs { }
+    export interface QueryDebugUserSettingsArgs {
+        uid: string;
+    }
     export interface QueryDialogsArgs {
         first: number;
         after: OptionalNullable<string>;
@@ -9097,6 +9106,7 @@ export interface GQLResolver {
             debugKickAllFromVoiceChats: GQL.MutationDebugKickAllFromVoiceChatsArgs,
             debugMigrateChatCounters: GQL.MutationDebugMigrateChatCountersArgs,
             debugActivateUser: GQL.MutationDebugActivateUserArgs,
+            debugIncrementSequence: GQL.MutationDebugIncrementSequenceArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,
@@ -9943,6 +9953,7 @@ export interface GQLResolver {
             debugGlobalCounterAsync: GQLRoots.DebugGlobalCounterRoot,
             debugChatMessages: GQLRoots.ModernMessageRoot[],
             debugUserAuthPoints: Nullable<GQLRoots.AuthPointRoot>,
+            debugUserSettings: GQLRoots.SettingsRoot,
             dialogs: GQLRoots.DialogsConnectionRoot,
             settings: GQLRoots.SettingsRoot,
             authPoints: GQLRoots.AuthPointRoot,
@@ -10144,6 +10155,7 @@ export interface GQLResolver {
             debugUnreadChatsDirect: GQL.QueryDebugUnreadChatsDirectArgs,
             debugUserAuthPoints: GQL.QueryDebugUserAuthPointsArgs,
             debugGeo: GQL.QueryDebugGeoArgs,
+            debugUserSettings: GQL.QueryDebugUserSettingsArgs,
             dialogs: GQL.QueryDialogsArgs,
             settings: GQL.QuerySettingsArgs,
             authPoints: GQL.QueryAuthPointsArgs,

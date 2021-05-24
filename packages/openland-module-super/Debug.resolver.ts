@@ -431,6 +431,9 @@ export const Resolver: GQLResolver = {
         debugGeo: withPermission('super-admin', async (ctx, args) => {
             let data = RequestContext.get(ctx);
             return `ip: ${data.ip}, location: ${JSON.stringify(data.location)}, latLong: ${JSON.stringify(data.latLong)}`;
+        }),
+        debugUserSettings: withPermission('super-admin', async (ctx, args) => {
+            return Modules.Users.getUserSettings(ctx, IDs.User.parse(args.uid));
         })
     },
     Mutation: {
@@ -2737,6 +2740,18 @@ export const Resolver: GQLResolver = {
                 user.status = 'activated';
                 await user.flush(ctx);
                 await Modules.Users.markForIndexing(ctx, user.id);
+                return true;
+            });
+        }),
+        debugIncrementSequence: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let ex = await Store.Sequence.findById(ctx, args.id);
+                if (!ex) {
+                    return false;
+                }
+                ex.value += args.by;
+                await ex.flush(ctx);
+
                 return true;
             });
         })
