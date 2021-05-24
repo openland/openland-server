@@ -20,6 +20,11 @@ export type ScalableProducerPeerTask =
     | { type: 'remove', cid: number, pid: number }
     | { type: 'offer', cid: number, pid: number, sid: string, sdp: string };
 
+export type ScalableConsumerPeerTask =
+    | { type: 'add', cid: number, pid: number }
+    | { type: 'remove', cid: number, pid: number }
+    | { type: 'answer', cid: number, pid: number, sid: string, sdp: string };
+
 function collapseTasks(tasks: ScalableProducerPeerTask[]) {
     let res: ScalableProducerPeerTask[] = [];
     let had = new Set<number>();
@@ -137,7 +142,8 @@ export class ScalableMediator {
                     if (!transportId) {
                         transportId = randomKey();
                         this.repo.setProducerTransport(ctx, cid, t.pid, session, transportId);
-                        this.createProducerEndStream(ctx, t.pid, transportId);
+                        this.repo.createProducerEndStream(ctx, t.pid, transportId);
+                        Modules.Calls.repo.notifyPeerChanged(ctx, t.pid);
                     }
                     addedTransports.push({ pid: t.pid, id: transportId });
                 }
@@ -171,7 +177,7 @@ export class ScalableMediator {
                 }
             }
 
-            return { workerId, routerId, addedTransports, pausedTransports, offers };
+            return { workerId, routerId, addedTransports, pausedTransports, offers, session };
         });
 
         // No operations needed
@@ -184,7 +190,7 @@ export class ScalableMediator {
 
         // Process offers
         let answers: { pid: number, id: string, sdp: string }[] = [];
-        for (let offer of def.offers) {
+        await Promise.all(def.offers.map(async (offer) => {
             let sdp;
             let fingerprints: { algorithm: string, value: string }[];
             let rtpParameters: RtpParameters;
@@ -194,7 +200,7 @@ export class ScalableMediator {
                 rtpParameters = extractOpusRtpParameters(sdp.media[0]);
             } catch (e) {
                 logger.warn(parent, e);
-                continue;
+                return;
             }
             let mid = sdp.media[0].mid! + ''; // Why?
             let port = sdp.media[0].port;
@@ -214,38 +220,14 @@ export class ScalableMediator {
                 media
             );
             answers.push({ pid: offer.pid, id: offer.id, sdp: answer });
-        }
+        }));
 
         // Commit updates
         await inTx(parent, async (ctx) => {
             for (let answer of answers) {
-                this.answerProducerEndStream(ctx, answer.pid, answer.id, answer.sdp);
+                this.repo.answerProducerEndStream(ctx, answer.pid, answer.id, answer.sdp);
+                Modules.Calls.repo.notifyPeerChanged(ctx, answer.pid);
             }
         });
-    }
-
-    private createProducerEndStream(ctx: Context, pid: number, id: string) {
-        this.endStreamDirectory.createStream(ctx, id, {
-            pid,
-            seq: 1,
-            state: 'need-offer',
-            localCandidates: [],
-            remoteCandidates: [],
-            localSdp: null,
-            remoteSdp: null,
-            localStreams: [{ type: 'audio', codec: 'opus', mid: null }],
-            remoteStreams: [],
-            iceTransportPolicy: 'relay'
-        });
-        Modules.Calls.repo.notifyPeerChanged(ctx, pid);
-    }
-
-    private answerProducerEndStream(ctx: Context, pid: number, id: string, sdp: string) {
-        this.endStreamDirectory.incrementSeq(ctx, id, 1);
-        this.endStreamDirectory.updateStream(ctx, id, {
-            state: 'online',
-            remoteSdp: JSON.stringify({ type: 'answer', sdp })
-        });
-        Modules.Calls.repo.notifyPeerChanged(ctx, pid);
     }
 }

@@ -3,6 +3,7 @@ import { Subspace, TupleItem, encoders } from '@openland/foundationdb';
 import { Capabilities } from 'openland-module-calls/repositories/CallScheduler';
 import { KitchenRtpCapabilities } from '../kitchen/types';
 import { Store } from 'openland-module-db/FDB';
+import { EndStreamDirectory } from 'openland-module-calls/repositories/EndStreamDirectory';
 
 type PeerCollection = 'speaker' | 'listener' | 'producer';
 
@@ -14,6 +15,7 @@ const peerCollectionMap: { [key in PeerCollection]: number } = {
 
 export class ScalableRepository {
 
+    readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
     readonly sessions: Subspace<TupleItem[], boolean>;
     readonly peersSubspace: Subspace<TupleItem[], boolean>;
     readonly ids: Subspace<TupleItem[], string>;
@@ -198,5 +200,32 @@ export class ScalableRepository {
 
     async getSessionProducers(ctx: Context, cid: number, sid: string) {
         return (await this.producers.range(ctx, [cid, sid])).map((v) => ({ id: v.key[v.key.length - 1] as string, active: v.value }));
+    }
+
+    //
+    // Streams
+    //
+
+    createProducerEndStream(ctx: Context, pid: number, id: string) {
+        this.endStreamDirectory.createStream(ctx, id, {
+            pid,
+            seq: 1,
+            state: 'need-offer',
+            localCandidates: [],
+            remoteCandidates: [],
+            localSdp: null,
+            remoteSdp: null,
+            localStreams: [{ type: 'audio', codec: 'opus', mid: null }],
+            remoteStreams: [],
+            iceTransportPolicy: 'relay'
+        });
+    }
+
+    answerProducerEndStream(ctx: Context, pid: number, id: string, sdp: string) {
+        this.endStreamDirectory.incrementSeq(ctx, id, 1);
+        this.endStreamDirectory.updateStream(ctx, id, {
+            state: 'online',
+            remoteSdp: JSON.stringify({ type: 'answer', sdp })
+        });
     }
 }

@@ -112,7 +112,7 @@
     "jwks-rsa": "^1.2.0",
     "libphonenumber-js": "^1.9.6",
     "linkify-it": "^2.0.3",
-    "mediakitchen": "1.2.2",
+    "mediakitchen": "2.0.1",
     "module-alias": "^2.1.0",
     "moleculer": "^0.14.13",
     "moment": "^2.24.0",
