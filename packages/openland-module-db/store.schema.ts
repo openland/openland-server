@@ -439,6 +439,7 @@ export default declareSchema(() => {
 
     taskQueue('CommentAugmentation');
     taskQueue('CommentNotificationDelivery');
+    taskQueue('CommentNotificationBatchDelivery');
     entity('Comment', () => {
         primaryKey('id', integer());
         field('peerId', integer());
