@@ -431,6 +431,9 @@ export const Resolver: GQLResolver = {
         debugGeo: withPermission('super-admin', async (ctx, args) => {
             let data = RequestContext.get(ctx);
             return `ip: ${data.ip}, location: ${JSON.stringify(data.location)}, latLong: ${JSON.stringify(data.latLong)}`;
+        }),
+        debugUserSettings: withPermission('super-admin', async (ctx, args) => {
+            return Modules.Users.getUserSettings(ctx, IDs.User.parse(args.uid));
         })
     },
     Mutation: {
