@@ -61,12 +61,14 @@ export class ScalableMediator {
         if (peersCount === 0 && session !== null) {
             shouldDeleteSession = true;
         }
+        logger.log(ctx, 'Session Jobs: ' + { peersCount, added, removed, shouldCreateSession, shouldDeleteSession });
 
         //
         // Delete session if needed
         //
 
         if (shouldDeleteSession) {
+            logger.log(ctx, 'Stop session: ' + session!);
             await this.repo.sessionStop(ctx, cid, session!);
             const existingShards = await this.repo.getShards(ctx, cid, session!);
             for (let shard of existingShards) {
@@ -86,6 +88,7 @@ export class ScalableMediator {
         //
 
         if (shouldCreateSession) {
+            logger.log(ctx, 'Create session: ' + session!);
             session = randomKey();
             await this.repo.sessionCreate(ctx, cid, session);
         }
@@ -278,6 +281,7 @@ export class ScalableMediator {
 
         // Stop if needed
         if (tasks.find((v) => v.type === 'stop')) {
+            logger.log(parent, 'Shard Stop: ' + session! + '/' + shard);
             let data = await inTx(parent, async (ctx) => {
                 this.repo.markDeleted(ctx, cid, session, shard);
 
@@ -304,6 +308,10 @@ export class ScalableMediator {
             }
 
             return;
+        }
+
+        if (tasks.find((v) => v.type === 'start')) {
+            logger.log(parent, 'Shard Start: ' + session! + '/' + shard);
         }
 
         // Resolve router and worker
