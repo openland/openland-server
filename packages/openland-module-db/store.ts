@@ -26139,6 +26139,7 @@ export interface Store extends BaseStore {
     readonly ConferencePeerKeepAliveDirectory: Subspace;
     readonly EndStreamDirectory: Subspace;
     readonly ConferenceSchedulingDirectory: Subspace;
+    readonly ConferenceScalableStateDirectory: Subspace;
     readonly ConferenceScalablePeersDirectory: Subspace;
     readonly NotificationCenterNeedDeliveryFlagDirectory: Subspace;
     readonly NeedNotificationFlagDirectory: Subspace;
@@ -26468,6 +26469,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let ConferencePeerKeepAliveDirectoryPromise = storage.resolveCustomDirectory('conferencePeerKeepAlive');
     let EndStreamDirectoryPromise = storage.resolveCustomDirectory('endStream');
     let ConferenceSchedulingDirectoryPromise = storage.resolveCustomDirectory('conferenceScheduling');
+    let ConferenceScalableStateDirectoryPromise = storage.resolveCustomDirectory('conferenceScalableState');
     let ConferenceScalablePeersDirectoryPromise = storage.resolveCustomDirectory('conferenceScalablePeers');
     let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
     let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
@@ -26754,6 +26756,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         ConferencePeerKeepAliveDirectory: await ConferencePeerKeepAliveDirectoryPromise,
         EndStreamDirectory: await EndStreamDirectoryPromise,
         ConferenceSchedulingDirectory: await ConferenceSchedulingDirectoryPromise,
+        ConferenceScalableStateDirectory: await ConferenceScalableStateDirectoryPromise,
         ConferenceScalablePeersDirectory: await ConferenceScalablePeersDirectoryPromise,
         NotificationCenterNeedDeliveryFlagDirectory: await NotificationCenterNeedDeliveryFlagDirectoryPromise,
         NeedNotificationFlagDirectory: await NeedNotificationFlagDirectoryPromise,

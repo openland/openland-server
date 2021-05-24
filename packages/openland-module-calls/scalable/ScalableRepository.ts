@@ -34,43 +34,43 @@ export class ScalableRepository {
     readonly capabilities: Subspace<TupleItem[], Capabilities>;
 
     constructor() {
-        this.sessions = Store.ConferenceScalablePeersDirectory
+        this.sessions = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .subspace([0]);
-        this.peersSubspace = Store.ConferenceScalablePeersDirectory
+        this.peersSubspace = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .subspace([1]);
-        this.capabilities = Store.ConferenceScalablePeersDirectory
+        this.capabilities = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
             .subspace([3]);
-        this.producers = Store.ConferenceScalablePeersDirectory
+        this.producers = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .subspace([4]);
-        this.shards = Store.ConferenceScalablePeersDirectory
+        this.shards = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.int16LE)
             .subspace([6]);
-        this.shardPeers = Store.ConferenceScalablePeersDirectory
+        this.shardPeers = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .subspace([6]);
-        this.peerShards = Store.ConferenceScalablePeersDirectory
+        this.peerShards = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.string)
             .subspace([7]);
-        this.endStreamShards = Store.ConferenceScalablePeersDirectory
+        this.endStreamShards = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.tuple)
             .subspace([8]);
-        this.shardRefs = Store.ConferenceScalablePeersDirectory
+        this.shardRefs = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.string)
             .subspace([9]);
-        this.shardDeleted = Store.ConferenceScalablePeersDirectory
+        this.shardDeleted = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .subspace([10]);

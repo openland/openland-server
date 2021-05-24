@@ -10,7 +10,7 @@ import { taskQueue } from '../../openland-module-workers/compiler';
 export function scalableStore() {
 
     // State
-    customDirectory('ConferenceScalablePeers');
+    customDirectory('ConferenceScalableState');
 
     // Queue
     taskQueue('ConferenceScalableSession');
@@ -19,6 +19,7 @@ export function scalableStore() {
     // Deprecated
     taskQueue('ConferenceScalableQueue');
     taskQueue('ConferenceScalablePurgeQueue');
+    customDirectory('ConferenceScalablePeers');
 
     // Started flags
     atomicBool('ConferenceScalableStarted', () => {

@@ -1451,4 +1451,15 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '202-reset-scalable-scheduler',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            Store.ConferenceScalablePeersCount.directory.clearPrefixed(ctx, Buffer.from([]));
+            Store.ConferenceScalablePeersDirectory.clearPrefixed(ctx, Buffer.from([]));
+        });
+    }
+});
+
+
 export default migrations;
