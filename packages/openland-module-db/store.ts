@@ -26169,6 +26169,8 @@ export interface Store extends BaseStore {
     readonly KitchenConsumerCreateQueue: QueueStorage;
     readonly KitchenConsumerUnpauseQueue: QueueStorage;
     readonly KitchenConsumerDeleteQueue: QueueStorage;
+    readonly ConferenceScalableSessionQueue: QueueStorage;
+    readonly ConferenceScalableShardsQueue: QueueStorage;
     readonly ConferenceScalableQueueQueue: QueueStorage;
     readonly ConferenceScalablePurgeQueueQueue: QueueStorage;
     readonly FeedAutoSubscriptionQueue: QueueStorage;
@@ -26509,6 +26511,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let KitchenConsumerCreateQueuePromise = QueueStorage.open('KitchenConsumerCreate', storage);
     let KitchenConsumerUnpauseQueuePromise = QueueStorage.open('KitchenConsumerUnpause', storage);
     let KitchenConsumerDeleteQueuePromise = QueueStorage.open('KitchenConsumerDelete', storage);
+    let ConferenceScalableSessionQueuePromise = QueueStorage.open('ConferenceScalableSession', storage);
+    let ConferenceScalableShardsQueuePromise = QueueStorage.open('ConferenceScalableShards', storage);
     let ConferenceScalableQueueQueuePromise = QueueStorage.open('ConferenceScalableQueue', storage);
     let ConferenceScalablePurgeQueueQueuePromise = QueueStorage.open('ConferenceScalablePurgeQueue', storage);
     let FeedAutoSubscriptionQueuePromise = QueueStorage.open('FeedAutoSubscription', storage);
@@ -26793,6 +26797,8 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         KitchenConsumerCreateQueue: await KitchenConsumerCreateQueuePromise,
         KitchenConsumerUnpauseQueue: await KitchenConsumerUnpauseQueuePromise,
         KitchenConsumerDeleteQueue: await KitchenConsumerDeleteQueuePromise,
+        ConferenceScalableSessionQueue: await ConferenceScalableSessionQueuePromise,
+        ConferenceScalableShardsQueue: await ConferenceScalableShardsQueuePromise,
         ConferenceScalableQueueQueue: await ConferenceScalableQueueQueuePromise,
         ConferenceScalablePurgeQueueQueue: await ConferenceScalablePurgeQueueQueuePromise,
         FeedAutoSubscriptionQueue: await FeedAutoSubscriptionQueuePromise,

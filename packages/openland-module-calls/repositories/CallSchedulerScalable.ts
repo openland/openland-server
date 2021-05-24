@@ -1,4 +1,3 @@
-import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { inTx } from '@openland/foundationdb';
 import { createLogger } from '@openland/log';
 import { CallRepository } from './CallRepository';
@@ -8,7 +7,7 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { SyncWorkerQueue } from 'openland-module-workers/SyncWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
-import { ScalableMediator, ScalableProducerPeerTask } from 'openland-module-calls/scalable/ScalableMediator';
+import { ScalableMediator, ScalableSessionTask, ScalableShardTask } from 'openland-module-calls/scalable/ScalableMediator';
 
 const logger = createLogger('mediakitchen-scalable');
 
@@ -19,8 +18,8 @@ export class CallSchedulerScalable implements CallScheduler {
     supportsCandidates = false;
 
     // Scalable conference worker
-    readonly producersWorker = new SyncWorkerQueue<number, ScalableProducerPeerTask>(Store.ConferenceScalableQueueQueue, { maxAttempts: 'infinite', type: 'external' });
-    readonly purgeWorker = new BetterWorkerQueue<{ cid: number, sid: string }>(Store.ConferenceScalablePurgeQueueQueue, { maxAttempts: 'infinite', type: 'external' });
+    readonly sessionWorker = new SyncWorkerQueue<number, ScalableSessionTask>(Store.ConferenceScalableSessionQueue, { maxAttempts: 'infinite', type: 'transactional' });
+    readonly shardWorker = new SyncWorkerQueue<string, ScalableShardTask>(Store.ConferenceScalableProducersQueue, { maxAttempts: 'infinite', type: 'external' });
 
     // Scalable mediator
     readonly mediator = new ScalableMediator();
@@ -35,53 +34,22 @@ export class CallSchedulerScalable implements CallScheduler {
     onPeerAdded = async (parent: Context, cid: number, pid: number, sources: MediaSources, capabilities: Capabilities, role: 'speaker' | 'listener') => {
         logger.log(parent, 'Add peer to ' + cid + ': ' + pid);
         await inTx(parent, async (ctx) => {
-
-            // Persist capabilities
             this.mediator.repo.setPeerCapabilities(ctx, cid, pid, capabilities);
-
-            // Producers
-            if (role === 'speaker') {
-                if ((await this.mediator.repo.addPeer(ctx, cid, pid, 'listener')).wasAdded) {
-                    await this.producersWorker.pushWork(ctx, cid, { type: 'add', cid, pid });
-                }
-            }
-
-            // Consumers
-            // TODO: Implement
+            await this.sessionWorker.pushWork(ctx, cid, { type: 'add', cid, pid, role });
         });
     }
 
     onPeerRoleChanged = async (parent: Context, cid: number, pid: number, role: 'speaker' | 'listener') => {
         logger.log(parent, 'Peer role changed in ' + cid + ': ' + pid);
         await inTx(parent, async (ctx) => {
-
-            // Producers
-            if (role === 'speaker') {
-                if ((await this.mediator.repo.addPeer(ctx, cid, pid, 'listener')).wasAdded) {
-                    await this.producersWorker.pushWork(ctx, cid, { type: 'add', cid, pid });
-                }
-            } else {
-                if ((await this.mediator.repo.removePeer(ctx, cid, pid, 'listener')).wasRemoved) {
-                    await this.producersWorker.pushWork(ctx, cid, { type: 'remove', cid, pid });
-                }
-            }
-
-            // Consumers
-            // TODO: Implement
+            await this.sessionWorker.pushWork(ctx, cid, { type: 'role-change', cid, pid, role });
         });
     }
 
     onPeerRemoved = async (parent: Context, cid: number, pid: number) => {
         logger.log(parent, 'Peer removed in ' + cid + ': ' + pid);
         await inTx(parent, async (ctx) => {
-
-            // Producers
-            if ((await this.mediator.repo.removePeer(ctx, cid, pid, 'listener')).wasRemoved) {
-                await this.producersWorker.pushWork(ctx, cid, { type: 'remove', cid, pid });
-            }
-
-            // Consumers
-            // TODO: Implement
+            await this.sessionWorker.pushWork(ctx, cid, { type: 'remove', cid, pid });
         });
     }
 
@@ -96,12 +64,37 @@ export class CallSchedulerScalable implements CallScheduler {
     onStreamOffer = async (parent: Context, cid: number, pid: number, sid: string, offer: string, hints: StreamHint[] | null) => {
         logger.log(parent, 'Peer stream offer in ' + cid + ': ' + pid);
         await inTx(parent, async (ctx) => {
-            await this.producersWorker.pushWork(ctx, cid, { type: 'offer', cid, pid, sid, sdp: JSON.parse(offer).sdp });
+            let shard = await this.mediator.repo.getStreamShard(ctx, sid);
+            if (shard) {
+                await this.shardWorker.pushWork(ctx, cid + '_' + shard.session + '_' + shard.shard, {
+                    type: 'offer',
+                    cid,
+                    pid,
+                    session: shard.session,
+                    shard: shard.shard,
+                    sid,
+                    sdp: JSON.parse(offer).sdp
+                });
+            }
         });
     }
 
     onStreamAnswer = async (parent: Context, cid: number, pid: number, sid: string, answer: string) => {
         logger.log(parent, 'Peer stream answer in ' + cid + ': ' + pid);
+        await inTx(parent, async (ctx) => {
+            let shard = await this.mediator.repo.getStreamShard(ctx, sid);
+            if (shard) {
+                await this.shardWorker.pushWork(ctx, cid + '_' + shard.session + '_' + shard.shard, {
+                    type: 'answer',
+                    cid,
+                    pid,
+                    session: shard.session,
+                    shard: shard.shard,
+                    sid,
+                    sdp: JSON.parse(answer).sdp
+                });
+            }
+        });
     }
 
     //

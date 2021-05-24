@@ -1,16 +1,16 @@
 import { Context } from '@openland/context';
 import { Subspace, TupleItem, encoders } from '@openland/foundationdb';
 import { Capabilities } from 'openland-module-calls/repositories/CallScheduler';
-import { KitchenRtpCapabilities } from '../kitchen/types';
 import { Store } from 'openland-module-db/FDB';
 import { EndStreamDirectory } from 'openland-module-calls/repositories/EndStreamDirectory';
 
-type PeerCollection = 'speaker' | 'listener' | 'producer';
+type PeerCollection = 'speaker' | 'listener' | 'producer' | 'main';
 
 const peerCollectionMap: { [key in PeerCollection]: number } = {
     'speaker': 0,
     'listener': 1,
-    'producer': 2
+    'producer': 2,
+    'main': 3
 };
 
 export class ScalableRepository {
@@ -18,10 +18,20 @@ export class ScalableRepository {
     readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
     readonly sessions: Subspace<TupleItem[], boolean>;
     readonly peersSubspace: Subspace<TupleItem[], boolean>;
-    readonly ids: Subspace<TupleItem[], string>;
     readonly producers: Subspace<TupleItem[], boolean>;
+
+    // Shard Allocations
+    readonly shards: Subspace<TupleItem[], number>;
+    readonly shardPeers: Subspace<TupleItem[], boolean>;
+    readonly shardRefs: Subspace<TupleItem[], string>;
+    readonly shardDeleted: Subspace<TupleItem[], boolean>;
+    readonly peerShards: Subspace<TupleItem[], string>;
+
+    // Shards
+    readonly endStreamShards: Subspace<TupleItem[], TupleItem[]>;
+
+    // Peer 
     readonly capabilities: Subspace<TupleItem[], Capabilities>;
-    readonly rtpCapabilities: Subspace<TupleItem[], KitchenRtpCapabilities>;
 
     constructor() {
         this.sessions = Store.ConferenceScalablePeersDirectory
@@ -32,10 +42,6 @@ export class ScalableRepository {
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .subspace([1]);
-        this.ids = Store.ConferenceScalablePeersDirectory
-            .withKeyEncoding(encoders.tuple)
-            .withValueEncoding(encoders.string)
-            .subspace([2]);
         this.capabilities = Store.ConferenceScalablePeersDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
@@ -44,15 +50,49 @@ export class ScalableRepository {
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .subspace([4]);
-        this.rtpCapabilities = Store.ConferenceScalablePeersDirectory
+        this.shards = Store.ConferenceScalablePeersDirectory
             .withKeyEncoding(encoders.tuple)
-            .withValueEncoding(encoders.json)
-            .subspace([5]);
+            .withValueEncoding(encoders.int16LE)
+            .subspace([6]);
+        this.shardPeers = Store.ConferenceScalablePeersDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean)
+            .subspace([6]);
+        this.peerShards = Store.ConferenceScalablePeersDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.string)
+            .subspace([7]);
+        this.endStreamShards = Store.ConferenceScalablePeersDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.tuple)
+            .subspace([8]);
+        this.shardRefs = Store.ConferenceScalablePeersDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.string)
+            .subspace([9]);
+        this.shardDeleted = Store.ConferenceScalablePeersDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.boolean)
+            .subspace([10]);
     }
 
     //
     // Peers
     //
+
+    addPeersNoCheck(ctx: Context, cid: number, pids: number[], collection: PeerCollection) {
+        for (let p of pids) {
+            this.peersSubspace.set(ctx, [cid, peerCollectionMap[collection], p], true);
+        }
+        Store.ConferenceScalablePeersCount.add(ctx, cid, peerCollectionMap[collection], pids.length);
+    }
+
+    removePeersNoCheck(ctx: Context, cid: number, pids: number[], collection: PeerCollection) {
+        for (let p of pids) {
+            this.peersSubspace.clear(ctx, [cid, peerCollectionMap[collection], p]);
+        }
+        Store.ConferenceScalablePeersCount.add(ctx, cid, peerCollectionMap[collection], -pids.length);
+    }
 
     async addPeer(ctx: Context, cid: number, pid: number, collection: PeerCollection): Promise<{ wasAdded: boolean }> {
         if (await this.peersSubspace.get(ctx, [cid, peerCollectionMap[collection], pid])) {
@@ -151,62 +191,121 @@ export class ScalableRepository {
     }
 
     //
+    // Shards
+    //
+
+    async getShards(ctx: Context, cid: number, sid: string) {
+        let res = await this.shards.range(ctx, [cid, sid]);
+        return res.map((v) => ({
+            session: v.key[v.key.length - 3] as string,
+            kind: v.key[v.key.length - 2] === 0 ? 'producers' : 'consumers' as ('producers' | 'consumers'),
+            shard: v.key[v.key.length - 1] as string,
+            count: v.value
+        }));
+    }
+
+    addShard(ctx: Context, cid: number, sid: string, shard: string, kind: 'producers' | 'consumers') {
+        this.shards.set(ctx, [cid, sid, kind === 'producers' ? 0 : 1, shard], 0);
+    }
+
+    addPeerToShard(ctx: Context, cid: number, sid: string, shard: string, kind: 'producers' | 'consumers', pid: number) {
+        this.shards.add(ctx, [cid, sid, kind === 'producers' ? 0 : 1, shard], 1);
+        this.shardPeers.set(ctx, [cid, sid, kind, shard, pid], true);
+    }
+
+    removePeerFromShard(ctx: Context, cid: number, sid: string, shard: string, kind: 'producers' | 'consumers', pid: number) {
+        this.shards.add(ctx, [cid, sid, kind === 'producers' ? 0 : 1, shard], -1);
+        this.shardPeers.clear(ctx, [cid, sid, kind, shard, pid]);
+    }
+
+    setPeerShardReference(ctx: Context, cid: number, sid: string, kind: 'producers' | 'consumers', pid: number, shard: string) {
+        this.peerShards.set(ctx, [cid, sid, kind === 'producers' ? 0 : 1, pid], shard);
+    }
+
+    getPeerShardReference(ctx: Context, cid: number, sid: string, kind: 'producers' | 'consumers', pid: number) {
+        return this.peerShards.get(ctx, [cid, sid, kind === 'producers' ? 0 : 1, pid]);
+    }
+
+    clearShards(ctx: Context, cid: number, sid: string) {
+        this.shards.clearPrefixed(ctx, [cid, sid]);
+        this.shardPeers.clearPrefixed(ctx, [cid, sid]);
+        this.peerShards.clearPrefixed(ctx, [cid, sid]);
+    }
+
+    //
+    // Shard
+    //
+
+    markDeleted(ctx: Context, cid: number, session: string, shard: string) {
+        this.shardDeleted.set(ctx, [cid, session, shard], true);
+    }
+
+    async isShardDeleted(ctx: Context, cid: number, session: string, shard: string) {
+        return !!(await this.shardDeleted.get(ctx, [cid, session, shard]));
+    }
+
+    //
     // Router
     //
 
-    async getSessionWorkerId(ctx: Context, cid: number, sid: string) {
-        return await this.ids.get(ctx, [cid, sid, 0]);
+    async getShardWorkerId(ctx: Context, cid: number, session: string, shard: string) {
+        return await this.shardRefs.get(ctx, [cid, session, shard, 0]);
     }
 
-    setSessionWorkerId(ctx: Context, cid: number, sid: string, id: string) {
-        this.ids.set(ctx, [cid, sid, 0], id);
+    setShardWorkerId(ctx: Context, cid: number, session: string, shard: string, id: string) {
+        this.shardRefs.set(ctx, [cid, session, shard, 0], id);
     }
 
-    async getSessionRouterId(ctx: Context, cid: number, sid: string) {
-        return await this.ids.get(ctx, [cid, sid, 1]);
+    async getShardRouterId(ctx: Context, cid: number, session: string, shard: string) {
+        return await this.shardRefs.get(ctx, [cid, session, shard, 1]);
     }
 
-    setSessionRouterId(ctx: Context, cid: number, sid: string, id: string | null) {
-        if (id) {
-            this.ids.set(ctx, [cid, sid, 1], id);
-        } else {
-            this.ids.clear(ctx, [cid, sid, 1]);
-        }
+    setShardRouterId(ctx: Context, cid: number, session: string, shard: string, id: string) {
+        this.shardRefs.set(ctx, [cid, session, shard, 1], id);
     }
 
     //
     // Producers
     //
 
-    setProducerTransport(ctx: Context, cid: number, pid: number, sid: string, id: string | null) {
-        if (id) {
-            this.ids.set(ctx, [cid, sid, 2, pid], id);
-        } else {
-            this.ids.clear(ctx, [cid, sid, 2, pid]);
-        }
+    setProducerTransport(ctx: Context, cid: number, session: string, shard: string, pid: number, id: string) {
+        this.shardRefs.set(ctx, [cid, session, shard, 2, pid], id);
     }
 
-    async getProducerTransport(ctx: Context, cid: number, pid: number, sid: string) {
-        return await this.ids.get(ctx, [cid, sid, 2, pid]);
+    getProducerTransport(ctx: Context, cid: number, session: string, shard: string, pid: number) {
+        return this.shardRefs.get(ctx, [cid, session, shard, 2, pid]);
     }
 
-    addSessionRouterProducer(ctx: Context, cid: number, sid: string, producer: string) {
-        this.producers.set(ctx, [cid, sid, producer], true);
-    }
+    // addSessionRouterProducer(ctx: Context, cid: number, sid: string, producer: string) {
+    //     this.producers.set(ctx, [cid, sid, producer], true);
+    // }
 
-    removeSessionRouterProducer(ctx: Context, cid: number, sid: string, producer: string) {
-        this.producers.set(ctx, [cid, sid, producer], false);
-    }
+    // removeSessionRouterProducer(ctx: Context, cid: number, sid: string, producer: string) {
+    //     this.producers.set(ctx, [cid, sid, producer], false);
+    // }
 
-    async getSessionProducers(ctx: Context, cid: number, sid: string) {
-        return (await this.producers.range(ctx, [cid, sid])).map((v) => ({ id: v.key[v.key.length - 1] as string, active: v.value }));
-    }
+    // async getSessionProducers(ctx: Context, cid: number, sid: string) {
+    //     return (await this.producers.range(ctx, [cid, sid])).map((v) => ({ id: v.key[v.key.length - 1] as string, active: v.value }));
+    // }
 
     //
     // Streams
     //
 
-    createProducerEndStream(ctx: Context, pid: number, id: string) {
+    async getStreamShard(ctx: Context, id: string) {
+        let ref = await this.endStreamShards.get(ctx, [id]);
+        if (!ref) {
+            return null;
+        }
+        return {
+            cid: ref[0] as number,
+            session: ref[1] as string,
+            shard: ref[2] as string
+        };
+    }
+
+    createProducerEndStream(ctx: Context, cid: number, session: string, shard: string, pid: number, id: string) {
+        this.endStreamShards.set(ctx, [id], [cid, session, shard]);
         this.endStreamDirectory.createStream(ctx, id, {
             pid,
             seq: 1,
@@ -221,7 +320,7 @@ export class ScalableRepository {
         });
     }
 
-    answerProducerEndStream(ctx: Context, pid: number, id: string, sdp: string) {
+    answerProducerEndStream(ctx: Context, id: string, sdp: string) {
         this.endStreamDirectory.incrementSeq(ctx, id, 1);
         this.endStreamDirectory.updateStream(ctx, id, {
             state: 'online',

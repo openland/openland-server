@@ -13,6 +13,10 @@ export function scalableStore() {
     customDirectory('ConferenceScalablePeers');
 
     // Queue
+    taskQueue('ConferenceScalableSession');
+    taskQueue('ConferenceScalableShards');
+
+    // Deprecated
     taskQueue('ConferenceScalableQueue');
     taskQueue('ConferenceScalablePurgeQueue');
 
