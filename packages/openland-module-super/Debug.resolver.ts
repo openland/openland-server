@@ -2750,7 +2750,7 @@ export const Resolver: GQLResolver = {
                     return false;
                 }
                 ex.value += args.by;
-                ex.flush(ctx);
+                await ex.flush(ctx);
 
                 return true;
             });
