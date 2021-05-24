@@ -88,8 +88,8 @@ export class ScalableMediator {
         //
 
         if (shouldCreateSession) {
-            logger.log(ctx, 'Create session: ' + session!);
             session = randomKey();
+            logger.log(ctx, 'Create session: ' + session!);
             await this.repo.sessionCreate(ctx, cid, session);
         }
 
@@ -337,7 +337,7 @@ export class ScalableMediator {
                 workerId = active[0].id;
 
                 // Save worker
-                this.repo.setShardWorkerId(ctx, cid, session, workerId, shard);
+                this.repo.setShardWorkerId(ctx, cid, session, shard, workerId);
             }
 
             //
@@ -347,7 +347,7 @@ export class ScalableMediator {
             let routerId = await this.repo.getShardRouterId(ctx, cid, session, shard);
             if (!routerId) {
                 routerId = randomKey();
-                this.repo.setShardRouterId(ctx, cid, session, routerId, shard);
+                this.repo.setShardRouterId(ctx, cid, session, shard, routerId);
             }
 
             //
