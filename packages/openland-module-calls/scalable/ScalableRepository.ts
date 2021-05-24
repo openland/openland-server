@@ -1,8 +1,10 @@
+import { RemoteStream } from './../repositories/EndStreamDirectory';
 import { Context } from '@openland/context';
 import { Subspace, TupleItem, encoders } from '@openland/foundationdb';
 import { Capabilities } from 'openland-module-calls/repositories/CallScheduler';
 import { Store } from 'openland-module-db/FDB';
 import { EndStreamDirectory } from 'openland-module-calls/repositories/EndStreamDirectory';
+import { DtlsParameters, IceCandidate, IceParameters, RtpParameters } from 'mediakitchen-common';
 
 type PeerCollection = 'speaker' | 'listener' | 'producer' | 'main';
 
@@ -11,6 +13,31 @@ const peerCollectionMap: { [key in PeerCollection]: number } = {
     'listener': 1,
     'producer': 2,
     'main': 3
+};
+
+export type TransportSDP = {
+    mid: string,
+    port: number,
+    parameters: RtpParameters,
+    fingerprints: { algorithm: string, value: string }[]
+};
+
+export type ShardProducer = {
+    pid: number;
+    remote: boolean;
+    producerId: string;
+    parameters: RtpParameters;
+};
+export type ConsumerEdge = { consumerId: string, producerId: string, parameters: RtpParameters };
+export type ShardConsumer = {
+    pid: number;
+    transportId: string;
+    created: boolean;
+    connectedTo: ConsumerEdge[];
+    iceCandates: IceCandidate[] | null;
+    iceParameters: IceParameters | null;
+    dtlsParameters: DtlsParameters | null;
+    capabilities: Capabilities
 };
 
 export class ScalableRepository {
@@ -29,6 +56,9 @@ export class ScalableRepository {
 
     // Shards
     readonly endStreamShards: Subspace<TupleItem[], TupleItem[]>;
+    readonly transportSdp: Subspace<TupleItem[], TransportSDP>;
+    readonly shardProducers: Subspace<TupleItem[], ShardProducer>;
+    readonly shardConsumers: Subspace<TupleItem[], ShardConsumer>;
 
     // Peer 
     readonly capabilities: Subspace<TupleItem[], Capabilities>;
@@ -74,6 +104,18 @@ export class ScalableRepository {
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .subspace([10]);
+        this.transportSdp = Store.ConferenceScalableStateDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.json)
+            .subspace([12]);
+        this.shardProducers = Store.ConferenceScalableStateDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.json)
+            .subspace([13]);
+        this.shardConsumers = Store.ConferenceScalableStateDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.json)
+            .subspace([14]);
     }
 
     //
@@ -276,17 +318,46 @@ export class ScalableRepository {
         return this.shardRefs.get(ctx, [cid, session, shard, 2, pid]);
     }
 
-    // addSessionRouterProducer(ctx: Context, cid: number, sid: string, producer: string) {
-    //     this.producers.set(ctx, [cid, sid, producer], true);
-    // }
+    setTransportSDP(ctx: Context, cid: number, session: string, shard: string, pid: number, tid: string, parameters: TransportSDP) {
+        this.transportSdp.set(ctx, [cid, session, shard, pid, tid], parameters);
+    }
 
-    // removeSessionRouterProducer(ctx: Context, cid: number, sid: string, producer: string) {
-    //     this.producers.set(ctx, [cid, sid, producer], false);
-    // }
+    getTransportSdp(ctx: Context, cid: number, session: string, shard: string, pid: number, tid: string) {
+        return this.transportSdp.get(ctx, [cid, session, shard, pid, tid]);
+    }
 
-    // async getSessionProducers(ctx: Context, cid: number, sid: string) {
-    //     return (await this.producers.range(ctx, [cid, sid])).map((v) => ({ id: v.key[v.key.length - 1] as string, active: v.value }));
-    // }
+    //
+    // Consumers
+    //
+
+    setShardConsumer(ctx: Context, cid: number, session: string, shard: string, pid: number, consumer: ShardConsumer) {
+        this.shardConsumers.set(ctx, [cid, session, shard, pid], consumer);
+    }
+
+    getShardConsumer(ctx: Context, cid: number, session: string, shard: string, pid: number) {
+        return this.shardConsumers.get(ctx, [cid, session, shard, pid]);
+    }
+
+    async getShardConsumers(ctx: Context, cid: number, session: string, shard: string) {
+        return (await this.shardConsumers.range(ctx, [cid, session, shard])).map((v) => v.value);
+    }
+
+    removeShardConsumer(ctx: Context, cid: number, session: string, shard: string, pid: number) {
+        this.shardConsumers.clear(ctx, [cid, session, shard, pid]);
+    }
+
+    addProducerToShard(ctx: Context, cid: number, session: string, shard: string, pid: number, remote: boolean, producerId: string, parameters: RtpParameters) {
+        this.shardProducers.set(ctx, [cid, session, shard, producerId], {
+            pid,
+            remote,
+            producerId,
+            parameters
+        });
+    }
+
+    async getShardProducers(ctx: Context, cid: number, session: string, shard: string) {
+        return (await this.shardProducers.range(ctx, [cid, session, shard])).map((v) => v.value);
+    }
 
     //
     // Streams
@@ -302,6 +373,31 @@ export class ScalableRepository {
             session: ref[1] as string,
             shard: ref[2] as string
         };
+    }
+
+    createConsumerEndStream(ctx: Context, cid: number, session: string, shard: string, pid: number, id: string, sdp: string, remoteStreams: { pid: number, media: RemoteStream }[]) {
+        this.endStreamShards.set(ctx, [id], [cid, session, shard]);
+        this.endStreamDirectory.createStream(ctx, id, {
+            pid,
+            seq: 1,
+            state: 'need-answer',
+            localCandidates: [],
+            remoteCandidates: [],
+            localSdp: null,
+            remoteSdp: JSON.stringify({ type: 'offer', sdp }),
+            localStreams: [],
+            remoteStreams: remoteStreams,
+            iceTransportPolicy: 'relay'
+        });
+    }
+
+    updateConsumerEndStream(ctx: Context, id: string, sdp: string, remoteStreams: { pid: number, media: RemoteStream }[]) {
+        this.endStreamDirectory.incrementSeq(ctx, id, 1);
+        this.endStreamDirectory.updateStream(ctx, id, {
+            state: 'need-answer',
+            remoteStreams,
+            remoteSdp: JSON.stringify({ type: 'offer', sdp })
+        });
     }
 
     createProducerEndStream(ctx: Context, cid: number, session: string, shard: string, pid: number, id: string) {
@@ -325,6 +421,13 @@ export class ScalableRepository {
         this.endStreamDirectory.updateStream(ctx, id, {
             state: 'online',
             remoteSdp: JSON.stringify({ type: 'answer', sdp })
+        });
+    }
+
+    completeEndStream(ctx: Context, id: string) {
+        this.endStreamDirectory.incrementSeq(ctx, id, 1);
+        this.endStreamDirectory.updateStream(ctx, id, {
+            state: 'completed',
         });
     }
 }

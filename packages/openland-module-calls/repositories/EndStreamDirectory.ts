@@ -23,7 +23,7 @@ type LocalStream =
     { type: 'audio', codec: 'default' | 'opus', mid: string | null } |
     { type: 'video', codec: 'default' | 'h264', source: 'default' | 'screen', mid: string | null };
 
-type RemoteStream =
+export type RemoteStream =
     { type: 'audio', mid: string | null } |
     { type: 'video', source: 'default' | 'screen', mid: string | null };
 
