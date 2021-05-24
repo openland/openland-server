@@ -252,6 +252,7 @@ extend type Mutation {
     debugKickAllFromVoiceChats: Boolean!
     debugMigrateChatCounters: Boolean!
     debugActivateUser(id: ID!): Boolean!
+    debugIncrementSequence(id: String!, by: Int!): Boolean!
 }
 
 extend type Subscription {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'e9a4b394ebd5ab5700b48994633cf600';
+export const GQL_SPEC_VERSION = '02e74cdd41628e58ad2653e7ccc9d210';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2088,6 +2088,7 @@ export namespace GQL {
         debugKickAllFromVoiceChats: boolean;
         debugMigrateChatCounters: boolean;
         debugActivateUser: boolean;
+        debugIncrementSequence: boolean;
         settingsUpdate: Settings;
         sendEmailPairCode: string;
         pairEmail: boolean;
@@ -2571,6 +2572,10 @@ export namespace GQL {
     export interface MutationDebugMigrateChatCountersArgs { }
     export interface MutationDebugActivateUserArgs {
         id: string;
+    }
+    export interface MutationDebugIncrementSequenceArgs {
+        id: string;
+        by: number;
     }
     export interface MutationSettingsUpdateArgs {
         settings: OptionalNullable<UpdateSettingsInput>;
@@ -9101,6 +9106,7 @@ export interface GQLResolver {
             debugKickAllFromVoiceChats: GQL.MutationDebugKickAllFromVoiceChatsArgs,
             debugMigrateChatCounters: GQL.MutationDebugMigrateChatCountersArgs,
             debugActivateUser: GQL.MutationDebugActivateUserArgs,
+            debugIncrementSequence: GQL.MutationDebugIncrementSequenceArgs,
             settingsUpdate: GQL.MutationSettingsUpdateArgs,
             sendEmailPairCode: GQL.MutationSendEmailPairCodeArgs,
             pairEmail: GQL.MutationPairEmailArgs,

@@ -2742,6 +2742,18 @@ export const Resolver: GQLResolver = {
                 await Modules.Users.markForIndexing(ctx, user.id);
                 return true;
             });
+        }),
+        debugIncrementSequence: withPermission('super-admin', async (parent, args) => {
+            return await inTx(parent, async ctx => {
+                let ex = await Store.Sequence.findById(ctx, args.id);
+                if (!ex) {
+                    return false;
+                }
+                ex.value += args.by;
+                ex.flush(ctx);
+
+                return true;
+            });
         })
     },
     Subscription: {
