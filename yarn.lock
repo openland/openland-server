@@ -7204,10 +7204,10 @@ mediakitchen-common@2.1.0:
     io-ts "^2.1.3"
     ts-nats "^1.2.12"
 
-mediakitchen@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/mediakitchen/-/mediakitchen-2.1.0.tgz#1ebe3fee008c394d239d37fcc008e8fcf5daad1d"
-  integrity sha512-6ihJLeV6lPoR0HC7FtdrJyLEaQV+TMk9kFS2u0GPXZ6W022SLnZfrS3olzf+VWTkHCBy0MAepdcUyVf0ZtE3nQ==
+mediakitchen@2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/mediakitchen/-/mediakitchen-2.1.1.tgz#0abb4709d8e62a3d27531d40f3e2ea399b5d030a"
+  integrity sha512-s77+txWTXztCoTfWXux+ET4QWRL0d2Sl7d9IxUo5tUd3YQcUlHm8V0yZ8nZPHOvvQjw9kgplfK4TEJxRmv2ZDQ==
   dependencies:
     mediakitchen-common "2.1.0"
 

@@ -414,16 +414,16 @@ export class ScalableMediator {
             }
 
             // Print Stats
-            for (let p of consumers) {
-                const transport = await router.createWebRtcTransport(TRANSPORT_PARAMETERS, p.transportId);
-                let stats = await transport.getStats();
-                logger.log(parent, log + 'Consumer stats: ' + transport.id + ': ' + JSON.stringify(stats));
-            }
-            for (let p of producers) {
-                const transport = await router.createWebRtcTransport(TRANSPORT_PARAMETERS, p.transportId);
-                let stats = await transport.getStats();
-                logger.log(parent, log + 'Producer stats: ' + transport.id + ': ' + JSON.stringify(stats));
-            }
+            // for (let p of consumers) {
+            //     const transport = await router.createWebRtcTransport(TRANSPORT_PARAMETERS, p.transportId);
+            //     let stats = await transport.getStats();
+            //     logger.log(parent, log + 'Consumer stats: ' + transport.id + ': ' + JSON.stringify(stats));
+            // }
+            // for (let p of producers) {
+            //     const transport = await router.createWebRtcTransport(TRANSPORT_PARAMETERS, p.transportId);
+            //     let stats = await transport.getStats();
+            //     logger.log(parent, log + 'Producer stats: ' + transport.id + ': ' + JSON.stringify(stats));
+            // }
 
             // Commit updates
             await inTx(parent, async (ctx) => {
