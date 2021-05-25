@@ -15,11 +15,17 @@ export class CommentsNotificationsMediator {
     private readonly repo!: CommentsNotificationsRepository;
 
     private readonly queue = new BetterWorkerQueue<{ commentId: number }>(Store.CommentNotificationDeliveryQueue, { type: 'transactional', maxAttempts: 'infinite' });
+    private readonly batchQueue = new BetterWorkerQueue<{ action: 'new_comment', commentId: number, uids: number[] }>(Store.CommentNotificationBatchDeliveryQueue, { type: 'transactional', maxAttempts: 'infinite' });
 
     start = () => {
         if (serverRoleEnabled('workers')) {
             this.queue.addWorkers(100, async (parent, item) => {
                 await this.repo.onNewComment(parent, item.commentId);
+            });
+            this.batchQueue.addWorkers(100, async (parent, item) => {
+                if (item.action === 'new_comment') {
+                    await this.repo.handleNewCommentNotificationsBatch(parent, item.commentId, item.uids);
+                }
             });
         }
     }

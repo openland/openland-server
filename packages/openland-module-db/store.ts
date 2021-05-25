@@ -26154,6 +26154,7 @@ export interface Store extends BaseStore {
     readonly DeliveryUserBatchQueue: QueueStorage;
     readonly CommentAugmentationQueue: QueueStorage;
     readonly CommentNotificationDeliveryQueue: QueueStorage;
+    readonly CommentNotificationBatchDeliveryQueue: QueueStorage;
     readonly MessageAugmentationQueue: QueueStorage;
     readonly MessageMentionNotificationQueue: QueueStorage;
     readonly ConferencePeerSyncQueue: QueueStorage;
@@ -26498,6 +26499,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     let DeliveryUserBatchQueuePromise = QueueStorage.open('DeliveryUserBatch', storage);
     let CommentAugmentationQueuePromise = QueueStorage.open('CommentAugmentation', storage);
     let CommentNotificationDeliveryQueuePromise = QueueStorage.open('CommentNotificationDelivery', storage);
+    let CommentNotificationBatchDeliveryQueuePromise = QueueStorage.open('CommentNotificationBatchDelivery', storage);
     let MessageAugmentationQueuePromise = QueueStorage.open('MessageAugmentation', storage);
     let MessageMentionNotificationQueuePromise = QueueStorage.open('MessageMentionNotification', storage);
     let ConferencePeerSyncQueuePromise = QueueStorage.open('ConferencePeerSync', storage);
@@ -26786,6 +26788,7 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
         DeliveryUserBatchQueue: await DeliveryUserBatchQueuePromise,
         CommentAugmentationQueue: await CommentAugmentationQueuePromise,
         CommentNotificationDeliveryQueue: await CommentNotificationDeliveryQueuePromise,
+        CommentNotificationBatchDeliveryQueue: await CommentNotificationBatchDeliveryQueuePromise,
         MessageAugmentationQueue: await MessageAugmentationQueuePromise,
         MessageMentionNotificationQueue: await MessageMentionNotificationQueuePromise,
         ConferencePeerSyncQueue: await ConferencePeerSyncQueuePromise,

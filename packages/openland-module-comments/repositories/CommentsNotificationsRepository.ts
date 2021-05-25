@@ -6,9 +6,12 @@ import { CommentPeerType } from './CommentsRepository';
 import { Modules } from '../../openland-modules/Modules';
 import { MessageSpan } from '../../openland-module-messaging/MessageInput';
 import { NotificationInput } from '../../openland-module-notification-center/repositories/NotificationCenterRepository';
+import { BetterWorkerQueue } from '../../openland-module-workers/BetterWorkerQueue';
+import { batch } from '../../openland-utils/batch';
 
 @injectable()
 export class CommentsNotificationsRepository {
+    private readonly queue = new BetterWorkerQueue<{ action: 'new_comment', commentId: number, uids: number[] }>(Store.CommentNotificationBatchDeliveryQueue, { type: 'transactional', maxAttempts: 'infinite' });
 
     async subscribeToComments(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, type: 'all' | 'direct', sendEvent: boolean = true) {
         return await inTx(parent, async (ctx) => {
@@ -68,50 +71,14 @@ export class CommentsNotificationsRepository {
 
             let subscriptions = await Store.CommentsSubscription.peer.findAll(ctx, comment.peerType, comment.peerId);
 
-            let notificationsToSend: { uid: number, notificationInput: NotificationInput }[] = [];
-
-            await Promise.all(subscriptions.map(async subscription => {
-                if (comment.uid === subscription.uid) {
-                    // ignore self comment
-                    return;
-                }
-
-                if (comment.peerType === 'message') {
-                    let message = (await Store.Message.findById(ctx, comment.peerId))!;
-                    let isPublicChat = await Modules.Messaging.room.isPublicRoom(ctx, message.cid);
-                    let isMember = await Modules.Messaging.room.isRoomMember(ctx, subscription.uid, message.cid);
-                    let conv = await Store.Conversation.findById(ctx, message.cid);
-                    if (!conv) {
-                        return;
-                    }
-
-                    if (conv.kind === 'room' && !isPublicChat && !isMember) {
-                        return;
-                    }
-                }
-
-                let settings = await Modules.Users.getUserSettings(ctx, subscription.uid);
-                let areNotificationsDisabled = false;
-                if (settings.mobile && settings.desktop) {
-                    areNotificationsDisabled = !settings.mobile.comments.showNotification && !settings.desktop.comments.showNotification;
-                }
-                if (areNotificationsDisabled) {
-                    // ignore disabled notifications
-                    return;
-                }
-                if (subscription.status !== 'active') {
-                    // ignore inactive subscription
-                    return;
-                }
-
-                notificationsToSend.push({
-                    uid: subscription.uid,
-                    notificationInput: { content: [{ type: 'new_comment', commentId: comment.id }] }
+            // fan-out delivery
+            let batches = batch(subscriptions.filter(s => s.status === 'active'), 20);
+            for (let b of batches) {
+                this.queue.pushWork(ctx, {
+                    action: 'new_comment',
+                    commentId,
+                    uids: b.map(s => s.uid)
                 });
-            }));
-
-            for (let notification of notificationsToSend) {
-                await Modules.NotificationCenter.sendNotification(ctx, notification.uid, notification.notificationInput);
             }
         });
     }
@@ -132,6 +99,54 @@ export class CommentsNotificationsRepository {
                         await this.subscribeToComments(ctx, peerType, peerId, mention.user, 'all', false);
                     }
                 }
+            }
+        });
+    }
+
+    async handleNewCommentNotificationsBatch(parent: Context, commentId: number, uids: number[]) {
+        return await inTx(parent, async (ctx) => {
+            let comment = (await Store.Comment.findById(ctx, commentId))!;
+
+            let notificationsToSend: { uid: number, notificationInput: NotificationInput }[] = [];
+
+            await Promise.all(uids.map(async uid => {
+                if (comment.uid === uid) {
+                    // ignore self comment
+                    return;
+                }
+
+                if (comment.peerType === 'message') {
+                    let message = (await Store.Message.findById(ctx, comment.peerId))!;
+                    let isPublicChat = await Modules.Messaging.room.isPublicRoom(ctx, message.cid);
+                    let isMember = await Modules.Messaging.room.isRoomMember(ctx, uid, message.cid);
+                    let conv = await Store.Conversation.findById(ctx, message.cid);
+                    if (!conv) {
+                        return;
+                    }
+
+                    if (conv.kind === 'room' && !isPublicChat && !isMember) {
+                        return;
+                    }
+                }
+
+                let settings = await Modules.Users.getUserSettings(ctx, uid);
+                let areNotificationsDisabled = false;
+                if (settings.mobile && settings.desktop) {
+                    areNotificationsDisabled = !settings.mobile.comments.showNotification && !settings.desktop.comments.showNotification;
+                }
+                if (areNotificationsDisabled) {
+                    // ignore disabled notifications
+                    return;
+                }
+
+                notificationsToSend.push({
+                    uid: uid,
+                    notificationInput: { content: [{ type: 'new_comment', commentId: comment.id }] }
+                });
+            }));
+
+            for (let notification of notificationsToSend) {
+                await Modules.NotificationCenter.sendNotification(ctx, notification.uid, notification.notificationInput);
             }
         });
     }

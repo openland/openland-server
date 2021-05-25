@@ -168,7 +168,7 @@ export class VoiceChatsRepository {
             if (chat.duration < 1000 * 60 * 60) {
                 duration = moment.utc(chat.duration).format('m[m]');
             } else {
-                moment.utc(chat.duration).format('H[h] m[m]');
+                duration = moment.utc(chat.duration).format('H[h] m[m]');
             }
 
             let participants = await Store.VoiceChatParticipant.chat.query(ctx, chat.id, { reverse: true });
