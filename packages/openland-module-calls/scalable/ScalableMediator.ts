@@ -341,7 +341,7 @@ export class ScalableMediator {
                 await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: { fingerprints: offer.sdp.fingerprints } }));
 
                 // Create Producer
-                const producer = await tracer.trace(parent, 'WebRtcTransport.produce', () => transport.produce({ kind: 'audio', rtpParameters: offer.sdp.parameters }, offer.id));
+                const producer = await tracer.trace(parent, 'WebRtcTransport.produce', () => transport.produce({ kind: 'audio', rtpParameters: offer.sdp.parameters, paused: false }, offer.id));
 
                 // Create answer
                 let media = [createMediaDescription(offer.sdp.mid, 'audio', offer.sdp.port, 'recvonly', true, producer.rtpParameters, transport.iceCandidates)];
@@ -389,7 +389,8 @@ export class ScalableMediator {
                         }
                         if (!consumer.connectedTo.find((v) => v.producerId === p.producerId)) {
                             const cons = await tracer.trace(parent, 'WebRtcTransport.consume', () => transport.consume(p.producerId, {
-                                rtpCapabilities: convertRtpCapabilitiesToKitchen(getAudioRtpCapabilities(consumer.capabilities))
+                                rtpCapabilities: convertRtpCapabilitiesToKitchen(getAudioRtpCapabilities(consumer.capabilities)),
+                                paused: false
                             }, consumer.transportId + '-' + p.producerId));
                             added.push({ consumerId: cons.id, producerId: p.producerId, parameters: cons.rtpParameters });
                             logger.log(parent, log + 'Create new');
