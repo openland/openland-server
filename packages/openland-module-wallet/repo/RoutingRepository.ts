@@ -190,6 +190,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionStarted = async (ctx: Context, id: string, txid: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
+            await this.wallet.updateIsLocked(ctx, subscription.uid);
             Events.SubscriptionEvent.event(ctx, { type: 'subscription_started', ...subscriptionToEvent(subscription) });
         }
         if (subscription && subscription.proudct.type === 'group') {
@@ -203,6 +204,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionFailing = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
+            await this.wallet.updateIsLocked(ctx, subscription.uid);
             Events.SubscriptionEvent.event(ctx, { type: 'subscription_failing', ...subscriptionToEvent(subscription) });
         }
         if (subscription && subscription.proudct.type === 'group') {
@@ -218,6 +220,8 @@ export class RoutingRepositoryImpl {
         if (!subscription) {
             return;
         }
+        await this.wallet.updateIsLocked(ctx, subscription.uid);
+
         Events.SubscriptionEvent.event(ctx, {
             type: 'subscription_payment_success',
             ...subscriptionToEvent(subscription)
@@ -234,6 +238,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionRecovered = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
+            await this.wallet.updateIsLocked(ctx, subscription.uid);
             Events.SubscriptionEvent.event(ctx, { type: 'subscription_recovered', ...subscriptionToEvent(subscription) });
         }
         if (subscription && subscription.proudct.type === 'group') {
@@ -247,6 +252,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionPaused = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
+            await this.wallet.updateIsLocked(ctx, subscription.uid);
             await Events.SubscriptionEvent.event(ctx, { type: 'subscription_paused', ...subscriptionToEvent(subscription) });
         }
 
@@ -261,6 +267,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionRestarted = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
+            await this.wallet.updateIsLocked(ctx, subscription.uid);
             Events.SubscriptionEvent.event(ctx, { type: 'subscription_restarted', ...subscriptionToEvent(subscription) });
         }
         if (subscription && subscription.proudct.type === 'group') {
@@ -274,6 +281,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionExpired = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
+            await this.wallet.updateIsLocked(ctx, subscription.uid);
             Events.SubscriptionEvent.event(ctx, { type: 'subscription_expired', ...subscriptionToEvent(subscription) });
         }
 
@@ -288,6 +296,7 @@ export class RoutingRepositoryImpl {
     onSubscriptionCanceled = async (ctx: Context, id: string) => {
         let subscription = await this.store.WalletSubscription.findById(ctx, id);
         if (subscription) {
+            await this.wallet.updateIsLocked(ctx, subscription.uid);
             Events.SubscriptionEvent.event(ctx, { type: 'subscription_canceled', ...subscriptionToEvent(subscription) });
         }
 
