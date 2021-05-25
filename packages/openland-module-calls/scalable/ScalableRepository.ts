@@ -265,7 +265,7 @@ export class ScalableRepository {
             remoteSdp: JSON.stringify({ type: 'offer', sdp }),
             localStreams: [],
             remoteStreams: remoteStreams,
-            iceTransportPolicy: 'relay'
+            iceTransportPolicy: 'all'
         });
     }
 
@@ -290,7 +290,7 @@ export class ScalableRepository {
             remoteSdp: null,
             localStreams: [{ type: 'audio', codec: 'opus', mid: null }],
             remoteStreams: [],
-            iceTransportPolicy: 'relay'
+            iceTransportPolicy: 'all'
         });
     }
 
