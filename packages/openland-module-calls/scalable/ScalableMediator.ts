@@ -342,6 +342,7 @@ export class ScalableMediator {
 
                 // Create Producer
                 const producer = await tracer.trace(parent, 'WebRtcTransport.produce', () => transport.produce({ kind: 'audio', rtpParameters: offer.sdp.parameters, paused: false }, offer.id));
+                await producer.resume();
 
                 // Create answer
                 let media = [createMediaDescription(offer.sdp.mid, 'audio', offer.sdp.port, 'recvonly', true, producer.rtpParameters, transport.iceCandidates)];
@@ -392,6 +393,7 @@ export class ScalableMediator {
                                 rtpCapabilities: convertRtpCapabilitiesToKitchen(getAudioRtpCapabilities(consumer.capabilities)),
                                 paused: false
                             }, consumer.transportId + '-' + p.producerId));
+                            await cons.resume();
                             added.push({ consumerId: cons.id, producerId: p.producerId, parameters: cons.rtpParameters });
                             logger.log(parent, log + 'Create new');
                         } else {
