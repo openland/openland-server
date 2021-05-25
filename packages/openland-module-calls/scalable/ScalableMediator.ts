@@ -342,10 +342,13 @@ export class ScalableMediator {
             }[] = [];
             if (producers.length > 0 && consumers.length > 0) {
                 await Promise.all(consumers.map(async (consumer) => {
+                    logger.log(parent, log + 'Update consumer: ' + JSON.stringify({ pid: consumer.pid }));
                     const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, consumer.transportId));
                     const added: ConsumerEdge[] = [];
                     for (let p of producers) {
+                        logger.log(parent, log + 'Found producer: ' + JSON.stringify({ pid: p.pid }));
                         if (p.pid === consumer.pid) {
+                            logger.log(parent, log + 'Same pid');
                             continue;
                         }
                         if (!consumer.connectedTo.find((v) => v.producerId === p.producerId)) {
@@ -353,9 +356,13 @@ export class ScalableMediator {
                                 rtpCapabilities: convertRtpCapabilitiesToKitchen(getAudioRtpCapabilities(consumer.capabilities))
                             }, consumer.transportId + '-' + p.producerId));
                             added.push({ consumerId: cons.id, producerId: p.producerId, parameters: cons.rtpParameters });
+                            logger.log(parent, log + 'Create new');
+                        } else {
+                            logger.log(parent, log + 'Already exist');
                         }
                     }
                     if (added.length > 0) {
+                        logger.log(parent, log + 'Added consumers');
                         addedConsumers.push({
                             pid: consumer.pid,
                             id: consumer.transportId,
@@ -364,6 +371,8 @@ export class ScalableMediator {
                             iceParameters: transport.iceParameters,
                             dtlsParameters: transport.dtlsParameters
                         });
+                    } else {
+                        logger.log(parent, log + 'Nothing changed');
                     }
                 }));
             }
@@ -378,6 +387,7 @@ export class ScalableMediator {
 
                 // Update consumer
                 for (let a of addedConsumers) {
+                    logger.log(parent, log + 'Added consumer ' + a.pid + '/' + a.id);
                     let consumer = await this.repo.getShardConsumer(ctx, cid, session, shard, a.pid);
                     if (!consumer) {
                         continue;
