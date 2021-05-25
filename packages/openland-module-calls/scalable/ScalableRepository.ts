@@ -33,6 +33,7 @@ export type ShardConsumer = {
     pid: number;
     transportId: string;
     created: boolean;
+    connected: boolean;
     connectedTo: ConsumerEdge[];
     iceCandates: IceCandidate[] | null;
     iceParameters: IceParameters | null;

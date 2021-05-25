@@ -257,7 +257,8 @@ export class ScalableMediator {
                                 capabilities: caps,
                                 iceCandates: null,
                                 iceParameters: null,
-                                dtlsParameters: null
+                                dtlsParameters: null,
+                                connected: false
                             };
                             this.repo.setShardConsumer(ctx, cid, session, shard, t.pid, consumer);
                         }
@@ -291,7 +292,7 @@ export class ScalableMediator {
                 for (let t of tasks) {
                     if (t.type === 'answer') {
                         let consumer = await this.repo.getShardConsumer(ctx, cid, session, shard, t.pid);
-                        if (!consumer) {
+                        if (!consumer || consumer.connected) {
                             continue;
                         }
 
@@ -353,9 +354,11 @@ export class ScalableMediator {
             // Process answers
             //
 
+            let answered: { pid: number, id: string }[] = [];
             for (let answer of def.consumerAnswers) {
                 const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, answer.id));
                 await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: answer.dtlsParameters }));
+                answered.push({ pid: answer.pid, id: answer.id });
             }
 
             //
@@ -410,9 +413,22 @@ export class ScalableMediator {
             // Commit updates
             await inTx(parent, async (ctx) => {
 
-                // Update producer
+                // Persist Answers
                 for (let answer of answers) {
+                    logger.log(parent, log + 'Connected and connected producer transport ' + answer.pid + '/' + answer.id);
                     this.repo.addProducerToShard(ctx, cid, session, shard, answer.pid, false, answer.producer, answer.parameters);
+                    this.repo.answerProducerEndStream(ctx, answer.id, answer.sdp);
+                    Modules.Calls.repo.notifyPeerChanged(ctx, answer.pid);
+                }
+
+                // Persist Consumer Answers
+                for (let connected of answered) {
+                    let consumer = await this.repo.getShardConsumer(ctx, cid, session, shard, connected.pid);
+                    if (!consumer || consumer.connected) {
+                        continue;
+                    }
+                    this.repo.setShardConsumer(ctx, cid, session, shard, connected.pid, { ...consumer, connected: true });
+                    logger.log(parent, log + 'Connected consumer transport ' + connected.pid + '/' + connected.id);
                 }
 
                 // Update consumer
@@ -463,13 +479,6 @@ export class ScalableMediator {
                         this.repo.updateConsumerEndStream(ctx, consumer.transportId, offer, remoteStreams);
                     }
                     Modules.Calls.repo.notifyPeerChanged(ctx, consumer.pid);
-                }
-
-                // Answer Streams
-                for (let answer of answers) {
-                    logger.log(parent, log + 'Created producer transport ' + answer.pid + '/' + answer.id);
-                    this.repo.answerProducerEndStream(ctx, answer.id, answer.sdp);
-                    Modules.Calls.repo.notifyPeerChanged(ctx, answer.pid);
                 }
             });
         } finally {
