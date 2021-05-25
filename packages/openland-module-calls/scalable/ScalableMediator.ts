@@ -471,7 +471,7 @@ export class ScalableMediator {
                         consumer.iceParameters!,
                         media
                     );
-                    if (wasCreated) {
+                    if (!wasCreated) {
                         logger.log(parent, log + 'Created consumer transport ' + consumer.pid + '/' + consumer.transportId);
                         this.repo.createConsumerEndStream(ctx, cid, session, shard, consumer.pid, consumer.transportId, offer, remoteStreams);
                     } else {
