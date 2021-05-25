@@ -406,6 +406,7 @@ export class ScalableMediator {
                 } else {
                     this.repo.updateConsumerEndStream(ctx, consumer.transportId, offer, remoteStreams);
                 }
+                Modules.Calls.repo.notifyPeerChanged(ctx, consumer.pid);
             }
 
             // Answer Streams
