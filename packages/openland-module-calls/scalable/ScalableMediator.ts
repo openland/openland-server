@@ -284,9 +284,33 @@ export class ScalableMediator {
                     }
                 }
 
+                //
+                // Consumer Answers
+                //
+                let consumerAnswers: { pid: number, id: string, dtlsParameters: DtlsParameters }[] = [];
+                for (let t of tasks) {
+                    if (t.type === 'answer') {
+                        let consumer = await this.repo.getShardConsumer(ctx, cid, session, shard, t.pid);
+                        if (!consumer) {
+                            continue;
+                        }
+
+                        let sdp;
+                        let fingerprints: { algorithm: string, value: string }[];
+                        try {
+                            sdp = parseSDP(t.sdp);
+                            fingerprints = extractFingerprints(sdp);
+                        } catch (e) {
+                            logger.warn(parent, e);
+                            continue; // Ignore on invalid SDP
+                        }
+                        consumerAnswers.push({ pid: t.pid, id: consumer.transportId, dtlsParameters: { fingerprints } });
+                    }
+                }
+
                 let currentProducers = await this.repo.getShardProducers(ctx, cid, session, shard);
                 let currentConsumers = await this.repo.getShardConsumers(ctx, cid, session, shard);
-                return { workerId, routerId, offers, currentConsumers, currentProducers };
+                return { workerId, routerId, offers, consumerAnswers, currentConsumers, currentProducers };
             });
             if (!def) {
                 return;
@@ -323,6 +347,15 @@ export class ScalableMediator {
                 let answer = generateSDP(transport.dtlsParameters.fingerprints, transport.iceParameters, media);
                 answers.push({ pid: offer.pid, id: offer.id, sdp: answer, producer: producer.id, parameters: producer.rtpParameters });
                 producers.push({ pid: offer.pid, remote: false, producerId: producer.id, parameters: producer.rtpParameters });
+            }
+
+            //
+            // Process answers
+            //
+
+            for (let answer of def.consumerAnswers) {
+                const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, answer.id));
+                await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: answer.dtlsParameters }));
             }
 
             //
