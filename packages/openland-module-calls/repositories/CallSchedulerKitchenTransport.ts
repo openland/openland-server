@@ -392,9 +392,11 @@ export class CallSchedulerKitchenTransport {
 
                     if (!producerTransport.videoProducer) {
                         let rtpParameters = extractH264RtpParameters(media);
-                        let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
-                        producerTransport.videoProducer = producerId;
-                        changed = true;
+                        if (rtpParameters) {
+                            let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
+                            producerTransport.videoProducer = producerId;
+                            changed = true;
+                        }
                     }
                 } else if (h.videoSource === 'screen') {
                     if (!producerTransport.screencastProducerMid) {
@@ -407,9 +409,11 @@ export class CallSchedulerKitchenTransport {
 
                     if (!producerTransport.screencastProducer) {
                         let rtpParameters = extractVP8RtpParameters(media);
-                        let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
-                        producerTransport.screencastProducer = producerId;
-                        changed = true;
+                        if (rtpParameters) {
+                            let producerId = await this.repo.createProducer(ctx, transportId, { kind: 'video', rtpParameters });
+                            producerTransport.screencastProducer = producerId;
+                            changed = true;
+                        }
                     }
                 } else {
                     throw Error('Unknown video source: ' + h.videoSource);

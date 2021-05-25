@@ -148,7 +148,7 @@ export function extractOpusRtpParameters(src: MediaDescription): RtpParameters {
     };
 }
 
-export function extractH264RtpParameters(src: MediaDescription): RtpParameters {
+export function extractH264RtpParameters(src: MediaDescription): RtpParameters | null {
 
     // Resolving a codec
     let codecPayload: number | null = null;
@@ -171,11 +171,11 @@ export function extractH264RtpParameters(src: MediaDescription): RtpParameters {
         break;
     }
     if (codecPayload === null) {
-        throw Error('Unable to find vide codec');
+        return null;
     }
     let codec = src.rtp.find((v) => v.payload === codecPayload)!;
     if (!codec) {
-        throw Error('Unable to find codec!');
+        return null;
     }
 
     // Resolve Param
@@ -218,12 +218,12 @@ export function extractH264RtpParameters(src: MediaDescription): RtpParameters {
     };
 }
 
-export function extractVP8RtpParameters(src: MediaDescription): RtpParameters {
+export function extractVP8RtpParameters(src: MediaDescription): RtpParameters | null {
 
     /// Find codec
     const codec = src.rtp.find((v) => v.codec === 'VP8');
     if (!codec) {
-        throw Error('Unable to find opus codec!');
+        return null;
     }
 
     // Resolve Parameters
