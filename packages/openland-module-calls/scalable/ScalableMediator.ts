@@ -184,6 +184,7 @@ export class ScalableMediator {
                 if (t.type === 'add-producer') {
                     let transportId = await this.repo.getProducerTransport(ctx, cid, session, shard, t.pid);
                     if (!transportId) {
+                        logger.log(ctx, log + 'Add producer ' + t.pid);
                         transportId = randomKey();
                         this.repo.setProducerTransport(ctx, cid, session, shard, t.pid, transportId);
                         this.repo.createProducerEndStream(ctx, cid, session, shard, t.pid, transportId);
@@ -244,6 +245,7 @@ export class ScalableMediator {
                         continue; // Should not happen
                     }
                     if (!consumer) {
+                        logger.log(ctx, log + 'Add consumer ' + t.pid);
                         consumer = {
                             pid: t.pid,
                             transportId: randomKey(),
@@ -269,9 +271,11 @@ export class ScalableMediator {
                     if (!consumer) {
                         continue; // Not created
                     }
+                    logger.log(ctx, log + 'Remove consumer ' + t.pid);
                     if (consumer.created) {
                         // Close end stream
                         this.repo.completeEndStream(ctx, consumer.transportId);
+                        Modules.Calls.repo.notifyPeerChanged(ctx, t.pid);
                     }
                     this.repo.removeShardConsumer(ctx, cid, session, shard, t.pid);
                 }
@@ -284,6 +288,8 @@ export class ScalableMediator {
         if (!def) {
             return;
         }
+
+        logger.log(parent, log + 'Jobs: ' + JSON.stringify({ currentConsumers: def.currentConsumers.map((v) => v.pid) }));
 
         // Router
         let producers = def.currentProducers;
