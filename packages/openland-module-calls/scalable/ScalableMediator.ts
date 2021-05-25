@@ -380,7 +380,7 @@ export class ScalableMediator {
                 added: ConsumerEdge[]
             }[] = [];
             if (producers.length > 0 && consumers.length > 0) {
-                consumers.map(async (consumer) => {
+                await Promise.all(consumers.map(async (consumer) => {
                     const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, consumer.transportId));
                     const added: ConsumerEdge[] = [];
                     await Promise.all(producers.map(async (p) => {
@@ -405,7 +405,7 @@ export class ScalableMediator {
                             dtlsParameters: transport.dtlsParameters
                         });
                     }
-                });
+                }));
             }
 
             // Print Stats
