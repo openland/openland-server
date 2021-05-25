@@ -15,6 +15,8 @@ import { TRANSPORT_PARAMETERS } from 'openland-module-calls/kitchen/MediaKitchen
 import { createMediaDescription, generateSDP, getAudioRtpCapabilities } from 'openland-module-calls/kitchen/sdp';
 import { convertRtpCapabilitiesToKitchen } from 'openland-module-calls/kitchen/convert';
 import { MediaDescription } from 'sdp-transform';
+import { ScalableShardRepository } from './ScalableShardRepository';
+import { collapseSessionTasks } from './utils/collapseSessionTasks';
 
 const logger = createLogger('scalable');
 
@@ -25,8 +27,6 @@ export type ScalableShardTask =
     | { type: 'add-consumer', cid: number, session: string, shard: string, pid: number }
     | { type: 'remove-producer', cid: number, session: string, shard: string, pid: number }
     | { type: 'remove-consumer', cid: number, session: string, shard: string, pid: number }
-    | { type: 'connect', cid: number, session: string, shard: string, remoteShard: string }
-    | { type: 'connect-answer', cid: number, session: string, shard: string, remoteShard: string, ip: string, port: number }
     | { type: 'offer', cid: number, session: string, shard: string, pid: number, sid: string, sdp: string }
     | { type: 'answer', cid: number, session: string, shard: string, pid: number, sid: string, sdp: string };
 
@@ -37,6 +37,7 @@ export type ScalableSessionTask =
 
 export class ScalableMediator {
     readonly repo = new ScalableRepository();
+    readonly repoShard = new ScalableShardRepository();
     readonly endStreamDirectory = new EndStreamDirectory(Store.EndStreamDirectory);
 
     async onSessionJob(ctx: Context, cid: number, tasks: ScalableSessionTask[]) {
@@ -47,7 +48,7 @@ export class ScalableMediator {
 
         let shouldCreateSession = false;
         let shouldDeleteSession = false;
-        let session = (await this.repo.getActiveSession(ctx, cid));
+        let session = (await this.repoShard.getCurrentSession(ctx, cid));
         let added = (tasks.filter((v) => v.type === 'add')).map((v) => v.pid);
         let removed = (tasks.filter((v) => v.type === 'remove')).map((v) => v.pid);
         this.repo.addPeersNoCheck(ctx, cid, added, 'main');
@@ -59,26 +60,15 @@ export class ScalableMediator {
         if (peersCount === 0 && session !== null) {
             shouldDeleteSession = true;
         }
-        logger.log(ctx, 'Session Jobs: ' + { peersCount, added, removed, shouldCreateSession, shouldDeleteSession });
+        logger.log(ctx, 'Session Jobs: ' + JSON.stringify({ peersCount, added, removed, shouldCreateSession, shouldDeleteSession }));
 
         //
         // Delete session if needed
         //
 
         if (shouldDeleteSession) {
-            logger.log(ctx, 'Stop session: ' + session!);
-            await this.repo.sessionStop(ctx, cid, session!);
-            const existingShards = await this.repo.getShards(ctx, cid, session!);
-            for (let shard of existingShards) {
-                await Modules.Calls.repo.schedulerScalable.shardWorker.pushWork(ctx, cid + '_' + session! + '_' + shard.shard, {
-                    type: 'stop',
-                    cid,
-                    session: session!,
-                    shard: shard.shard
-                });
-            }
-            this.repo.clearShards(ctx, cid, session!);
-            session = null;
+            await this.repoShard.destroySession(ctx, cid, session!);
+            return;
         }
 
         //
@@ -86,9 +76,7 @@ export class ScalableMediator {
         //
 
         if (shouldCreateSession) {
-            session = randomKey();
-            logger.log(ctx, 'Create session: ' + session!);
-            await this.repo.sessionCreate(ctx, cid, session);
+            session = await this.repoShard.createSession(ctx, cid);
         }
 
         // 
@@ -100,190 +88,15 @@ export class ScalableMediator {
         }
 
         //
-        // Allocate assign users
+        // Apply Updates
         //
 
-        let shards = await this.repo.getShards(ctx, cid, session);
-        const pickShard = (kind: 'producers' | 'consumers') => {
-            let res: { shard: string, session: string, kind: 'producers' | 'consumers', count: number } | null = null;
-            if (peersCount < 10) {
-                // Use same shard for small chats
-                for (let s of shards) {
-                    if (kind !== 'producers') {
-                        continue;
-                    }
-                    if (!res || res.count > s.count) {
-                        res = s;
-                    }
-                }
-                return res;
-            }
-            for (let s of shards) {
-                if (s.kind !== kind) {
-                    continue;
-                }
-
-                // If full
-                if (kind === 'producers' && s.count > 5) {
-                    continue;
-                }
-                if (kind === 'consumers' && s.count > 100) {
-                    continue;
-                }
-
-                if (!res || res.count > s.count) {
-                    res = s;
-                }
-            }
-            return res;
-        };
-        const allocateShard = (kind: 'producers' | 'consumers') => {
-            let res: { shard: string, session: string, kind: 'producers' | 'consumers', count: number } = {
-                shard: randomKey(),
-                session: session!,
-                kind,
-                count: 0
-            };
-            shards.push(res);
-            this.repo.addShard(ctx, cid, res.session, res.shard, kind);
-            return res;
-        };
-
-        //
-        // Add users
-        //
-
-        for (let t of tasks) {
-            if (t.type === 'add') {
-
-                // Producer
-                if (t.role === 'speaker') {
-
-                    //
-                    // Resolve shard
-                    //
-
-                    let picked = pickShard('producers');
-                    if (!picked) {
-                        picked = allocateShard('producers');
-                        await Modules.Calls.repo.schedulerScalable.shardWorker.pushWork(ctx, cid + '_' + session! + '_' + picked.shard, {
-                            type: 'start',
-                            cid,
-                            session: session!,
-                            shard: picked.shard
-                        });
-                    }
-
-                    //
-                    // Add Peer to Shard
-                    //
-
-                    this.repo.addPeerToShard(ctx, cid, session, picked.shard, 'producers', t.pid);
-                    this.repo.setPeerShardReference(ctx, cid, session, 'producers', t.pid, picked.shard);
-                    await Modules.Calls.repo.schedulerScalable.shardWorker.pushWork(ctx, cid + '_' + session! + '_' + picked.shard, {
-                        type: 'add-producer',
-                        cid,
-                        session: session!,
-                        shard: picked.shard,
-                        pid: t.pid
-                    });
-                }
-
-                //
-                // Consumers
-                //
-
-                let pickedShard = pickShard('consumers');
-                if (!pickedShard) {
-                    pickedShard = allocateShard('consumers');
-                    await Modules.Calls.repo.schedulerScalable.shardWorker.pushWork(ctx, cid + '_' + session! + '_' + pickedShard.shard, {
-                        type: 'start',
-                        cid,
-                        session: session!,
-                        shard: pickedShard.shard
-                    });
-                }
-                this.repo.addPeerToShard(ctx, cid, session, pickedShard.shard, 'consumers', t.pid);
-                this.repo.setPeerShardReference(ctx, cid, session, 'consumers', t.pid, pickedShard.shard);
-                await Modules.Calls.repo.schedulerScalable.shardWorker.pushWork(ctx, cid + '_' + session! + '_' + pickedShard.shard, {
-                    type: 'add-consumer',
-                    cid,
-                    session: session!,
-                    shard: pickedShard.shard,
-                    pid: t.pid
-                });
-            }
-
-            if (t.type === 'remove') {
-                let consumerShard = await this.repo.getPeerShardReference(ctx, cid, session, 'consumers', t.pid);
-                let producerShard = await this.repo.getPeerShardReference(ctx, cid, session, 'producers', t.pid);
-                if (consumerShard) {
-                    await Modules.Calls.repo.schedulerScalable.shardWorker.pushWork(ctx, cid + '_' + session! + '_' + consumerShard, {
-                        type: 'remove-consumer',
-                        cid,
-                        session: session!,
-                        shard: consumerShard,
-                        pid: t.pid
-                    });
-                }
-                if (producerShard) {
-                    await Modules.Calls.repo.schedulerScalable.shardWorker.pushWork(ctx, cid + '_' + session! + '_' + producerShard, {
-                        type: 'remove-consumer',
-                        cid,
-                        session: session!,
-                        shard: producerShard,
-                        pid: t.pid
-                    });
-                }
-            }
-
-            if (t.type === 'role-change') {
-                let producerShard = await this.repo.getPeerShardReference(ctx, cid, session, 'producers', t.pid);
-                if (t.role === 'speaker') {
-                    // Promoted to speaker
-                    if (producerShard) {
-                        await Modules.Calls.repo.schedulerScalable.shardWorker.pushWork(ctx, cid + '_' + session! + '_' + producerShard, {
-                            type: 'add-producer',
-                            cid,
-                            session: session!,
-                            shard: producerShard,
-                            pid: t.pid
-                        });
-                    } else {
-                        let picked = pickShard('producers');
-                        if (!picked) {
-                            picked = allocateShard('producers');
-                            await Modules.Calls.repo.schedulerScalable.shardWorker.pushWork(ctx, cid + '_' + session! + '_' + picked.shard, {
-                                type: 'start',
-                                cid,
-                                session: session!,
-                                shard: picked.shard
-                            });
-                        }
-                        this.repo.addPeerToShard(ctx, cid, session, picked.shard, 'producers', t.pid);
-                        this.repo.setPeerShardReference(ctx, cid, session, 'producers', t.pid, picked.shard);
-                        await Modules.Calls.repo.schedulerScalable.shardWorker.pushWork(ctx, cid + '_' + session! + '_' + picked.shard, {
-                            type: 'add-producer',
-                            cid,
-                            session: session!,
-                            shard: picked.shard,
-                            pid: t.pid
-                        });
-                    }
-                } else {
-                    // Demoted to listener
-                    if (producerShard) {
-                        await Modules.Calls.repo.schedulerScalable.shardWorker.pushWork(ctx, cid + '_' + session! + '_' + producerShard, {
-                            type: 'remove-producer',
-                            cid,
-                            session: session!,
-                            shard: producerShard,
-                            pid: t.pid
-                        });
-                    }
-                }
-            }
-        }
+        const collapsed = collapseSessionTasks(tasks);
+        await this.repoShard.updateSharding(ctx, cid, session,
+            collapsed.remove,
+            collapsed.add,
+            collapsed.update
+        );
     }
 
     async onShardJob(parent: Context, cid: number, session: string, shard: string, tasks: ScalableShardTask[]) {

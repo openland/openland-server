@@ -84,20 +84,6 @@ describe('ScalableRepository', () => {
         expect(total).toBe(100); // All transactions must not retry
     });
 
-    it('should manage shards', async () => {
-        const repo = new ScalableRepository();
-        await inTx(parent, async (ctx) => {
-            for (let i = 0; i < 1000; i++) {
-                repo.addShard(ctx, 100, 'sss', 'sss-' + i, 'producers');
-            }
-        });
-
-        let shards = await inTx(parent, async (ctx) => {
-            return await repo.getShards(ctx, 100, 'sss');
-        });
-        expect(shards.length).toBe(1000);
-    });
-
     beforeAll(async () => {
         await testEnvironmentStart('calls-scalable');
     });
