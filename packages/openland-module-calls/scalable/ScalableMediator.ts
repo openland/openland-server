@@ -394,7 +394,7 @@ export class ScalableMediator {
                                 paused: false
                             }, consumer.transportId + '-' + p.producerId));
                             await cons.resume();
-                            added.push({ consumerId: cons.id, producerId: p.producerId, parameters: cons.rtpParameters });
+                            added.push({ consumerId: cons.id, pid: p.pid, producerId: p.producerId, parameters: cons.rtpParameters });
                             logger.log(parent, log + 'Create new');
                         } else {
                             logger.log(parent, log + 'Already exist');
@@ -477,7 +477,7 @@ export class ScalableMediator {
                         const mid = c.parameters.mid!;
                         media.push(createMediaDescription(mid, 'audio', 7, 'sendonly', true, c.parameters, consumer.iceCandates!));
                         remoteStreams.push({
-                            pid: consumer.pid,
+                            pid: c.pid,
                             media: { type: 'audio', mid }
                         });
                     }

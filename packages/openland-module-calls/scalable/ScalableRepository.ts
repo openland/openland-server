@@ -29,7 +29,7 @@ export type ShardProducer = {
     producerId: string;
     parameters: RtpParameters;
 };
-export type ConsumerEdge = { consumerId: string, producerId: string, parameters: RtpParameters };
+export type ConsumerEdge = { pid: number, consumerId: string, producerId: string, parameters: RtpParameters };
 export type ShardConsumer = {
     pid: number;
     transportId: string;
