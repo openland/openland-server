@@ -1,3 +1,4 @@
+import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from '@openland/log';
 import { EndStreamDirectory } from './../repositories/EndStreamDirectory';
 import { randomKey } from 'openland-utils/random';
@@ -19,6 +20,7 @@ import { ScalableShardRepository } from './ScalableShardRepository';
 import { collapseSessionTasks } from './utils/collapseSessionTasks';
 
 const logger = createLogger('scalable');
+const tracer = createTracer('kitchen');
 
 export type ScalableShardTask =
     | { type: 'start', cid: number, session: string, shard: string }
@@ -139,7 +141,7 @@ export class ScalableMediator {
         }
 
         // Resolve router and worker
-        let def = await inTx(parent, async (ctx) => {
+        const def = await inTx(parent, async (ctx) => {
 
             // Check if shard deleted
             if (await this.repo.isShardDeleted(ctx, cid, session, shard)) {
@@ -286,7 +288,7 @@ export class ScalableMediator {
         // Router
         let producers = def.currentProducers;
         let consumers = def.currentConsumers;
-        let router = await service.getOrCreateRouter(def.workerId, def.routerId);
+        let router = await tracer.trace(parent, 'Worker.getOrCreateRouter', () => service.getOrCreateRouter(def.workerId, def.routerId));
 
         // TODO: Pause and Unpause producers
 
@@ -299,11 +301,11 @@ export class ScalableMediator {
             logger.log(parent, log + 'Creating producer transport');
 
             // Create Transport
-            const transport = await router.createWebRtcTransport(TRANSPORT_PARAMETERS, offer.id);
-            await transport.connect({ dtlsParameters: { fingerprints: offer.sdp.fingerprints } });
+            const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, offer.id));
+            await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: { fingerprints: offer.sdp.fingerprints } }));
 
             // Create Producer
-            const producer = await transport.produce({ kind: 'audio', rtpParameters: offer.sdp.parameters }, offer.id);
+            const producer = await tracer.trace(parent, 'WebRtcTransport.produce', () => transport.produce({ kind: 'audio', rtpParameters: offer.sdp.parameters }, offer.id));
 
             // Create answer
             let media = [createMediaDescription(offer.sdp.mid, 'audio', offer.sdp.port, 'recvonly', true, producer.rtpParameters, transport.iceCandidates)];
@@ -326,16 +328,16 @@ export class ScalableMediator {
         if (producers.length > 0 && consumers.length > 0) {
             await Promise.all(consumers.map(async (consumer) => {
                 logger.log(parent, log + 'Creating consumer transport');
-                const transport = await router.createWebRtcTransport(TRANSPORT_PARAMETERS, consumer.transportId);
+                const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, consumer.transportId));
                 const added: ConsumerEdge[] = [];
                 for (let p of producers) {
                     if (p.pid === consumer.pid) {
                         continue;
                     }
                     if (!consumer.connectedTo.find((v) => v.producerId === p.producerId)) {
-                        const cons = await transport.consume(p.producerId, {
+                        const cons = await tracer.trace(parent, 'WebRtcTransport.consume', () => transport.consume(p.producerId, {
                             rtpCapabilities: convertRtpCapabilitiesToKitchen(getAudioRtpCapabilities(consumer.capabilities))
-                        }, consumer.transportId + '-' + p.producerId);
+                        }, consumer.transportId + '-' + p.producerId));
                         added.push({ consumerId: cons.id, producerId: p.producerId, parameters: cons.rtpParameters });
                     }
                 }
