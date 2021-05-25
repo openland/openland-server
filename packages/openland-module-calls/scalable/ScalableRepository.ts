@@ -24,6 +24,7 @@ export type TransportSDP = {
 
 export type ShardProducer = {
     pid: number;
+    transportId: string;
     remote: boolean;
     producerId: string;
     parameters: RtpParameters;
@@ -224,9 +225,10 @@ export class ScalableRepository {
         this.shardConsumers.clear(ctx, [cid, session, shard, pid]);
     }
 
-    addProducerToShard(ctx: Context, cid: number, session: string, shard: string, pid: number, remote: boolean, producerId: string, parameters: RtpParameters) {
+    addProducerToShard(ctx: Context, cid: number, session: string, shard: string, pid: number, remote: boolean, transportId: string, producerId: string, parameters: RtpParameters) {
         this.shardProducers.set(ctx, [cid, session, shard, producerId], {
             pid,
+            transportId,
             remote,
             producerId,
             parameters

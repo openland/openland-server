@@ -348,7 +348,7 @@ export class ScalableMediator {
                 let media = [createMediaDescription(offer.sdp.mid, 'audio', offer.sdp.port, 'recvonly', true, producer.rtpParameters, transport.iceCandidates)];
                 let answer = generateSDP(transport.dtlsParameters.fingerprints, transport.iceParameters, media);
                 answers.push({ pid: offer.pid, id: offer.id, sdp: answer, producer: producer.id, parameters: producer.rtpParameters });
-                producers.push({ pid: offer.pid, remote: false, producerId: producer.id, parameters: producer.rtpParameters });
+                producers.push({ pid: offer.pid, remote: false, producerId: producer.id, transportId: offer.id, parameters: producer.rtpParameters });
             }
 
             //
@@ -419,6 +419,11 @@ export class ScalableMediator {
                 let stats = await transport.getStats();
                 logger.log(parent, log + 'Consumer stats: ' + transport.id + ': ' + JSON.stringify(stats));
             }
+            for (let p of producers) {
+                const transport = await router.createWebRtcTransport(TRANSPORT_PARAMETERS, p.transportId);
+                let stats = await transport.getStats();
+                logger.log(parent, log + 'Producer stats: ' + transport.id + ': ' + JSON.stringify(stats));
+            }
 
             // Commit updates
             await inTx(parent, async (ctx) => {
@@ -426,7 +431,7 @@ export class ScalableMediator {
                 // Persist Answers
                 for (let answer of answers) {
                     logger.log(parent, log + 'Created and connected producer transport ' + answer.pid + '/' + answer.id);
-                    this.repo.addProducerToShard(ctx, cid, session, shard, answer.pid, false, answer.producer, answer.parameters);
+                    this.repo.addProducerToShard(ctx, cid, session, shard, answer.pid, false, answer.id, answer.producer, answer.parameters);
                     this.repo.answerProducerEndStream(ctx, answer.id, answer.sdp);
                     Modules.Calls.repo.notifyPeerChanged(ctx, answer.pid);
                 }
