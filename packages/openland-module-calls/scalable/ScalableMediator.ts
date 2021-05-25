@@ -305,7 +305,7 @@ export class ScalableMediator {
                             logger.warn(parent, e);
                             continue; // Ignore on invalid SDP
                         }
-                        consumerAnswers.push({ pid: t.pid, id: consumer.transportId, dtlsParameters: { fingerprints } });
+                        consumerAnswers.push({ pid: t.pid, id: consumer.transportId, dtlsParameters: { fingerprints, role: 'client' } });
                     }
                 }
 
@@ -338,7 +338,7 @@ export class ScalableMediator {
 
                 // Create Transport
                 const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, offer.id));
-                await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: { fingerprints: offer.sdp.fingerprints } }));
+                await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: { fingerprints: offer.sdp.fingerprints, role: 'server' } }));
 
                 // Create Producer
                 const producer = await tracer.trace(parent, 'WebRtcTransport.produce', () => transport.produce({ kind: 'audio', rtpParameters: offer.sdp.parameters, paused: false }, offer.id));
