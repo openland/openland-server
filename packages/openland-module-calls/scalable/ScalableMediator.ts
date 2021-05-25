@@ -334,21 +334,21 @@ export class ScalableMediator {
             //
 
             let answers: { pid: number, id: string, sdp: string, producer: string, parameters: RtpParameters }[] = [];
-            for (let offer of def.offers) {
+            if (def.offers.length > 0) {
+                await Promise.all(def.offers.map(async (offer) => {
+                    // Create Transport
+                    const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, offer.id));
+                    await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: { fingerprints: offer.sdp.fingerprints, role: 'server' } }));
 
-                // Create Transport
-                const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, offer.id));
-                await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: { fingerprints: offer.sdp.fingerprints, role: 'server' } }));
+                    // Create Producer
+                    const producer = await tracer.trace(parent, 'WebRtcTransport.produce', () => transport.produce({ kind: 'audio', rtpParameters: offer.sdp.parameters, paused: false }, offer.id));
 
-                // Create Producer
-                const producer = await tracer.trace(parent, 'WebRtcTransport.produce', () => transport.produce({ kind: 'audio', rtpParameters: offer.sdp.parameters, paused: false }, offer.id));
-                await producer.resume();
-
-                // Create answer
-                let media = [createMediaDescription(offer.sdp.mid, 'audio', offer.sdp.port, 'recvonly', true, producer.rtpParameters, transport.iceCandidates)];
-                let answer = generateSDP(transport.dtlsParameters.fingerprints, transport.iceParameters, media);
-                answers.push({ pid: offer.pid, id: offer.id, sdp: answer, producer: producer.id, parameters: producer.rtpParameters });
-                producers.push({ pid: offer.pid, remote: false, producerId: producer.id, transportId: offer.id, parameters: producer.rtpParameters });
+                    // Create answer
+                    let media = [createMediaDescription(offer.sdp.mid, 'audio', offer.sdp.port, 'recvonly', true, producer.rtpParameters, transport.iceCandidates)];
+                    let answer = generateSDP(transport.dtlsParameters.fingerprints, transport.iceParameters, media);
+                    answers.push({ pid: offer.pid, id: offer.id, sdp: answer, producer: producer.id, parameters: producer.rtpParameters });
+                    producers.push({ pid: offer.pid, remote: false, producerId: producer.id, transportId: offer.id, parameters: producer.rtpParameters });
+                }));
             }
 
             //
@@ -356,10 +356,12 @@ export class ScalableMediator {
             //
 
             let answered: { pid: number, id: string }[] = [];
-            for (let answer of def.consumerAnswers) {
-                const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, answer.id));
-                await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: answer.dtlsParameters }));
-                answered.push({ pid: answer.pid, id: answer.id });
+            if (def.consumerAnswers.length > 0) {
+                await Promise.all(def.consumerAnswers.map(async (answer) => {
+                    const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, answer.id));
+                    await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: answer.dtlsParameters }));
+                    answered.push({ pid: answer.pid, id: answer.id });
+                }));
             }
 
             //
@@ -378,28 +380,21 @@ export class ScalableMediator {
                 added: ConsumerEdge[]
             }[] = [];
             if (producers.length > 0 && consumers.length > 0) {
-                for (let consumer of consumers) {
-                    logger.log(parent, log + 'Update consumer: ' + JSON.stringify({ pid: consumer.pid }));
+                consumers.map(async (consumer) => {
                     const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, consumer.transportId));
                     const added: ConsumerEdge[] = [];
-                    for (let p of producers) {
-                        logger.log(parent, log + 'Found producer: ' + JSON.stringify({ pid: p.pid }));
+                    await Promise.all(producers.map(async (p) => {
                         if (p.pid === consumer.pid) {
-                            logger.log(parent, log + 'Same pid');
-                            continue;
+                            return;
                         }
                         if (!consumer.connectedTo.find((v) => v.producerId === p.producerId)) {
                             const cons = await tracer.trace(parent, 'WebRtcTransport.consume', () => transport.consume(p.producerId, {
                                 rtpCapabilities: convertRtpCapabilitiesToKitchen(getAudioRtpCapabilities(consumer.capabilities)),
                                 paused: false
                             }, consumer.transportId + '-' + p.producerId));
-                            await cons.resume();
                             added.push({ consumerId: cons.id, pid: p.pid, producerId: p.producerId, parameters: cons.rtpParameters });
-                            logger.log(parent, log + 'Create new');
-                        } else {
-                            logger.log(parent, log + 'Already exist');
                         }
-                    }
+                    }));
                     if (added.length > 0) {
                         addedConsumers.push({
                             pid: consumer.pid,
@@ -410,7 +405,7 @@ export class ScalableMediator {
                             dtlsParameters: transport.dtlsParameters
                         });
                     }
-                }
+                });
             }
 
             // Print Stats
