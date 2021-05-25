@@ -330,8 +330,8 @@ export class ScalableMediator {
             //
 
             logger.log(parent, log + 'Mid-flight: ' + JSON.stringify({
-                currentConsumers: def.currentConsumers.map((v) => v.pid),
-                currentProducers: def.currentProducers.map((v) => v.pid)
+                currentConsumers: consumers.map((v) => v.pid),
+                currentProducers: producers.map((v) => v.pid)
             }));
             let addedConsumers: {
                 pid: number, id: string,
