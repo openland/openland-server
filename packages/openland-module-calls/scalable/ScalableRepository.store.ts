@@ -11,6 +11,7 @@ export function scalableStore() {
 
     // State
     customDirectory('ConferenceScalableState');
+    customDirectory('ConferenceScalableSharding');
 
     // Queue
     taskQueue('ConferenceScalableSession');

@@ -7,7 +7,7 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { SyncWorkerQueue } from 'openland-module-workers/SyncWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
-import { ScalableMediator, ScalableSessionTask, ScalableShardTask } from 'openland-module-calls/scalable/ScalableMediator';
+import { ScalableMediator, ScalableSessionTask } from 'openland-module-calls/scalable/ScalableMediator';
 
 const logger = createLogger('mediakitchen-scalable');
 
@@ -19,7 +19,6 @@ export class CallSchedulerScalable implements CallScheduler {
 
     // Scalable conference worker
     readonly sessionWorker = new SyncWorkerQueue<number, ScalableSessionTask>(Store.ConferenceScalableSessionQueue, { maxAttempts: 'infinite', type: 'transactional' });
-    readonly shardWorker = new SyncWorkerQueue<string, ScalableShardTask>(Store.ConferenceScalableShardsQueue, { maxAttempts: 'infinite', type: 'external' });
 
     // Scalable mediator
     readonly mediator = new ScalableMediator();
@@ -66,7 +65,7 @@ export class CallSchedulerScalable implements CallScheduler {
         await inTx(parent, async (ctx) => {
             let shard = await this.mediator.repo.getStreamShard(ctx, sid);
             if (shard) {
-                await this.shardWorker.pushWork(ctx, cid + '_' + shard.session + '_' + shard.shard, {
+                await this.mediator.repoShard.shardWorker.pushWork(ctx, cid + '_' + shard.session + '_' + shard.shard, {
                     type: 'offer',
                     cid,
                     pid,
@@ -84,7 +83,7 @@ export class CallSchedulerScalable implements CallScheduler {
         await inTx(parent, async (ctx) => {
             let shard = await this.mediator.repo.getStreamShard(ctx, sid);
             if (shard) {
-                await this.shardWorker.pushWork(ctx, cid + '_' + shard.session + '_' + shard.shard, {
+                await this.mediator.repoShard.shardWorker.pushWork(ctx, cid + '_' + shard.session + '_' + shard.shard, {
                     type: 'answer',
                     cid,
                     pid,
