@@ -309,7 +309,7 @@ export class ScalableMediator {
             //
 
             let answers: { pid: number, id: string, sdp: string, producer: string, parameters: RtpParameters }[] = [];
-            await Promise.all(def.offers.map(async (offer) => {
+            for (let offer of def.offers) {
 
                 // Create Transport
                 const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, offer.id));
@@ -323,7 +323,7 @@ export class ScalableMediator {
                 let answer = generateSDP(transport.dtlsParameters.fingerprints, transport.iceParameters, media);
                 answers.push({ pid: offer.pid, id: offer.id, sdp: answer, producer: producer.id, parameters: producer.rtpParameters });
                 producers.push({ pid: offer.pid, remote: false, producerId: producer.id, parameters: producer.rtpParameters });
-            }));
+            }
 
             //
             // Update Consumers
@@ -341,7 +341,7 @@ export class ScalableMediator {
                 added: ConsumerEdge[]
             }[] = [];
             if (producers.length > 0 && consumers.length > 0) {
-                await Promise.all(consumers.map(async (consumer) => {
+                for (let consumer of consumers) {
                     logger.log(parent, log + 'Update consumer: ' + JSON.stringify({ pid: consumer.pid }));
                     const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, consumer.transportId));
                     const added: ConsumerEdge[] = [];
@@ -362,7 +362,6 @@ export class ScalableMediator {
                         }
                     }
                     if (added.length > 0) {
-                        logger.log(parent, log + 'Added consumers');
                         addedConsumers.push({
                             pid: consumer.pid,
                             id: consumer.transportId,
@@ -371,10 +370,8 @@ export class ScalableMediator {
                             iceParameters: transport.iceParameters,
                             dtlsParameters: transport.dtlsParameters
                         });
-                    } else {
-                        logger.log(parent, log + 'Nothing changed');
                     }
-                }));
+                }
             }
 
             // Commit updates
@@ -387,7 +384,6 @@ export class ScalableMediator {
 
                 // Update consumer
                 for (let a of addedConsumers) {
-                    logger.log(parent, log + 'Added consumer ' + a.pid + '/' + a.id);
                     let consumer = await this.repo.getShardConsumer(ctx, cid, session, shard, a.pid);
                     if (!consumer) {
                         continue;
@@ -430,6 +426,7 @@ export class ScalableMediator {
                         logger.log(parent, log + 'Created consumer transport ' + consumer.pid + '/' + consumer.transportId);
                         this.repo.createConsumerEndStream(ctx, cid, session, shard, consumer.pid, consumer.transportId, offer, remoteStreams);
                     } else {
+                        logger.log(parent, log + 'Updated consumer transport ' + consumer.pid + '/' + consumer.transportId);
                         this.repo.updateConsumerEndStream(ctx, consumer.transportId, offer, remoteStreams);
                     }
                     Modules.Calls.repo.notifyPeerChanged(ctx, consumer.pid);
