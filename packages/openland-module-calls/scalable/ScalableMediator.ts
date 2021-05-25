@@ -107,7 +107,7 @@ export class ScalableMediator {
 
         // Stop if needed
         if (tasks.find((v) => v.type === 'stop')) {
-            logger.log(parent, log + 'Shard stop');
+            logger.log(parent, log + 'Stop');
             let data = await inTx(parent, async (ctx) => {
                 this.repo.markDeleted(ctx, cid, session, shard);
 
@@ -137,7 +137,7 @@ export class ScalableMediator {
         }
 
         if (tasks.find((v) => v.type === 'start')) {
-            logger.log(parent, log + 'Shard start');
+            logger.log(parent, log + 'Start');
         }
 
         // Resolve router and worker
@@ -298,7 +298,6 @@ export class ScalableMediator {
 
         let answers: { pid: number, id: string, sdp: string, producer: string, parameters: RtpParameters }[] = [];
         await Promise.all(def.offers.map(async (offer) => {
-            logger.log(parent, log + 'Creating producer transport');
 
             // Create Transport
             const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, offer.id));
@@ -327,7 +326,6 @@ export class ScalableMediator {
         }[] = [];
         if (producers.length > 0 && consumers.length > 0) {
             await Promise.all(consumers.map(async (consumer) => {
-                logger.log(parent, log + 'Creating consumer transport');
                 const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, consumer.transportId));
                 const added: ConsumerEdge[] = [];
                 for (let p of producers) {
@@ -403,6 +401,7 @@ export class ScalableMediator {
                     media
                 );
                 if (wasCreated) {
+                    logger.log(parent, log + 'Created consumer transport ' + consumer.pid + '/' + consumer.transportId);
                     this.repo.createConsumerEndStream(ctx, cid, session, shard, consumer.pid, consumer.transportId, offer, remoteStreams);
                 } else {
                     this.repo.updateConsumerEndStream(ctx, consumer.transportId, offer, remoteStreams);
@@ -411,6 +410,7 @@ export class ScalableMediator {
 
             // Answer Streams
             for (let answer of answers) {
+                logger.log(parent, log + 'Created producer transport ' + answer.pid + '/' + answer.id);
                 this.repo.answerProducerEndStream(ctx, answer.id, answer.sdp);
                 Modules.Calls.repo.notifyPeerChanged(ctx, answer.pid);
             }
