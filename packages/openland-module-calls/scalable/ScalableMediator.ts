@@ -415,7 +415,7 @@ export class ScalableMediator {
 
                 // Persist Answers
                 for (let answer of answers) {
-                    logger.log(parent, log + 'Connected and connected producer transport ' + answer.pid + '/' + answer.id);
+                    logger.log(parent, log + 'Created and connected producer transport ' + answer.pid + '/' + answer.id);
                     this.repo.addProducerToShard(ctx, cid, session, shard, answer.pid, false, answer.producer, answer.parameters);
                     this.repo.answerProducerEndStream(ctx, answer.id, answer.sdp);
                     Modules.Calls.repo.notifyPeerChanged(ctx, answer.pid);
