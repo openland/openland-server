@@ -536,11 +536,11 @@ export class ScalableMediator {
                 throw Error('Unable to find worker');
             }
             if (data.routerId) {
-                await worker.api.closeRouter(data.routerId);
+                await tracer.trace(parent, 'api.closeRouter', () => worker.api.closeRouter(data.routerId!));
             } else {
-                const routerData = await worker.api.createRouter({ mediaCodecs: ROUTER_CODECS }, repeatKey);
+                const routerData = await tracer.trace(parent, 'api.createRouter', () => worker.api.createRouter({ mediaCodecs: ROUTER_CODECS }, repeatKey));
                 if (!routerData.closed) {
-                    await worker.api.closeRouter(routerData.id);
+                    await tracer.trace(parent, 'api.closeRouter', () => worker.api.closeRouter(routerData.id));
                 }
             }
         }
