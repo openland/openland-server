@@ -13,6 +13,7 @@ import { RemoteTransport } from 'openland-module-pubsub/RemoteTransport';
 import { createSourceEventStream } from 'graphql';
 import { isAsyncIterator } from 'openland-mtproto3/utils';
 import { BulkheadOptions } from 'moleculer';
+import { randomKey } from 'openland-utils/random';
 
 const logger = createLogger('graphql');
 const tracer = createTracer('remote');
@@ -170,10 +171,24 @@ export function declareRemoteQueryExecutor(tag: string, options: { bulkhead?: Bu
     });
 }
 
-export function callRemoteQueryExecutor(tag: string, ctx: Context, query: string, variables: any, operationName: string | null, rootValue: any | null): Promise<RemoteResponse> {
-    return tracer.trace(ctx, operationName ? operationName : '<call>', async (ctx2) => {
-        return await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx2), query, operationName, variables, rootValue }, { timeout: 10000 });
-    });
+export async function callRemoteQueryExecutor(tag: string, ctx: Context, query: string, variables: any, operationName: string | null, rootValue: any | null): Promise<RemoteResponse> {
+    try {
+        return await tracer.trace(ctx, operationName ? operationName : '<call>', async (ctx2) => {
+            return await Modules.Broker.call('graphql-' + tag + '.execute', { ctx: contextSerialize(ctx2), query, operationName, variables, rootValue }, { timeout: 10000 });
+        });
+    } catch (e) {
+        logger.warn(ctx, e);
+        const err: SpaceXFormattedError = {
+            message: 'An unexpected error occurred. Please, try again. If the problem persists, please contact support@openland.com.',
+            uuid: randomKey(),
+            shouldRetry: true,
+            locations: {},
+            path: {}
+        };
+        return {
+            errors: [err]
+        };
+    }
 }
 
 export async function callRemoteSubscription(tag: string, ctx: Context, query: string, variables: any, operationName: string | null): Promise<AsyncIterable<RemoteResponse>> {
