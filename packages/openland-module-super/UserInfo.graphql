@@ -1,0 +1,14 @@
+type UserInfoTuple {
+    name: String!
+    value: String!
+}
+
+type UserInfo {
+    user: User!
+
+    info: [UserInfoTuple!]!
+}
+
+extend type Query {
+    superUserInfo(uid: ID!): UserInfo
+}

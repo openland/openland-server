@@ -948,4 +948,10 @@ export namespace GQLRoots {
     //
     export type ReleasePlatformRoot = ReleasePlatformValues;
     export type AppReleaseRoot = AppRelease;
+
+    //
+    // User Info
+    //
+    export type UserInfoTupleRoot = { name: string, value: string };
+    export type UserInfoRoot = { uid: number, info: UserInfoTupleRoot[] };
 }
