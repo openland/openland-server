@@ -146,6 +146,7 @@ export class ScalableMediator {
 
                 // Check if shard deleted
                 if (await this.repo.isShardDeleted(ctx, cid, session, shard)) {
+                    logger.log(parent, log + 'Shard already deleted');
                     return null;
                 }
 
@@ -399,6 +400,11 @@ export class ScalableMediator {
                 }));
             }
 
+            // Await producer offers to collect all missing producers
+            if (producerOffersPromise) {
+                await producerOffersPromise;
+            }
+
             //
             // Update Consumers
             //
@@ -418,12 +424,8 @@ export class ScalableMediator {
                 } | null,
                 added: ConsumerEdge[]
             }[] = [];
-            if (producers.length > 0 && consumers.length > 0) {
 
-                // Await producer offers to collect all missing producers
-                if (producerOffersPromise) {
-                    await producerOffersPromise;
-                }
+            if (producers.length > 0 && consumers.length > 0) {
 
                 // Update all consumers
                 await Promise.all(consumers.map(async (consumer) => {
@@ -483,10 +485,7 @@ export class ScalableMediator {
                 }));
             }
 
-            // Await Completion
-            if (producerOffersPromise) {
-                await producerOffersPromise;
-            }
+            // Consumers Connection
             if (consumerAnswersPromise) {
                 await consumerAnswersPromise;
             }
@@ -523,7 +522,7 @@ export class ScalableMediator {
                     }
 
                     // Persist consumer state
-                    let wasCreated = !consumer.transport;
+                    let wasCreated = !!consumer.transport;
                     if (!consumer.transport) {
                         if (!a.createdTransport) {
                             throw Error('Internal error'); // Should not happen
