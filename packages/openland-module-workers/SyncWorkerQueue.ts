@@ -38,7 +38,7 @@ export class SyncWorkerQueue<K extends string | number, T> {
                     const commited = await inTx(parent, async (ctx) => {
 
                         // Handle tasks
-                        await handler(parent, iteration.tasks);
+                        await handler(ctx, iteration.tasks);
 
                         // Trying to commit
                         return await this.queue.commitTasks(ctx, id, iteration.counter, iteration.offset);
