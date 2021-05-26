@@ -15,19 +15,16 @@ const peerCollectionMap: { [key in PeerCollection]: number } = {
     'main': 3
 };
 
-export type TransportSDP = {
-    mid: string,
-    port: number,
-    parameters: RtpParameters,
-    fingerprints: { algorithm: string, value: string }[]
-};
-
 export type ShardProducer = {
     pid: number;
-    transportId: string;
-    remote: boolean;
-    producerId: string;
-    parameters: RtpParameters;
+    uuid: string;
+    paused: boolean;
+    wantPaused: boolean;
+    transport: {
+        id: string;
+        producerId: string;
+        parameters: RtpParameters;
+    } | null;
 };
 
 export type ConsumerEdge = { pid: number, consumerId: string, producerId: string, parameters: RtpParameters };
@@ -58,7 +55,6 @@ export class ScalableRepository {
 
     // Shards
     readonly endStreamShards: Subspace<TupleItem[], TupleItem[]>;
-    readonly transportSdp: Subspace<TupleItem[], TransportSDP>;
     readonly shardProducers: Subspace<TupleItem[], ShardProducer>;
     readonly shardConsumers: Subspace<TupleItem[], ShardConsumer>;
 
@@ -86,10 +82,6 @@ export class ScalableRepository {
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.boolean)
             .subspace([10]);
-        this.transportSdp = Store.ConferenceScalableStateDirectory
-            .withKeyEncoding(encoders.tuple)
-            .withValueEncoding(encoders.json)
-            .subspace([12]);
         this.shardProducers = Store.ConferenceScalableStateDirectory
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
@@ -190,26 +182,6 @@ export class ScalableRepository {
     }
 
     //
-    // Producers
-    //
-
-    setProducerTransport(ctx: Context, cid: number, session: string, shard: string, pid: number, id: string) {
-        this.shardRefs.set(ctx, [cid, session, shard, 2, pid], id);
-    }
-
-    getProducerTransport(ctx: Context, cid: number, session: string, shard: string, pid: number) {
-        return this.shardRefs.get(ctx, [cid, session, shard, 2, pid]);
-    }
-
-    setTransportSDP(ctx: Context, cid: number, session: string, shard: string, pid: number, tid: string, parameters: TransportSDP) {
-        this.transportSdp.set(ctx, [cid, session, shard, pid, tid], parameters);
-    }
-
-    getTransportSdp(ctx: Context, cid: number, session: string, shard: string, pid: number, tid: string) {
-        return this.transportSdp.get(ctx, [cid, session, shard, pid, tid]);
-    }
-
-    //
     // Consumers
     //
 
@@ -233,14 +205,16 @@ export class ScalableRepository {
     // Producers
     //
 
-    addProducerToShard(ctx: Context, cid: number, session: string, shard: string, pid: number, remote: boolean, transportId: string, producerId: string, parameters: RtpParameters) {
-        this.shardProducers.set(ctx, [cid, session, shard, producerId], {
-            pid,
-            transportId,
-            remote,
-            producerId,
-            parameters
-        });
+    setShardProducer(ctx: Context, cid: number, session: string, shard: string, pid: number, producer: ShardProducer) {
+        this.shardProducers.set(ctx, [cid, session, shard, pid], producer);
+    }
+
+    getShardProducer(ctx: Context, cid: number, session: string, shard: string, pid: number) {
+        return this.shardProducers.get(ctx, [cid, session, shard, pid]);
+    }
+
+    removeShardProducer(ctx: Context, cid: number, session: string, shard: string, pid: number) {
+        this.shardProducers.clear(ctx, [cid, session, shard, pid]);
     }
 
     async getShardProducers(ctx: Context, cid: number, session: string, shard: string) {

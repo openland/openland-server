@@ -3,8 +3,7 @@ import { createLogger } from '@openland/log';
 import { EndStreamDirectory } from './../repositories/EndStreamDirectory';
 import { randomKey } from 'openland-utils/random';
 import { Context } from '@openland/context';
-// import { inTx } from '@openland/foundationdb';
-import { ConsumerEdge, ScalableRepository, TransportSDP } from './ScalableRepository';
+import { ConsumerEdge, ScalableRepository } from './ScalableRepository';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
 import { inTx } from '@openland/foundationdb';
@@ -180,13 +179,27 @@ export class ScalableMediator {
 
                 for (let t of tasks) {
                     if (t.type === 'add-producer') {
-                        let transportId = await this.repo.getProducerTransport(ctx, cid, session, shard, t.pid);
-                        if (!transportId) {
+                        let producer = await this.repo.getShardProducer(ctx, cid, session, shard, t.pid);
+                        if (!producer) {
                             logger.log(ctx, log + 'Add producer ' + t.pid);
-                            transportId = randomKey();
-                            this.repo.setProducerTransport(ctx, cid, session, shard, t.pid, transportId);
-                            this.repo.createProducerEndStream(ctx, cid, session, shard, t.pid, transportId);
+                            const uuid = randomKey();
+                            producer = {
+                                pid: t.pid,
+                                uuid,
+                                transport: null,
+                                paused: false,
+                                wantPaused: false
+                            };
+                            this.repo.createProducerEndStream(ctx, cid, session, shard, t.pid, uuid);
                             Modules.Calls.repo.notifyPeerChanged(ctx, t.pid);
+                        } else {
+                            if (producer.wantPaused) {
+                                if (producer.transport) {
+                                    this.repo.setShardProducer(ctx, cid, session, shard, t.pid, { ...producer, wantPaused: false });
+                                } else {
+                                    this.repo.setShardProducer(ctx, cid, session, shard, t.pid, { ...producer, wantPaused: false, paused: false });
+                                }
+                            }
                         }
                     }
                 }
@@ -195,38 +208,51 @@ export class ScalableMediator {
                 // Removed Producers
                 //
 
-                // TODO: Implement
+                for (let t of tasks) {
+                    if (t.type === 'remove-producer') {
+                        let producer = await this.repo.getShardProducer(ctx, cid, session, shard, t.pid);
+                        if (producer && !producer.wantPaused) {
+                            if (producer.transport) {
+                                this.repo.setShardProducer(ctx, cid, session, shard, t.pid, { ...producer, wantPaused: true });
+                            } else {
+                                this.repo.setShardProducer(ctx, cid, session, shard, t.pid, { ...producer, paused: true, wantPaused: true });
+                            }
+                        }
+                    }
+                }
 
                 //
                 // Producer Offers
                 //
 
-                let producerOffers: { pid: number, id: string, sdp: TransportSDP }[] = [];
+                let producerOffers: {
+                    pid: number,
+                    uuid: string,
+                    mid: string,
+                    port: number,
+                    fingerprints: { algorithm: string, value: string }[],
+                    rtpParameters: RtpParameters,
+                    paused: boolean,
+
+                }[] = [];
                 for (let t of tasks) {
                     if (t.type === 'offer') {
-                        let transportId = await this.repo.getProducerTransport(ctx, cid, session, shard, t.pid);
-                        if (t.sid === transportId) {
-                            let exSdp = await this.repo.getTransportSdp(ctx, cid, session, shard, t.pid, transportId);
-                            if (!exSdp) {
-                                let sdp;
-                                let fingerprints: { algorithm: string, value: string }[];
-                                let rtpParameters: RtpParameters;
-                                try {
-                                    sdp = parseSDP(t.sdp);
-                                    fingerprints = extractFingerprints(sdp);
-                                    rtpParameters = extractOpusRtpParameters(sdp.media[0]);
-                                } catch (e) {
-                                    logger.warn(parent, e);
-                                    continue; // Ignore on invalid SDP
-                                }
-                                let mid = sdp.media[0].mid! + ''; // Why?
-                                let port = sdp.media[0].port;
-                                exSdp = {
-                                    mid, port, fingerprints, parameters: rtpParameters
-                                };
-                                this.repo.setTransportSDP(ctx, cid, session, shard, t.pid, transportId, exSdp);
+                        let producer = await this.repo.getShardProducer(ctx, cid, session, shard, t.pid);
+                        if (producer && !producer.transport) {
+                            let sdp;
+                            let fingerprints: { algorithm: string, value: string }[];
+                            let rtpParameters: RtpParameters;
+                            try {
+                                sdp = parseSDP(t.sdp);
+                                fingerprints = extractFingerprints(sdp);
+                                rtpParameters = extractOpusRtpParameters(sdp.media[0]);
+                            } catch (e) {
+                                logger.warn(parent, e);
+                                continue; // Ignore on invalid SDP
                             }
-                            producerOffers.push({ pid: t.pid, id: t.sid, sdp: exSdp });
+                            let mid = sdp.media[0].mid! + ''; // Why?
+                            let port = sdp.media[0].port;
+                            producerOffers.push({ pid: t.pid, uuid: producer.uuid, mid, port, fingerprints, rtpParameters, paused: producer.wantPaused });
                         }
                     }
                 }
@@ -367,23 +393,58 @@ export class ScalableMediator {
             // Process offers
             //
 
-            let producersAnswers: { pid: number, id: string, sdp: string, producer: string, parameters: RtpParameters }[] = [];
+            let producersAnswers: {
+                pid: number,
+                uuid: string,
+                answerSDP: string,
+                paused: boolean,
+                transport: {
+                    id: string,
+                    producerId: string,
+                    parameters: RtpParameters
+                }
+            }[] = [];
             let producerOffersPromise: Promise<any> | null = null;
             if (def.producerOffers.length > 0) {
                 producerOffersPromise = Promise.all(def.producerOffers.map(async (offer) => {
 
                     // Create Transport
-                    const transport = await tracer.trace(parent, 'api.createWebRtcTransport', () => worker.api.createWebRtcTransport(routerId!, TRANSPORT_PARAMETERS, transportRepeatKey(offer.id)));
-                    await tracer.trace(parent, 'api.connectWebRtcTransport', () => worker.api.connectWebRtcTransport({ id: transport.id, dtlsParameters: { fingerprints: offer.sdp.fingerprints, role: 'server' } }));
+                    const transport = await tracer.trace(parent, 'api.createWebRtcTransport', () => worker.api.createWebRtcTransport(routerId!, TRANSPORT_PARAMETERS, transportRepeatKey(offer.uuid)));
+                    await tracer.trace(parent, 'api.connectWebRtcTransport', () => worker.api.connectWebRtcTransport({ id: transport.id, dtlsParameters: { fingerprints: offer.fingerprints, role: 'server' } }));
 
                     // Create Producer
-                    const producer = await tracer.trace(parent, 'api.createProducer', () => worker.api.createProducer(transport.id, { kind: 'audio', rtpParameters: offer.sdp.parameters, paused: false }, producerRepeatKey(offer.id)));
+                    const producer = await tracer.trace(parent, 'api.createProducer', () => worker.api.createProducer(transport.id, { kind: 'audio', rtpParameters: offer.rtpParameters, paused: false }, producerRepeatKey(offer.uuid)));
+                    if (offer.paused) {
+                        await tracer.trace(parent, 'api.pauseProducer', () => worker.api.pauseProducer(producer.id));
+                    } else {
+                        // Should not needed
+                        // await tracer.trace(parent, 'api.resumeProducer', () => worker.api.resumeProducer(producer.id));
+                    }
 
                     // Create answer
-                    let media = [createMediaDescription(offer.sdp.mid, 'audio', offer.sdp.port, 'recvonly', true, producer.rtpParameters, transport.iceCandidates)];
+                    let media = [createMediaDescription(offer.mid, 'audio', offer.port, 'recvonly', true, producer.rtpParameters, transport.iceCandidates)];
                     let answer = generateSDP(transport.dtlsParameters.fingerprints, transport.iceParameters, media);
-                    producersAnswers.push({ pid: offer.pid, id: offer.id, sdp: answer, producer: producer.id, parameters: producer.rtpParameters });
-                    producers.push({ pid: offer.pid, remote: false, producerId: producer.id, transportId: offer.id, parameters: producer.rtpParameters });
+                    producersAnswers.push({
+                        pid: offer.pid,
+                        uuid: offer.uuid,
+                        answerSDP: answer, transport: {
+                            id: transport.id,
+                            producerId: producer.id,
+                            parameters: producer.rtpParameters
+                        },
+                        paused: offer.paused
+                    });
+                    producers.push({
+                        pid: offer.pid,
+                        uuid: offer.uuid,
+                        transport: {
+                            id: transport.id,
+                            producerId: producer.id,
+                            parameters: producer.rtpParameters
+                        },
+                        wantPaused: offer.paused,
+                        paused: offer.paused
+                    });
                 }));
             }
 
@@ -435,10 +496,13 @@ export class ScalableMediator {
                         if (p.pid === consumer.pid) {
                             return false;
                         }
+                        if (!p.transport || p.wantPaused) {
+                            return false;
+                        }
                         if (!consumer.transport) {
                             return true;
                         }
-                        return !consumer.transport.connectedTo.find((v) => v.producerId === p.producerId);
+                        return !consumer.transport.connectedTo.find((v) => v.producerId === p.transport!.producerId);
                     });
                     if (missingProducers.length === 0) {
                         return;
@@ -470,9 +534,9 @@ export class ScalableMediator {
                     const added: ConsumerEdge[] = [];
                     await Promise.all(missingProducers.map(async (p) => {
                         const cons = await tracer.trace(parent, 'WebRtcTransport.consume', () =>
-                            worker.api.createConsumer(transportId, p.producerId, { rtpCapabilities, paused: false }, consumerRepeatKey(consumer.uuid, p.producerId))
+                            worker.api.createConsumer(transportId, p.transport!.producerId, { rtpCapabilities, paused: false }, consumerRepeatKey(consumer.uuid, p.transport!.producerId))
                         );
-                        added.push({ consumerId: cons.id, pid: p.pid, producerId: p.producerId, parameters: cons.rtpParameters });
+                        added.push({ consumerId: cons.id, pid: p.pid, producerId: p.transport!.producerId, parameters: cons.rtpParameters });
                     }));
 
                     // Schedule commit
@@ -482,6 +546,24 @@ export class ScalableMediator {
                         createdTransport: created,
                         added,
                     });
+                }));
+            }
+
+            // Update Producer Pause/Resume
+            let producerPaused: { pid: number, paused: boolean }[] = [];
+            if (producers.length > 0) {
+                await Promise.all(producers.map(async (producer) => {
+                    if (!producer.transport) {
+                        return;
+                    }
+                    if (producer.wantPaused !== producer.paused) {
+                        if (producer.wantPaused) {
+                            await tracer.trace(parent, 'api.pauseProducer', () => worker.api.pauseProducer(producer.transport!.producerId));
+                        } else {
+                            await tracer.trace(parent, 'api.resumeProducer', () => worker.api.resumeProducer(producer.transport!.producerId));
+                        }
+                        producerPaused.push({ pid: producer.pid, paused: producer.wantPaused });
+                    }
                 }));
             }
 
@@ -498,21 +580,36 @@ export class ScalableMediator {
 
                 // Persist Producer Answers
                 for (let answer of producersAnswers) {
-                    logger.log(parent, log + 'Created and connected producer transport ' + answer.pid + '/' + answer.id);
-                    this.repo.addProducerToShard(ctx, cid, session, shard, answer.pid, false, answer.id, answer.producer, answer.parameters);
-                    this.repo.answerProducerEndStream(ctx, answer.id, answer.sdp);
+                    logger.log(parent, log + 'Created and connected producer transport ' + answer.pid + '/' + answer.uuid);
+                    this.repo.setShardProducer(ctx, cid, session, shard, answer.pid, {
+                        pid: answer.pid,
+                        uuid: answer.uuid,
+                        transport: answer.transport,
+                        paused: answer.paused,
+                        wantPaused: answer.paused
+                    });
+                    this.repo.answerProducerEndStream(ctx, answer.uuid, answer.answerSDP);
                     Modules.Calls.repo.notifyPeerChanged(ctx, answer.pid);
                 }
 
+                // Update producer pause state
+                await Promise.all(producerPaused.map(async (paused) => {
+                    let producer = await this.repo.getShardProducer(ctx, cid, session, shard, paused.pid);
+                    if (!producer) {
+                        return;
+                    }
+                    this.repo.setShardProducer(ctx, cid, session, shard, paused.pid, { ...producer, paused: paused.paused });
+                }));
+
                 // Persist Consumer Connected
-                for (let connected of consumerConnected) {
+                await Promise.all(consumerConnected.map(async (connected) => {
                     let consumer = await this.repo.getShardConsumer(ctx, cid, session, shard, connected.pid);
                     if (!consumer || !consumer.transport || consumer.transport.connected) {
-                        continue;
+                        return;
                     }
                     this.repo.setShardConsumer(ctx, cid, session, shard, connected.pid, { ...consumer, transport: { ...consumer.transport, connected: true } });
                     logger.log(parent, log + 'Connected consumer transport ' + connected.pid + '/' + connected.uuid);
-                }
+                }));
 
                 // Update consumer
                 for (let a of addedConsumers) {
