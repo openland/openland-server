@@ -12,7 +12,7 @@ import { IceCandidate, RtpParameters, IceParameters, DtlsParameters } from 'medi
 import { parseSDP } from 'openland-module-calls/sdp/parseSDP';
 import { extractFingerprints } from 'openland-module-calls/sdp/extractFingerprints';
 import { extractOpusRtpParameters } from 'openland-module-calls/kitchen/extract';
-import { TRANSPORT_PARAMETERS } from 'openland-module-calls/kitchen/MediaKitchenProfiles';
+import { ROUTER_CODECS, TRANSPORT_PARAMETERS } from 'openland-module-calls/kitchen/MediaKitchenProfiles';
 import { createMediaDescription, generateSDP, getAudioRtpCapabilities } from 'openland-module-calls/kitchen/sdp';
 import { convertRtpCapabilitiesToKitchen } from 'openland-module-calls/kitchen/convert';
 import { MediaDescription } from 'sdp-transform';
@@ -36,6 +36,22 @@ export type ScalableSessionTask =
     | { type: 'add', cid: number, pid: number, role: 'speaker' | 'listener' }
     | { type: 'role-change', cid: number, pid: number, role: 'speaker' | 'listener' }
     | { type: 'remove', cid: number, pid: number };
+
+function routerRepeatKey(shard: string) {
+    return 'router_' + shard;
+}
+
+function transportRepeatKey(transportId: string) {
+    return 'transport_' + transportId;
+}
+
+function producerRepeatKey(transportId: string) {
+    return 'producer_' + transportId;
+}
+
+function consumerRepeatKey(transportId: string, producerId: string) {
+    return 'consumer_' + transportId + '_' + producerId;
+}
 
 export class ScalableMediator {
     readonly repo = new ScalableRepository();
@@ -102,41 +118,24 @@ export class ScalableMediator {
     }
 
     async onShardJob(parent: Context, cid: number, session: string, shard: string, tasks: ScalableShardTask[]) {
-        const service = Modules.Calls.mediaKitchen;
         const log = `[${session}/${shard}]: `;
         logger.log(parent, log + 'Job start');
 
         try {
 
+            //
             // Stop if needed
+            //
+
             if (tasks.find((v) => v.type === 'stop')) {
                 logger.log(parent, log + 'Stop');
-                let data = await inTx(parent, async (ctx) => {
-                    this.repo.markDeleted(ctx, cid, session, shard);
-
-                    let workerId = await this.repo.getShardWorkerId(ctx, cid, session, shard);
-                    if (!workerId) {
-                        return null;
-                    }
-                    let workerRef = await Store.KitchenWorker.findById(ctx, workerId);
-                    if (!workerRef || workerRef.deleted) {
-                        return null;
-                    }
-
-                    let routerId = await this.repo.getShardRouterId(ctx, cid, session, shard);
-                    if (!routerId) {
-                        return null;
-                    }
-                    return { workerId, routerId };
-                });
-
-                if (data) {
-                    let routerToDelete = await Modules.Calls.mediaKitchen.getOrCreateRouter(data.workerId, data.routerId);
-                    await routerToDelete.close();
-                }
-
+                await this.onShardStop(parent, cid, session, shard);
                 return;
             }
+
+            //
+            // Start if needed
+            //
 
             if (tasks.find((v) => v.type === 'start')) {
                 logger.log(parent, log + 'Start');
@@ -172,11 +171,11 @@ export class ScalableMediator {
                 // Router
                 //
 
-                let routerId = await this.repo.getShardRouterId(ctx, cid, session, shard);
-                if (!routerId) {
-                    routerId = randomKey();
-                    this.repo.setShardRouterId(ctx, cid, session, shard, routerId);
-                }
+                let existingRouterId = await this.repo.getShardRouterId(ctx, cid, session, shard);
+                // if (!routerId) {
+                //     routerId = randomKey();
+                //     this.repo.setShardRouterId(ctx, cid, session, shard, routerId);
+                // }
 
                 //
                 // Added Producers
@@ -310,7 +309,7 @@ export class ScalableMediator {
 
                 let currentProducers = await this.repo.getShardProducers(ctx, cid, session, shard);
                 let currentConsumers = await this.repo.getShardConsumers(ctx, cid, session, shard);
-                return { workerId, routerId, offers, consumerAnswers, currentConsumers, currentProducers };
+                return { workerId, existingRouterId, offers, consumerAnswers, currentConsumers, currentProducers };
             });
             if (!def) {
                 return;
@@ -321,10 +320,21 @@ export class ScalableMediator {
                 currentProducers: def.currentProducers.map((v) => v.pid)
             }));
 
+            // Worker
+            const worker = Modules.Calls.mediaKitchen.cluster.workers.find((v) => v.id === def.workerId);
+            if (!worker) {
+                throw Error('Unable to find worker');
+            }
+
             // Router
+            let routerId = def.existingRouterId;
+            if (!routerId) {
+                routerId = (await tracer.trace(parent, 'api.createRouter', () => worker.api.createRouter({ mediaCodecs: ROUTER_CODECS }, routerRepeatKey(shard)))).id;
+            }
+
+            // Producers and Consumers
             let producers = def.currentProducers;
             let consumers = def.currentConsumers;
-            let router = await tracer.trace(parent, 'Worker.getOrCreateRouter', () => service.getOrCreateRouter(def.workerId, def.routerId));
 
             // TODO: Pause and Unpause producers
 
@@ -335,12 +345,13 @@ export class ScalableMediator {
             let answers: { pid: number, id: string, sdp: string, producer: string, parameters: RtpParameters }[] = [];
             if (def.offers.length > 0) {
                 await Promise.all(def.offers.map(async (offer) => {
+
                     // Create Transport
-                    const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, offer.id));
-                    await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: { fingerprints: offer.sdp.fingerprints, role: 'server' } }));
+                    const transport = await tracer.trace(parent, 'api.createWebRtcTransport', () => worker.api.createWebRtcTransport(routerId!, TRANSPORT_PARAMETERS, transportRepeatKey(offer.id)));
+                    await tracer.trace(parent, 'api.connectWebRtcTransport', () => worker.api.connectWebRtcTransport({ id: transport.id, dtlsParameters: { fingerprints: offer.sdp.fingerprints, role: 'server' } }));
 
                     // Create Producer
-                    const producer = await tracer.trace(parent, 'WebRtcTransport.produce', () => transport.produce({ kind: 'audio', rtpParameters: offer.sdp.parameters, paused: false }, offer.id));
+                    const producer = await tracer.trace(parent, 'api.createProducer', () => worker.api.createProducer(transport.id, { kind: 'audio', rtpParameters: offer.sdp.parameters, paused: false }, producerRepeatKey(offer.id)));
 
                     // Create answer
                     let media = [createMediaDescription(offer.sdp.mid, 'audio', offer.sdp.port, 'recvonly', true, producer.rtpParameters, transport.iceCandidates)];
@@ -357,8 +368,8 @@ export class ScalableMediator {
             let answered: { pid: number, id: string }[] = [];
             if (def.consumerAnswers.length > 0) {
                 await Promise.all(def.consumerAnswers.map(async (answer) => {
-                    const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, answer.id));
-                    await tracer.trace(parent, 'WebRtcTransport.connect', () => transport.connect({ dtlsParameters: answer.dtlsParameters }));
+                    const transport = await tracer.trace(parent, 'api.createWebRtcTransport', () => worker.api.createWebRtcTransport(routerId!, TRANSPORT_PARAMETERS, transportRepeatKey(answer.id)));
+                    await tracer.trace(parent, 'api.connectWebRtcTransport', () => worker.api.connectWebRtcTransport({ id: transport.id, dtlsParameters: answer.dtlsParameters }));
                     answered.push({ pid: answer.pid, id: answer.id });
                 }));
             }
@@ -380,17 +391,17 @@ export class ScalableMediator {
             }[] = [];
             if (producers.length > 0 && consumers.length > 0) {
                 await Promise.all(consumers.map(async (consumer) => {
-                    const transport = await tracer.trace(parent, 'Router.createWebRtcTransport', () => router.createWebRtcTransport(TRANSPORT_PARAMETERS, consumer.transportId));
+                    const transport = await tracer.trace(parent, 'api.createWebRtcTransport', () => worker.api.createWebRtcTransport(routerId!, TRANSPORT_PARAMETERS, transportRepeatKey(consumer.transportId)));
                     const added: ConsumerEdge[] = [];
                     await Promise.all(producers.map(async (p) => {
                         if (p.pid === consumer.pid) {
                             return;
                         }
                         if (!consumer.connectedTo.find((v) => v.producerId === p.producerId)) {
-                            const cons = await tracer.trace(parent, 'WebRtcTransport.consume', () => transport.consume(p.producerId, {
-                                rtpCapabilities: convertRtpCapabilitiesToKitchen(getAudioRtpCapabilities(consumer.capabilities)),
-                                paused: false
-                            }, consumer.transportId + '-' + p.producerId));
+                            const rtpCapabilities = convertRtpCapabilitiesToKitchen(getAudioRtpCapabilities(consumer.capabilities));
+                            const cons = await tracer.trace(parent, 'WebRtcTransport.consume', () =>
+                                worker.api.createConsumer(transport.id, p.producerId, { rtpCapabilities, paused: false }, consumerRepeatKey(consumer.transportId, p.producerId))
+                            );
                             added.push({ consumerId: cons.id, pid: p.pid, producerId: p.producerId, parameters: cons.rtpParameters });
                         }
                     }));
@@ -421,6 +432,9 @@ export class ScalableMediator {
 
             // Commit updates
             await inTx(parent, async (ctx) => {
+
+                // Persist Router Id
+                this.repo.setShardRouterId(ctx, cid, session, shard, routerId!);
 
                 // Persist Answers
                 for (let answer of answers) {
@@ -492,6 +506,43 @@ export class ScalableMediator {
             });
         } finally {
             logger.log(parent, log + 'Job end');
+        }
+    }
+
+    private async onShardStop(parent: Context, cid: number, session: string, shard: string) {
+
+        // Resolve sharding info
+        const data = await inTx(parent, async (ctx) => {
+            this.repo.markDeleted(ctx, cid, session, shard);
+
+            let workerId = await this.repo.getShardWorkerId(ctx, cid, session, shard);
+            if (!workerId) {
+                return null;
+            }
+            let workerRef = await Store.KitchenWorker.findById(ctx, workerId);
+            if (!workerRef || workerRef.deleted) {
+                return null;
+            }
+
+            let routerId = await this.repo.getShardRouterId(ctx, cid, session, shard);
+            return { workerId, routerId };
+        });
+
+        // If sharding exists - delete media
+        if (data) {
+            const repeatKey = routerRepeatKey(shard);
+            const worker = Modules.Calls.mediaKitchen.cluster.workers.find((v) => v.id === data.workerId);
+            if (!worker) {
+                throw Error('Unable to find worker');
+            }
+            if (data.routerId) {
+                await worker.api.closeRouter(data.routerId);
+            } else {
+                const routerData = await worker.api.createRouter({ mediaCodecs: ROUTER_CODECS }, repeatKey);
+                if (!routerData.closed) {
+                    await worker.api.closeRouter(routerData.id);
+                }
+            }
         }
     }
 }
