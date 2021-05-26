@@ -75,6 +75,8 @@ type AddPeerInput = {
     role?: 'speaker' | 'listener'
 };
 
+const SteveID = 5;
+
 @injectable()
 export class CallRepository {
 
@@ -190,10 +192,14 @@ export class CallRepository {
                 conf.streamerId = conf.kind === 'stream' ? uid : null;
 
                 // Assign scheduler for this calls
-                if (conf.scheduler) {
-                    conf.currentScheduler = conf.scheduler;
+                if (input.uid === SteveID) {
+                    conf.currentScheduler = 'scalable-sfu';
                 } else {
-                    conf.currentScheduler = this.defaultScheduler; // Default Scheduler
+                    if (conf.scheduler) {
+                        conf.currentScheduler = conf.scheduler;
+                    } else {
+                        conf.currentScheduler = this.defaultScheduler; // Default Scheduler
+                    }
                 }
 
                 // Flush for better correctness

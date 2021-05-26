@@ -118,16 +118,15 @@ export class ScalableMediator {
                     if (!workerId) {
                         return null;
                     }
+                    let workerRef = await Store.KitchenWorker.findById(ctx, workerId);
+                    if (!workerRef || workerRef.deleted) {
+                        return null;
+                    }
+
                     let routerId = await this.repo.getShardRouterId(ctx, cid, session, shard);
                     if (!routerId) {
                         return null;
                     }
-
-                    let workerRef = await Store.KitchenWorker.findById(ctx, workerId);
-                    if (!workerRef || workerRef.deleted) {
-                        return;
-                    }
-
                     return { workerId, routerId };
                 });
 
