@@ -190,6 +190,7 @@ export class ScalableMediator {
                                 paused: false,
                                 wantPaused: false
                             };
+                            this.repo.setShardProducer(ctx, cid, session, shard, t.pid, producer);
                             this.repo.createProducerEndStream(ctx, cid, session, shard, t.pid, uuid);
                             Modules.Calls.repo.notifyPeerChanged(ctx, t.pid);
                         } else {
