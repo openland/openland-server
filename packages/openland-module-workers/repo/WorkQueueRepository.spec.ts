@@ -87,4 +87,64 @@ describe('WorkQueueRepository', () => {
         });
         expect(acquired.length).toBe(1);
     });
+
+    it('should work with batched jobs', async () => {
+        let root = createNamedContext('test');
+        let db = await Database.openTest();
+        let repo = await WorkQueueRepository.open(root, db);
+
+        // Initial tasks
+        await inTx(root, async (ctx) => {
+            expect(await repo.writePendingTask(ctx, 'task', { task: 1 })).toBe(true);
+            expect(await repo.writePendingTask(ctx, 'task', { task: 2 })).toBe(false);
+            expect(await repo.writePendingTask(ctx, 'task', { task: 3 })).toBe(false);
+            expect(await repo.writePendingTask(ctx, 'task', { task: 4 })).toBe(false);
+        });
+
+        // Simple in transaction commits
+        await inTx(root, async (ctx) => {
+            let res = await repo.readPendingTasks(ctx, 'task');
+            expect(res).not.toBeNull();
+            expect(res!.tasks.length).toBe(4);
+            res = await repo.readPendingTasks(ctx, 'task');
+            expect(res).not.toBeNull();
+            expect(res!.tasks.length).toBe(4);
+            await repo.commitTasks(ctx, 'task', res!.counter, res!.offset);
+            res = await repo.readPendingTasks(ctx, 'task');
+            expect(res).toBeNull();
+        });
+
+        // Re-add tasks
+        await inTx(root, async (ctx) => {
+            expect(await repo.writePendingTask(ctx, 'task', { task: 1 })).toBe(true);
+            expect(await repo.writePendingTask(ctx, 'task', { task: 2 })).toBe(false);
+            expect(await repo.writePendingTask(ctx, 'task', { task: 3 })).toBe(false);
+            expect(await repo.writePendingTask(ctx, 'task', { task: 4 })).toBe(false);
+        });
+
+        // Fetch pending
+        let pending = await inTx(root, async (ctx) => {
+            return await repo.readPendingTasks(ctx, 'task');
+        });
+        expect(pending!.tasks.length).toBe(4);
+        await inTx(root, async (ctx) => {
+            expect(await repo.writePendingTask(ctx, 'task', { task: 5 })).toBe(false);
+        });
+
+        // Should not commit
+        await inTx(root, async (ctx) => {
+            expect(await repo.commitTasks(ctx, 'task', pending!.counter, pending!.offset)).toBe(false);
+        });
+
+        // Should read only pending
+        pending = await inTx(root, async (ctx) => {
+            return await repo.readPendingTasks(ctx, 'task');
+        });
+        expect(pending!.tasks.length).toBe(1);
+
+        // Should commit
+        await inTx(root, async (ctx) => {
+            expect(await repo.commitTasks(ctx, 'task', pending!.counter, pending!.offset)).toBe(true);
+        });
+    });
 });

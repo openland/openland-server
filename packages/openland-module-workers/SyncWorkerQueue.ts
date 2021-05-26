@@ -7,10 +7,12 @@ export class SyncWorkerQueue<K extends string | number, T> {
 
     private readonly queue: QueueStorage;
     private readonly workQueue: BetterWorkerQueue<{ id: K }>;
+    private readonly type: 'transactional' | 'external';
 
     constructor(queue: QueueStorage, settings: { maxAttempts: number | 'infinite', type: 'transactional' | 'external' }) {
         this.queue = queue;
-        this.workQueue = new BetterWorkerQueue(queue, settings);
+        this.type = settings.type;
+        this.workQueue = new BetterWorkerQueue(queue, { maxAttempts: settings.maxAttempts, type: 'external' });
     }
 
     async pushWork(ctx: Context, key: K, task: T) {
@@ -32,15 +34,29 @@ export class SyncWorkerQueue<K extends string | number, T> {
                     return;
                 }
 
-                // Handle tasks
-                await handler(parent, iteration.tasks);
+                if (this.type === 'transactional') {
+                    const commited = await inTx(parent, async (ctx) => {
 
-                // Trying to commit
-                const commited = await inTx(parent, async (ctx) => {
-                    return await this.queue.commitTasks(ctx, id, iteration.counter, iteration.offset);
-                });
-                if (commited) {
-                    return;
+                        // Handle tasks
+                        await handler(parent, iteration.tasks);
+
+                        // Trying to commit
+                        return await this.queue.commitTasks(ctx, id, iteration.counter, iteration.offset);
+                    });
+                    if (commited) {
+                        return;
+                    }
+                } else {
+                    // Handle tasks
+                    await handler(parent, iteration.tasks);
+
+                    // Trying to commit
+                    const commited = await inTx(parent, async (ctx) => {
+                        return await this.queue.commitTasks(ctx, id, iteration.counter, iteration.offset);
+                    });
+                    if (commited) {
+                        return;
+                    }
                 }
             }
         });

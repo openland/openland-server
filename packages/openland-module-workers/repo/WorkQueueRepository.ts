@@ -416,7 +416,7 @@ export class WorkQueueRepository {
             this.tasksStore.clearRange(ctx, [id, STORE_TASKS], [...offset, 0]);
             return false;
         }
-        this.tasksStore.clearPrefixed(ctx, [id]);
+        this.tasksStore.clearPrefixed(ctx, [id]); // Delete enqueued and counter
         return true;
     }
 }
