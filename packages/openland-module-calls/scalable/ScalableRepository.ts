@@ -29,17 +29,21 @@ export type ShardProducer = {
     producerId: string;
     parameters: RtpParameters;
 };
+
 export type ConsumerEdge = { pid: number, consumerId: string, producerId: string, parameters: RtpParameters };
+
 export type ShardConsumer = {
     pid: number;
-    transportId: string;
-    created: boolean;
-    connected: boolean;
-    connectedTo: ConsumerEdge[];
-    iceCandates: IceCandidate[] | null;
-    iceParameters: IceParameters | null;
-    dtlsParameters: DtlsParameters | null;
-    capabilities: Capabilities
+    uuid: string;
+    capabilities: Capabilities;
+    transport: {
+        id: string;
+        iceCandates: IceCandidate[];
+        iceParameters: IceParameters;
+        dtlsParameters: DtlsParameters;
+        connected: boolean;
+        connectedTo: ConsumerEdge[];
+    } | null;
 };
 
 export class ScalableRepository {
@@ -217,13 +221,17 @@ export class ScalableRepository {
         return this.shardConsumers.get(ctx, [cid, session, shard, pid]);
     }
 
+    removeShardConsumer(ctx: Context, cid: number, session: string, shard: string, pid: number) {
+        this.shardConsumers.clear(ctx, [cid, session, shard, pid]);
+    }
+
     async getShardConsumers(ctx: Context, cid: number, session: string, shard: string) {
         return (await this.shardConsumers.range(ctx, [cid, session, shard])).map((v) => v.value);
     }
 
-    removeShardConsumer(ctx: Context, cid: number, session: string, shard: string, pid: number) {
-        this.shardConsumers.clear(ctx, [cid, session, shard, pid]);
-    }
+    //
+    // Producers
+    //
 
     addProducerToShard(ctx: Context, cid: number, session: string, shard: string, pid: number, remote: boolean, transportId: string, producerId: string, parameters: RtpParameters) {
         this.shardProducers.set(ctx, [cid, session, shard, producerId], {
