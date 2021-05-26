@@ -53,7 +53,7 @@ export const Resolver: GQLResolver = {
                 let userSubscriptions = await Store.WalletSubscription.user.findAll(ctx, uid);
                 let haveActiveSubscriptions = userSubscriptions.filter(s => s.state !== 'canceled').length > 0;
 
-                info.add('wallet-id-locked', userWallet.isLocked);
+                info.add('wallet-is-locked', userWallet.isLocked);
                 info.add('wallet-balance', userWallet.balance);
                 info.add('wallet-failing-payments-count', await Modules.Wallet.getFailingPaymentsCount(ctx, uid));
                 info.add('wallet-have-active-subscriptions', haveActiveSubscriptions);
