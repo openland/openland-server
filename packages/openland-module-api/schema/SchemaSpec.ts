@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '02e74cdd41628e58ad2653e7ccc9d210';
+export const GQL_SPEC_VERSION = 'd6115023dc5645b5a7e3a022f9c8a292';
 
 export namespace GQL {
     export interface CreditCard {
@@ -4140,6 +4140,7 @@ export namespace GQL {
         userSearchForChat: ChatUserConnection;
         userSearchForOrg: OrgUserConnection;
         alphaProfiles: UserConnection;
+        superUserInfo: Nullable<UserInfo>;
         voiceChat: VoiceChat;
         voiceChatEventsState: VoiceChatEventsState;
         conference: Conference;
@@ -4644,6 +4645,9 @@ export namespace GQL {
         after: OptionalNullable<string>;
         page: OptionalNullable<number>;
         sort: OptionalNullable<string>;
+    }
+    export interface QuerySuperUserInfoArgs {
+        uid: string;
     }
     export interface QueryVoiceChatArgs {
         id: string;
@@ -5272,6 +5276,18 @@ export namespace GQL {
     }
     export interface OrgUserConnectionEdgesArgs { }
     export interface OrgUserConnectionPageInfoArgs { }
+    export interface UserInfoTuple {
+        name: string;
+        value: string;
+    }
+    export interface UserInfoTupleNameArgs { }
+    export interface UserInfoTupleValueArgs { }
+    export interface UserInfo {
+        user: User;
+        info: UserInfoTuple[];
+    }
+    export interface UserInfoUserArgs { }
+    export interface UserInfoInfoArgs { }
     export interface VoiceChat {
         id: string;
         title: Nullable<string>;
@@ -10049,6 +10065,7 @@ export interface GQLResolver {
             userSearchForChat: GQLRoots.ChatUserConnectionRoot,
             userSearchForOrg: GQLRoots.OrgUserConnectionRoot,
             alphaProfiles: GQLRoots.UserConnectionRoot,
+            superUserInfo: Nullable<GQLRoots.UserInfoRoot>,
             voiceChat: GQLRoots.VoiceChatRoot,
             voiceChatEventsState: GQLRoots.VoiceChatEventsStateRoot,
             conference: GQLRoots.ConferenceRoot,
@@ -10256,6 +10273,7 @@ export interface GQLResolver {
             userSearchForChat: GQL.QueryUserSearchForChatArgs,
             userSearchForOrg: GQL.QueryUserSearchForOrgArgs,
             alphaProfiles: GQL.QueryAlphaProfilesArgs,
+            superUserInfo: GQL.QuerySuperUserInfoArgs,
             voiceChat: GQL.QueryVoiceChatArgs,
             voiceChatEventsState: GQL.QueryVoiceChatEventsStateArgs,
             conference: GQL.QueryConferenceArgs,
@@ -10725,6 +10743,28 @@ export interface GQLResolver {
         {
             edges: GQL.OrgUserConnectionEdgesArgs,
             pageInfo: GQL.OrgUserConnectionPageInfoArgs,
+        }
+    >;
+    UserInfoTuple?: ComplexTypedResolver<
+        GQL.UserInfoTuple,
+        GQLRoots.UserInfoTupleRoot,
+        {
+        },
+        {
+            name: GQL.UserInfoTupleNameArgs,
+            value: GQL.UserInfoTupleValueArgs,
+        }
+    >;
+    UserInfo?: ComplexTypedResolver<
+        GQL.UserInfo,
+        GQLRoots.UserInfoRoot,
+        {
+            user: GQLRoots.UserRoot,
+            info: GQLRoots.UserInfoTupleRoot[],
+        },
+        {
+            user: GQL.UserInfoUserArgs,
+            info: GQL.UserInfoInfoArgs,
         }
     >;
     VoiceChat?: ComplexTypedResolver<
