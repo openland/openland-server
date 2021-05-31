@@ -405,4 +405,65 @@ export class ScalableShardRepository {
             this.shardMode.set(ctx, [cid, session], mode);
         }
     }
+
+    //
+    // Metrics
+    //
+
+    async getSessionsCount(ctx: Context) {
+        return (await this.sessions.range(ctx, [])).length;
+    }
+
+    async getSessions(ctx: Context) {
+        let sessions = (await this.sessions.range(ctx, []));
+        let res: { cid: number, session: string }[] = [];
+        for (let s of sessions) {
+            res.push({ cid: s.key[0] as number, session: s.value });
+        }
+        return res;
+    }
+
+    async getSessionTotalProducers(ctx: Context, cid: number, session: string) {
+        let mode = (await this.shardMode.get(ctx, [cid, session]));
+        if (!mode) {
+            return 0;
+        }
+        return Object.keys(mode.region.producers).length;
+    }
+
+    async getSessionActiveProducers(ctx: Context, cid: number, session: string) {
+        let mode = (await this.shardMode.get(ctx, [cid, session]));
+        if (!mode) {
+            return 0;
+        }
+        return Object.values(mode.region.producers).filter(Boolean).length;
+    }
+
+    async getSessionShards(ctx: Context, cid: number, session: string) {
+        let mode = (await this.shardMode.get(ctx, [cid, session]));
+        let res: { shard: string, worker: string, consumers: number }[] = [];
+        if (!mode) {
+            return res;
+        }
+        for (let shardId of Object.keys(mode.region.shards)) {
+            const shard = mode.region.shards[shardId];
+            const consumers = Object.keys(shard.consumers).length;
+            res.push({ shard: shardId, worker: shard.worker, consumers });
+        }
+        return res;
+    }
+
+    async getWorkerStats(ctx: Context) {
+        const workers = (await Store.KitchenWorker.active.findAll(ctx))
+            .filter((v) => !v.deleted)
+            .map((v) => v.id);
+        const allocations = await this.allocator.getWorkersAllocations(ctx);
+        let res: { worker: string, used: number, available: number, total: number }[] = [];
+        for (let w of workers) {
+            const total = WORKER_BUDGET;
+            const used = allocations[w] || 0;
+            res.push({ worker: w, total, used, available: total - used });
+        }
+        return res;
+    }
 }

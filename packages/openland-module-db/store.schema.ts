@@ -129,7 +129,7 @@ import { messagingStore } from '../openland-module-messaging/Messaging.store';
 import { socialStore } from '../openland-module-social/Social.store';
 import { voiceChatsStore } from '../openland-module-voice-chats/VoiceChats.store';
 import { usersStore } from '../openland-module-users/Users.store';
-import { scalableStore } from '../openland-module-calls/scalable/ScalableRepository.store';
+import { scalableStore } from '../openland-module-calls/scalable/Scalable.store';
 
 export default declareSchema(() => {
 

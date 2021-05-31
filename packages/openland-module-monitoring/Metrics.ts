@@ -267,6 +267,54 @@ export const Metrics = {
         return (await Store.KitchenWorker.active.findAll(ctx)).length;
     }),
 
+    CallWorkersAllocations: Factory.createPersistedTaggedGauge('call_workers_allocations', 'Allocations in active workers', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        for (let stat of await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getWorkerStats(ctx)) {
+            res.push({ tag: stat.worker, value: stat.used });
+        }
+        return res;
+    }),
+
+    CallSessions: Factory.createPersistedGauge('calls_sessions', 'Number of active sessions', async (ctx) => {
+        return Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessionsCount(ctx);
+    }),
+    CallSessionsShards: Factory.createPersistedTaggedGauge('calls_sessions_shards', 'Shards in sessions', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        for (let session of await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessions(ctx)) {
+            let shards = await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessionShards(ctx, session.cid, session.session);
+            res.push({ tag: session.cid + '-' + session.session, value: shards.length });
+        }
+        return res;
+    }),
+    CallSessionsConsumers: Factory.createPersistedTaggedGauge('calls_sessions_consumers', 'Consumers in sessions', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        for (let session of await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessions(ctx)) {
+            let shards = await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessionShards(ctx, session.cid, session.session);
+            let consumers = 0;
+            for (let sh of shards) {
+                consumers += sh.consumers;
+            }
+            res.push({ tag: session.cid + '-' + session.session, value: consumers });
+        }
+        return res;
+    }),
+    CallSessionsProducers: Factory.createPersistedTaggedGauge('calls_sessions_producers', 'Active producers in sessions', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        for (let session of await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessions(ctx)) {
+            let producers = await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessionActiveProducers(ctx, session.cid, session.session);
+            res.push({ tag: session.cid + '-' + session.session, value: producers });
+        }
+        return res;
+    }),
+    CallSessionsProducersTotal: Factory.createPersistedTaggedGauge('calls_sessions_producers_total', 'Total producers in sessions', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        for (let session of await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessions(ctx)) {
+            let producers = await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessionTotalProducers(ctx, session.cid, session.session);
+            res.push({ tag: session.cid + '-' + session.session, value: producers });
+        }
+        return res;
+    }),
+
     //
     // Old Calls
     //
@@ -279,88 +327,88 @@ export const Metrics = {
         }
         return res;
     }),
-        CallRouterProducers: Factory.createPersistedTaggedGauge('calls_routers_producers', 'Number of active workers', async (ctx) => {
-            let res: { tag: string, value: number }[] = [];
-            let workers = (await Store.KitchenWorker.active.findAll(ctx));
-            for (let w of workers) {
-                for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
-                    res.push({ tag: router.id, value: await Store.ConferenceKitchenProducersCount.get(ctx, router.id) });
-                }
+    CallRouterProducers: Factory.createPersistedTaggedGauge('calls_routers_producers', 'Number of active workers', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        let workers = (await Store.KitchenWorker.active.findAll(ctx));
+        for (let w of workers) {
+            for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
+                res.push({ tag: router.id, value: await Store.ConferenceKitchenProducersCount.get(ctx, router.id) });
             }
-            return res;
-        }),
-        CallRouterConsumers: Factory.createPersistedTaggedGauge('calls_routers_consumers', 'Number of active workers', async (ctx) => {
-            let res: { tag: string, value: number }[] = [];
-            let workers = (await Store.KitchenWorker.active.findAll(ctx));
-            for (let w of workers) {
-                for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
-                    res.push({ tag: router.id, value: await Store.ConferenceKitchenConsumersCount.get(ctx, router.id) });
-                }
+        }
+        return res;
+    }),
+    CallRouterConsumers: Factory.createPersistedTaggedGauge('calls_routers_consumers', 'Number of active workers', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        let workers = (await Store.KitchenWorker.active.findAll(ctx));
+        for (let w of workers) {
+            for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
+                res.push({ tag: router.id, value: await Store.ConferenceKitchenConsumersCount.get(ctx, router.id) });
             }
-            return res;
-        }),
-        CallWorkerProducers: Factory.createPersistedTaggedGauge('calls_workers_producers', 'Number of active workers producers per worker', async (ctx) => {
-            let res: { tag: string, value: number }[] = [];
-            let workers = (await Store.KitchenWorker.active.findAll(ctx));
-            for (let w of workers) {
-                let count = 0;
-                for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
-                    count += await Store.ConferenceKitchenProducersCount.get(ctx, router.id);
-                }
-                res.push({ tag: w.id, value: count });
+        }
+        return res;
+    }),
+    CallWorkerProducers: Factory.createPersistedTaggedGauge('calls_workers_producers', 'Number of active workers producers per worker', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        let workers = (await Store.KitchenWorker.active.findAll(ctx));
+        for (let w of workers) {
+            let count = 0;
+            for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
+                count += await Store.ConferenceKitchenProducersCount.get(ctx, router.id);
             }
-            return res;
-        }),
-        CallWorkerConsumers: Factory.createPersistedTaggedGauge('calls_workers_consumers', 'Number of active workers consumers per worker', async (ctx) => {
-            let res: { tag: string, value: number }[] = [];
-            let workers = (await Store.KitchenWorker.active.findAll(ctx));
-            for (let w of workers) {
-                let count = 0;
-                for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
-                    count += await Store.ConferenceKitchenConsumersCount.get(ctx, router.id);
-                }
-                res.push({ tag: w.id, value: count });
+            res.push({ tag: w.id, value: count });
+        }
+        return res;
+    }),
+    CallWorkerConsumers: Factory.createPersistedTaggedGauge('calls_workers_consumers', 'Number of active workers consumers per worker', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        let workers = (await Store.KitchenWorker.active.findAll(ctx));
+        for (let w of workers) {
+            let count = 0;
+            for (let router of (await Store.KitchenRouter.workerActive.findAll(ctx, w.id))) {
+                count += await Store.ConferenceKitchenConsumersCount.get(ctx, router.id);
             }
-            return res;
-        }),
+            res.push({ tag: w.id, value: count });
+        }
+        return res;
+    }),
 
-        // Debug
-        TasksDeletionProgress: Factory.createPersistedGauge('tasks_deletion', 'Completed tasks deletion progress', async ctx => {
-            let state = await Store.EntityCleanerState.findById(ctx, 'Task');
-            if (state) {
-                return state.deletedCount;
-            }
-            return 0;
-        }),
-        BrokenTasks: Factory.createPersistedGauge('broken_tasks', 'Count of broken tasks in db', async ctx => {
-            let state = await Store.EntityCleanerState.findById(ctx, 'Task');
-            if (state) {
-                return state.brokenRecordsCount || 0;
-            }
-            return 0;
-        }),
-        HyperLogDeletionProgress: Factory.createPersistedGauge('hyperlog_deletion', 'Completed tasks deletion progress', async ctx => {
-            let state = await Store.EntityCleanerState.findById(ctx, 'HyperLog');
-            if (state) {
-                return state.deletedCount;
-            }
-            return 0;
-        }),
-        ModernPresenceIndexEstimate: Factory.createPersistedGauge('modern_presence_index_estimate', 'Modern presence reindex estimate', async ctx => {
-            return await Store.ReaderEstimate.byId('reader-presences-old').get(ctx);
-        }),
-        ModernPresenceEstimate: Factory.createPersistedGauge('modern_presence_estimate', 'Modern presence reindex estimate', async ctx => {
-            return await Store.ReaderEstimate.byId('presence_log_reader').get(ctx);
-        }),
+    // Debug
+    TasksDeletionProgress: Factory.createPersistedGauge('tasks_deletion', 'Completed tasks deletion progress', async ctx => {
+        let state = await Store.EntityCleanerState.findById(ctx, 'Task');
+        if (state) {
+            return state.deletedCount;
+        }
+        return 0;
+    }),
+    BrokenTasks: Factory.createPersistedGauge('broken_tasks', 'Count of broken tasks in db', async ctx => {
+        let state = await Store.EntityCleanerState.findById(ctx, 'Task');
+        if (state) {
+            return state.brokenRecordsCount || 0;
+        }
+        return 0;
+    }),
+    HyperLogDeletionProgress: Factory.createPersistedGauge('hyperlog_deletion', 'Completed tasks deletion progress', async ctx => {
+        let state = await Store.EntityCleanerState.findById(ctx, 'HyperLog');
+        if (state) {
+            return state.deletedCount;
+        }
+        return 0;
+    }),
+    ModernPresenceIndexEstimate: Factory.createPersistedGauge('modern_presence_index_estimate', 'Modern presence reindex estimate', async ctx => {
+        return await Store.ReaderEstimate.byId('reader-presences-old').get(ctx);
+    }),
+    ModernPresenceEstimate: Factory.createPersistedGauge('modern_presence_estimate', 'Modern presence reindex estimate', async ctx => {
+        return await Store.ReaderEstimate.byId('presence_log_reader').get(ctx);
+    }),
 
-        // Push
-        UnreadUsers: Factory.createPersistedGauge('unread_users', 'Unread users count', async (ctx) => {
-            return (await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push')).length;
-        }),
-        NotificationCenterUnreadUsers: Factory.createPersistedGauge('notification_center_unread_users', 'Unread users count', async (ctx) => {
-            return (await Modules.NotificationCenter.needDelivery.findAllUsersWithNotifications(ctx, 'push')).length;
-        }),
+    // Push
+    UnreadUsers: Factory.createPersistedGauge('unread_users', 'Unread users count', async (ctx) => {
+        return (await Modules.Messaging.needNotificationDelivery.findAllUsersWithNotifications(ctx, 'push')).length;
+    }),
+    NotificationCenterUnreadUsers: Factory.createPersistedGauge('notification_center_unread_users', 'Unread users count', async (ctx) => {
+        return (await Modules.NotificationCenter.needDelivery.findAllUsersWithNotifications(ctx, 'push')).length;
+    }),
 
-        // Counters
-        GlobalCounterResolveTime: Factory.createSummary('global_counter_resolve_time', 'Summary of global counter fetch time', DEFAULT_QUANTILES),
+    // Counters
+    GlobalCounterResolveTime: Factory.createSummary('global_counter_resolve_time', 'Summary of global counter fetch time', DEFAULT_QUANTILES),
 };

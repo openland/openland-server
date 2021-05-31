@@ -17,7 +17,7 @@ export function scalableStore() {
     // Queue
     taskQueue('ConferenceScalableSession');
     taskQueue('ConferenceScalableShards');
-
+    
     // Deprecated
     taskQueue('ConferenceScalableQueue');
     taskQueue('ConferenceScalablePurgeQueue');
