@@ -99,7 +99,6 @@ export class ScalableShardRepository {
 
     private readonly sessions: Subspace<TupleItem[], string>;
     private readonly shardMode: Subspace<TupleItem[], ShardMode>;
-    private readonly peerShards: Subspace<TupleItem[], boolean>;
     readonly allocator = new ScalableAllocator();
 
     constructor() {
@@ -107,10 +106,6 @@ export class ScalableShardRepository {
             .subspace(encoders.tuple.pack([0]))
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json);
-        this.peerShards = Store.ConferenceScalableShardingDirectory
-            .subspace(encoders.tuple.pack([1]))
-            .withKeyEncoding(encoders.tuple)
-            .withValueEncoding(encoders.boolean);
         this.sessions = Store.ConferenceScalableShardingDirectory
             .subspace(encoders.tuple.pack([2]))
             .withKeyEncoding(encoders.tuple)
@@ -123,15 +118,9 @@ export class ScalableShardRepository {
 
     async getShardingState(ctx: Context, cid: number, session: string) {
         let mode = await this.shardMode.get(ctx, [cid, session]);
-        let peers = (await this.peerShards.range(ctx, [cid, session])).map((v) => ({
-            pid: v.key[2] as number,
-            shard: v.key[3] as string,
-            kind: (v.key[4] === 0 ? 'producer' : 'consumer') as 'producer' | 'consumer',
-            enabled: v.value
-        }));
+
         return {
-            mode,
-            peers
+            mode
         };
     }
 

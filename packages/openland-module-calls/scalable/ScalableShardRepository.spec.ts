@@ -29,7 +29,6 @@ describe('ScalableShardRepository', () => {
             return { size, res };
         });
         expect(state.res.mode).not.toBeNull();
-        expect(state.res.peers.length).toBe(200);
     });
 
     beforeAll(async () => {
