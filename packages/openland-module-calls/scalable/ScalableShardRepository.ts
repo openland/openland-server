@@ -180,7 +180,7 @@ export class ScalableShardRepository {
         let mode = (await this.shardMode.get(ctx, [cid, session]))!;
         if (!mode) {
 
-            mode = { region: { producers: [], shards: {} } };
+            mode = { region: { producers: {}, shards: {} } };
             this.shardMode.set(ctx, [cid, session], mode);
         }
 
