@@ -164,7 +164,6 @@ export class ScalableShardRepository {
 
         // Delete shard data
         this.shardMode.clear(ctx, [cid, session]);
-        this.peerShards.clearPrefixed(ctx, [cid, session]);
     }
 
     async updateSharding(ctx: Context, cid: number, session: string,
