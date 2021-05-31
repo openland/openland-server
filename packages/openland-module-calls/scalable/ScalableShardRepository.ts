@@ -310,6 +310,9 @@ export class ScalableShardRepository {
                 let expanded = allocatorExpand(allocatorState, CONSUMER_BUDGET);
                 if (expanded) {
 
+                    // Update shard
+                    mode.region.shards[expanded.allocation.id].consumers[consumer] = true;
+
                     // Update shard budgets
                     mode.region.shards[expanded.allocation.id].usedBudget = expanded.allocation.used;
                     mode.region.shards[expanded.allocation.id].allocatedBudget = expanded.allocation.available + expanded.allocation.used;
