@@ -164,6 +164,7 @@ export class ScalableMediator {
                         throw Error('Shard not started');
                     }
                     this.repo.setShardWorkerId(ctx, cid, session, shard, tasks[0].worker);
+                    workerId = tasks[0].worker;
                 }
 
                 //
