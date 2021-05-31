@@ -49,7 +49,7 @@ export async function prepare() {
 
         // New Entity
         let storage = new EntityStorage(db);
-        let store = await openStore(storage);
+        let store = await openStore(rootCtx, storage);
         container.bind('Store')
             .toDynamicValue(() => store)
             .inSingletonScope();

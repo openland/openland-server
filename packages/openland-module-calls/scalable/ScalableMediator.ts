@@ -22,8 +22,8 @@ const logger = createLogger('scalable');
 const tracer = createTracer('kitchen');
 
 export type ScalableShardTask =
-    | { type: 'start', cid: number, session: string, shard: string }
-    | { type: 'stop', cid: number, session: string, shard: string }
+    | { type: 'start', cid: number, session: string, shard: string, worker: string }
+    | { type: 'stop', cid: number, session: string, shard: string, budget: number }
     | { type: 'add-producer', cid: number, session: string, shard: string, pid: number }
     | { type: 'add-consumer', cid: number, session: string, shard: string, pid: number }
     | { type: 'remove-producer', cid: number, session: string, shard: string, pid: number }
@@ -108,8 +108,12 @@ export class ScalableMediator {
         // Apply Updates
         //
 
+        const workers = (await Store.KitchenWorker.active.findAll(ctx))
+            .filter((v) => !v.deleted)
+            .map((v) => v.id);
         const collapsed = collapseSessionTasks(tasks);
         await this.repoShard.updateSharding(ctx, cid, session,
+            workers,
             collapsed.remove,
             collapsed.add,
             collapsed.update
@@ -126,9 +130,10 @@ export class ScalableMediator {
             // Stop if needed
             //
 
-            if (tasks.find((v) => v.type === 'stop')) {
+            let stopTask = tasks.find((v) => v.type === 'stop');
+            if (stopTask && stopTask.type === 'stop') {
                 logger.log(parent, log + 'Stop');
-                await this.onShardStop(parent, cid, session, shard);
+                await this.onShardStop(parent, cid, session, shard, stopTask.budget);
                 return;
             }
 
@@ -155,16 +160,10 @@ export class ScalableMediator {
 
                 let workerId = await this.repo.getShardWorkerId(ctx, cid, session, shard);
                 if (!workerId) {
-
-                    // TODO: Better algo
-                    let active = await Store.KitchenWorker.active.findAll(ctx);
-                    if (active.length === 0) {
-                        throw Error('No workers available');
+                    if (tasks[0].type !== 'start') {
+                        throw Error('Shard not started');
                     }
-                    workerId = active[0].id;
-
-                    // Save worker
-                    this.repo.setShardWorkerId(ctx, cid, session, shard, workerId);
+                    this.repo.setShardWorkerId(ctx, cid, session, shard, tasks[0].worker);
                 }
 
                 //
@@ -689,7 +688,7 @@ export class ScalableMediator {
         }
     }
 
-    private async onShardStop(parent: Context, cid: number, session: string, shard: string) {
+    private async onShardStop(parent: Context, cid: number, session: string, shard: string, budget: number) {
 
         // Resolve sharding info
         const data = await inTx(parent, async (ctx) => {
@@ -724,5 +723,17 @@ export class ScalableMediator {
                 }
             }
         }
+
+        // Commit deletion
+        await inTx(parent, async (ctx) => {
+            let workerId = await this.repo.getShardWorkerId(ctx, cid, session, shard);
+            if (!workerId) {
+                return;
+            }
+            this.repo.clearShardWorkerId(ctx, cid, session, shard);
+
+            // Dealloc worker
+            this.repoShard.allocator.deallocWorker(ctx, workerId, budget);
+        });
     }
 }

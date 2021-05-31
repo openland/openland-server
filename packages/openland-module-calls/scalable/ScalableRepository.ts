@@ -57,6 +57,7 @@ export class ScalableRepository {
     readonly endStreamShards: Subspace<TupleItem[], TupleItem[]>;
     readonly shardProducers: Subspace<TupleItem[], ShardProducer>;
     readonly shardConsumers: Subspace<TupleItem[], ShardConsumer>;
+    readonly workerAllocations: Subspace<TupleItem[], number>;
 
     // Peer 
     readonly capabilities: Subspace<TupleItem[], Capabilities>;
@@ -90,6 +91,10 @@ export class ScalableRepository {
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json)
             .subspace([14]);
+        this.workerAllocations = Store.ConferenceScalableStateDirectory
+            .withKeyEncoding(encoders.tuple)
+            .withValueEncoding(encoders.int32BE)
+            .subspace([15]);
     }
 
     //
@@ -171,6 +176,10 @@ export class ScalableRepository {
 
     setShardWorkerId(ctx: Context, cid: number, session: string, shard: string, id: string) {
         this.shardRefs.set(ctx, [cid, session, shard, 0], id);
+    }
+
+    clearShardWorkerId(ctx: Context, cid: number, session: string, shard: string) {
+        this.shardRefs.clear(ctx, [cid, session, shard, 0]);
     }
 
     async getShardRouterId(ctx: Context, cid: number, session: string, shard: string) {

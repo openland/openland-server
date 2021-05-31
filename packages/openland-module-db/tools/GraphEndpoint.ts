@@ -81,7 +81,7 @@ export async function createGraphQLAdminSchema() {
 
     // New Entity
     let storage = new EntityStorage(db);
-    let store = await openStore(storage);
+    let store = await openStore(rootCtx, storage);
 
     let entitiesMap: any = {};
     let queries: any = {};

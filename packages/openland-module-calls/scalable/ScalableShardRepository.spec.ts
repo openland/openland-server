@@ -12,12 +12,14 @@ describe('ScalableShardRepository', () => {
     it('should allocate shard', async () => {
         const repo = new ScalableShardRepository();
         const session = randomKey();
+        const workers: string[] = ['worker-1', 'worker-2'];
         let state = await inTx(parent, async (ctx) => {
             let toAdd: PeerState[] = [];
             for (let i = 0; i < 100; i++) {
                 toAdd.push({ pid: i, consumer: true, producer: true });
             }
             await repo.updateSharding(ctx, 1, session,
+                workers,
                 [],
                 toAdd,
                 []
@@ -27,7 +29,6 @@ describe('ScalableShardRepository', () => {
             return { size, res };
         });
         expect(state.res.mode).not.toBeNull();
-        expect(state.res.mode!.type).toBe('simple');
         expect(state.res.peers.length).toBe(200);
     });
 
