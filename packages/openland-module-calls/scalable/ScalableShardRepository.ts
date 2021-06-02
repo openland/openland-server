@@ -318,7 +318,7 @@ export class ScalableShardRepository {
                     mode.region.shards[expanded.allocation.id].allocatedBudget = expanded.allocation.available + expanded.allocation.used;
 
                     // Update worker budgets
-                    let workerDelta = expanded.resource.used - allocatorState.resources[expanded.allocation.resource].used;
+                    let workerDelta = allocatorState.resources[expanded.allocation.resource].used - expanded.resource.used;
                     if (workerDelta > 0) {
                         this.allocator.allocWorker(ctx, expanded.resource.id, workerDelta);
                     }
