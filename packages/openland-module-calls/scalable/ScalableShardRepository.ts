@@ -262,8 +262,7 @@ export class ScalableShardRepository {
                         delete shard.consumers[consumer];
 
                         // Update budget
-                        let newBudget = getShardBudget(mode.region, shardId);
-                        shard.usedBudget = newBudget;
+                        shard.usedBudget = shard.usedBudget - CONSUMER_BUDGET;
 
                         // Schedule removal
                         await this.shardWorker.pushWork(ctx, workerKey(cid, session, shardId), { type: 'remove-consumer', cid, session, shard: shardId, pid: consumer });
@@ -318,7 +317,7 @@ export class ScalableShardRepository {
                     mode.region.shards[expanded.allocation.id].allocatedBudget = expanded.allocation.available + expanded.allocation.used;
 
                     // Update worker budgets
-                    let workerDelta = allocatorState.resources[expanded.allocation.resource].used - expanded.resource.used;
+                    let workerDelta = expanded.resource.used - allocatorState.resources[expanded.allocation.resource].used;
                     if (workerDelta > 0) {
                         this.allocator.allocWorker(ctx, expanded.resource.id, workerDelta);
                     }

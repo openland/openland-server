@@ -1474,7 +1474,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '206-reset-allocations',
+    key: '207-reset-allocations',
     migration: async (parent) => {
         await inTx(parent, async (ctx) => {
             const allocations = await Modules.Calls.repo.schedulerScalable.mediator.repoShard.allocator.getWorkersAllocations(ctx);
