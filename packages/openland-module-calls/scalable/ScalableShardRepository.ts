@@ -35,21 +35,21 @@ const INITIAL_BUDGET = getBudget({ producers: 5, consumers: 10 });
 const CONSUMER_BUDGET = 5; // 5 Streams
 const WORKER_BUDGET = 2000; // 2000 consumers
 
-function getShardBudget(region: ShardRegion, shard: string) {
-    let producers = 5;
-    let consumers = 0;
-    // for (let k of Object.keys(region.producers)) {
-    //     if (region.producers[parseInt(k, 10)]) {
-    //         producers++;
-    //     }
-    // }
-    for (let k of Object.keys(region.shards[shard].consumers)) {
-        if (region.shards[shard].consumers[parseInt(k, 10)]) {
-            consumers++;
-        }
-    }
-    return getBudget({ producers, consumers });
-}
+// function getShardBudget(region: ShardRegion, shard: string) {
+//     let producers = 5;
+//     let consumers = 0;
+//     // for (let k of Object.keys(region.producers)) {
+//     //     if (region.producers[parseInt(k, 10)]) {
+//     //         producers++;
+//     //     }
+//     // }
+//     for (let k of Object.keys(region.shards[shard].consumers)) {
+//         if (region.shards[shard].consumers[parseInt(k, 10)]) {
+//             consumers++;
+//         }
+//     }
+//     return getBudget({ producers, consumers });
+// }
 
 function workerKey(cid: number, session: string, shard: string) {
     return cid + '_' + session + '_' + shard;
