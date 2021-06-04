@@ -10,9 +10,10 @@ describe('PushRepository', () => {
     let entities: Store;
 
     beforeAll(async () => {
+        let ctx = createNamedContext('test');
         let db = await openTestDatabase();
         let layer = new EntityStorage(db, 'app');
-        entities = await openStore(layer);
+        entities = await openStore(ctx, layer);
     });
 
     it('should register web push', async () => {

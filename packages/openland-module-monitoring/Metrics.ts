@@ -259,10 +259,66 @@ export const Metrics = {
         }
     }),
 
+    //
     // Calls
+    //
+
     CallWorkers: Factory.createPersistedGauge('calls_workers', 'Number of active workers', async (ctx) => {
         return (await Store.KitchenWorker.active.findAll(ctx)).length;
     }),
+
+    CallWorkersAllocations: Factory.createPersistedTaggedGauge('call_workers_allocations', 'Allocations in active workers', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        for (let stat of await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getWorkerStats(ctx)) {
+            res.push({ tag: stat.worker, value: stat.used });
+        }
+        return res;
+    }),
+
+    CallSessions: Factory.createPersistedGauge('calls_sessions', 'Number of active sessions', async (ctx) => {
+        return Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessionsCount(ctx);
+    }),
+    CallSessionsShards: Factory.createPersistedTaggedGauge('calls_sessions_shards', 'Shards in sessions', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        for (let session of await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessions(ctx)) {
+            let shards = await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessionShards(ctx, session.cid, session.session);
+            res.push({ tag: session.cid + '-' + session.session, value: shards.length });
+        }
+        return res;
+    }),
+    CallSessionsConsumers: Factory.createPersistedTaggedGauge('calls_sessions_consumers', 'Consumers in sessions', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        for (let session of await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessions(ctx)) {
+            let shards = await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessionShards(ctx, session.cid, session.session);
+            let consumers = 0;
+            for (let sh of shards) {
+                consumers += sh.consumers;
+            }
+            res.push({ tag: session.cid + '-' + session.session, value: consumers });
+        }
+        return res;
+    }),
+    CallSessionsProducers: Factory.createPersistedTaggedGauge('calls_sessions_producers', 'Active producers in sessions', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        for (let session of await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessions(ctx)) {
+            let producers = await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessionActiveProducers(ctx, session.cid, session.session);
+            res.push({ tag: session.cid + '-' + session.session, value: producers });
+        }
+        return res;
+    }),
+    CallSessionsProducersTotal: Factory.createPersistedTaggedGauge('calls_sessions_producers_total', 'Total producers in sessions', async (ctx) => {
+        let res: { tag: string, value: number }[] = [];
+        for (let session of await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessions(ctx)) {
+            let producers = await Modules.Calls.repo.schedulerScalable.mediator.repoShard.getSessionTotalProducers(ctx, session.cid, session.session);
+            res.push({ tag: session.cid + '-' + session.session, value: producers });
+        }
+        return res;
+    }),
+
+    //
+    // Old Calls
+    //
+
     CallRouters: Factory.createPersistedGauge('calls_routers', 'Number of active routers', async (ctx) => {
         let workers = (await Store.KitchenWorker.active.findAll(ctx));
         let res = 0;

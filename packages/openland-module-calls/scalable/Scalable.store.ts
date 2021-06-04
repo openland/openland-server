@@ -12,11 +12,12 @@ export function scalableStore() {
     // State
     customDirectory('ConferenceScalableState');
     customDirectory('ConferenceScalableSharding');
+    customDirectory('ConferenceScalableAllocator');
 
     // Queue
     taskQueue('ConferenceScalableSession');
     taskQueue('ConferenceScalableShards');
-
+    
     // Deprecated
     taskQueue('ConferenceScalableQueue');
     taskQueue('ConferenceScalablePurgeQueue');

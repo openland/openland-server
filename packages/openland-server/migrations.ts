@@ -1473,4 +1473,16 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '207-reset-allocations',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            const allocations = await Modules.Calls.repo.schedulerScalable.mediator.repoShard.allocator.getWorkersAllocations(ctx);
+            for (let w of Object.keys(allocations)) {
+                Modules.Calls.repo.schedulerScalable.mediator.repoShard.allocator.deallocWorker(ctx, w, allocations[w]);
+            }
+        });
+    }
+});
+
 export default migrations;

@@ -139,7 +139,7 @@ export async function loadAllModules(ctx: Context, loadDb: boolean = true) {
 
         // Load Entity Store
         let storage = new EntityStorage(db);
-        let store = await openStore(storage);
+        let store = await openStore(ctx, storage);
         container.bind<Store>('Store')
             .toConstantValue(store);
 

@@ -5,10 +5,51 @@ import { Store } from 'openland-module-db/FDB';
 import { SyncWorkerQueue } from 'openland-module-workers/SyncWorkerQueue';
 import { ScalableShardTask } from './ScalableMediator';
 import { createLogger } from '@openland/log';
+import { getBudget } from './utils/getBudget';
+import { ScalableAllocator } from './ScalableAllocator';
+import { Allocation, allocatorAllocate, allocatorExpand, AllocatorState, Resource } from './utils/allocator';
 
-type ShardMode =
-    | { type: 'simple', shard: string }
-    | { type: 'scalable', shard: string, producersShard: string[], consumersShard: string[] };
+type ShardState = {
+    allocatedBudget: number;
+    usedBudget: number;
+    worker: string;
+    consumers: {
+        [key: number]: boolean
+    };
+};
+
+type ShardRegion = {
+    producers: {
+        [key: number]: boolean
+    };
+    shards: {
+        [key: string]: ShardState;
+    }
+};
+
+type ShardMode = {
+    region: ShardRegion
+};
+
+const INITIAL_BUDGET = getBudget({ producers: 5, consumers: 10 });
+const CONSUMER_BUDGET = 5; // 5 Streams
+const WORKER_BUDGET = 2000; // 2000 consumers
+
+// function getShardBudget(region: ShardRegion, shard: string) {
+//     let producers = 5;
+//     let consumers = 0;
+//     // for (let k of Object.keys(region.producers)) {
+//     //     if (region.producers[parseInt(k, 10)]) {
+//     //         producers++;
+//     //     }
+//     // }
+//     for (let k of Object.keys(region.shards[shard].consumers)) {
+//         if (region.shards[shard].consumers[parseInt(k, 10)]) {
+//             consumers++;
+//         }
+//     }
+//     return getBudget({ producers, consumers });
+// }
 
 function workerKey(cid: number, session: string, shard: string) {
     return cid + '_' + session + '_' + shard;
@@ -18,40 +59,68 @@ const logger = createLogger('scalable');
 
 export type PeerState = { pid: number, producer: boolean, consumer: boolean };
 
+function buildAllocatorState(
+    workers: string[],
+    workerAllocations: { [key: string]: number },
+    resourceAllocations?: {
+        [key: string]: {
+            allocatedBudget: number;
+            usedBudget: number;
+            worker: string;
+        }
+    }
+): AllocatorState {
+    let resources: { [key: string]: Resource } = {};
+    for (let w of workers) {
+        const used = workerAllocations[w] || 0;
+        const available = WORKER_BUDGET - used;
+        resources[w] = {
+            id: w,
+            used,
+            available
+        };
+    }
+    let allocations: { [key: string]: Allocation } = {};
+    if (resourceAllocations) {
+        for (let id of Object.keys(resourceAllocations)) {
+            const alloc = resourceAllocations[id];
+            const used = alloc.usedBudget;
+            const available = alloc.allocatedBudget - alloc.usedBudget;
+            const resource = alloc.worker;
+            allocations[id] = { id, available, used, resource };
+        }
+    }
+    return { resources, allocations };
+}
+
 export class ScalableShardRepository {
 
     readonly shardWorker = new SyncWorkerQueue<string, ScalableShardTask>(Store.ConferenceScalableShardsQueue, { maxAttempts: 'infinite', type: 'external' });
 
     private readonly sessions: Subspace<TupleItem[], string>;
     private readonly shardMode: Subspace<TupleItem[], ShardMode>;
-    private readonly peerShards: Subspace<TupleItem[], boolean>;
+    readonly allocator = new ScalableAllocator();
 
     constructor() {
         this.shardMode = Store.ConferenceScalableShardingDirectory
             .subspace(encoders.tuple.pack([0]))
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.json);
-        this.peerShards = Store.ConferenceScalableShardingDirectory
-            .subspace(encoders.tuple.pack([1]))
-            .withKeyEncoding(encoders.tuple)
-            .withValueEncoding(encoders.boolean);
         this.sessions = Store.ConferenceScalableShardingDirectory
             .subspace(encoders.tuple.pack([2]))
             .withKeyEncoding(encoders.tuple)
             .withValueEncoding(encoders.string);
     }
 
+    //
+    // Session
+    //
+
     async getShardingState(ctx: Context, cid: number, session: string) {
         let mode = await this.shardMode.get(ctx, [cid, session]);
-        let peers = (await this.peerShards.range(ctx, [cid, session])).map((v) => ({
-            pid: v.key[2] as number,
-            shard: v.key[3] as string,
-            kind: (v.key[4] === 0 ? 'producer' : 'consumer') as 'producer' | 'consumer',
-            enabled: v.value
-        }));
+
         return {
-            mode,
-            peers
+            mode
         };
     }
 
@@ -86,135 +155,317 @@ export class ScalableShardRepository {
         // Stop shards
         let mode = await this.shardMode.get(ctx, [cid, session]);
         if (mode) {
-            if (mode.type === 'simple') {
-                logger.log(ctx, `[${session}/${mode.shard}]: Stop shard`);
-                await this.shardWorker.pushWork(ctx, workerKey(cid, session, mode.shard), { type: 'stop', cid, session, shard: mode.shard });
-            }
-            if (mode.type === 'scalable') {
-                logger.log(ctx, `[${session}/${mode.shard}]: Stop shard`);
-                await this.shardWorker.pushWork(ctx, workerKey(cid, session, mode.shard), { type: 'stop', cid, session, shard: mode.shard });
-                for (let p of mode.producersShard) {
-                    logger.log(ctx, `[${session}/${p}]: Stop shard`);
-                    await this.shardWorker.pushWork(ctx, workerKey(cid, session, p), { type: 'stop', cid, session, shard: p });
-                }
-                for (let p of mode.consumersShard) {
-                    logger.log(ctx, `[${session}/${p}]: Stop shard`);
-                    await this.shardWorker.pushWork(ctx, workerKey(cid, session, p), { type: 'stop', cid, session, shard: p });
-                }
+            for (let shardId of Object.keys(mode.region.shards)) {
+                const shard = mode.region.shards[shardId];
+                logger.log(ctx, `[${session}/${shardId}]: Stop shard`);
+                await this.shardWorker.pushWork(ctx, workerKey(cid, session, shardId), { type: 'stop', cid, session, shard: shardId, budget: shard.allocatedBudget });
             }
         }
 
         // Delete shard data
         this.shardMode.clear(ctx, [cid, session]);
-        this.peerShards.clearPrefixed(ctx, [cid, session]);
     }
 
     async updateSharding(ctx: Context, cid: number, session: string,
+        workers: string[],
         removePeers: number[],
         addPeers: PeerState[],
         updatePeers: PeerState[]
     ) {
 
+        // Load current allocations
+        let workerAllocations = await this.allocator.getWorkersAllocations(ctx);
+
         // Create sharding mode if not exist
-        let mode = await this.shardMode.get(ctx, [cid, session]);
+        let mode = (await this.shardMode.get(ctx, [cid, session]))!;
         if (!mode) {
-            const allocatedShard = randomKey();
-            mode = { type: 'simple', shard: allocatedShard };
+
+            mode = { region: { producers: {}, shards: {} } };
             this.shardMode.set(ctx, [cid, session], mode);
-            logger.log(ctx, `[${session}/${allocatedShard}]: Start shard`);
-            await this.shardWorker.pushWork(ctx, workerKey(cid, session, allocatedShard), { type: 'start', cid, session, shard: allocatedShard });
         }
 
-        // Remove peers
+        //
+        // Preprocess changes
+        //
+
+        let removedConsumers = new Set<number>();
+        let removedProducers = new Set<number>();
+        let addedConsumers = new Set<number>();
+        let addedProducers = new Set<number>();
+        function hasProducer(pid: number) {
+            if (mode.region.producers[pid]) {
+                return true;
+            }
+            return false;
+        }
+        function hasConsumer(pid: number) {
+            for (let shardId of Object.keys(mode.region.shards)) {
+                const shard = mode.region.shards[shardId];
+                if (shard.consumers[pid]) {
+                    return true;
+                }
+            }
+            return false;
+        }
         for (let r of removePeers) {
-            let shards = await this.getPeerShards(ctx, cid, session, r);
-            for (let sh of shards) {
-                this.removePeerFromShard(ctx, cid, session, r, sh.shard, sh.kind);
-                if (sh.kind === 'producer') {
-                    await this.shardWorker.pushWork(ctx, workerKey(cid, session, sh.shard), { type: 'remove-producer', cid, session, shard: sh.shard, pid: r });
+            if (hasConsumer(r)) {
+                removedConsumers.add(r);
+            }
+            if (hasProducer(r)) {
+                removedProducers.add(r);
+            }
+        }
+        for (let r of addPeers) {
+            if (r.consumer && !hasConsumer(r.pid)) {
+                addedConsumers.add(r.pid);
+            }
+            if (r.producer && !hasProducer(r.pid)) {
+                addedProducers.add(r.pid);
+            }
+        }
+
+        for (let r of updatePeers) {
+            if (!r.consumer) {
+                if (hasConsumer(r.pid)) {
+                    removedConsumers.add(r.pid);
                 }
-                if (sh.kind === 'consumer') {
-                    await this.shardWorker.pushWork(ctx, workerKey(cid, session, sh.shard), { type: 'remove-consumer', cid, session, shard: sh.shard, pid: r });
+            }
+            if (r.consumer) {
+                if (!hasConsumer(r.pid)) {
+                    addedConsumers.add(r.pid);
+                }
+            }
+            if (!r.producer) {
+                if (hasProducer(r.pid)) {
+                    removedProducers.add(r.pid);
+                }
+            }
+            if (r.producer) {
+                if (!hasProducer(r.pid)) {
+                    addedProducers.add(r.pid);
                 }
             }
         }
 
-        // TODO: Perform scheduling
-        const shard = mode.shard;
+        //
+        // Remove consumers
+        //
+        if (removedConsumers.size > 0) {
+            for (let consumer of removedConsumers) {
 
-        // Add peers
-        for (let p of addPeers) {
-            if (p.consumer) {
-                this.setPeerToShard(ctx, cid, session, p.pid, shard, 'consumer', true);
-                await this.shardWorker.pushWork(ctx, workerKey(cid, session, shard), { type: 'add-consumer', cid, session, shard: shard, pid: p.pid });
+                // For each shard
+                for (let shardId of Object.keys(mode.region.shards)) {
+                    const shard = mode.region.shards[shardId];
+                    if (shard.consumers[consumer]) {
+
+                        // Update shard state
+                        delete shard.consumers[consumer];
+
+                        // Update budget
+                        shard.usedBudget = shard.usedBudget - CONSUMER_BUDGET;
+
+                        // Schedule removal
+                        await this.shardWorker.pushWork(ctx, workerKey(cid, session, shardId), { type: 'remove-consumer', cid, session, shard: shardId, pid: consumer });
+                    }
+                }
             }
-            if (p.producer) {
-                this.setPeerToShard(ctx, cid, session, p.pid, shard, 'producer', true);
-                await this.shardWorker.pushWork(ctx, workerKey(cid, session, shard), { type: 'add-producer', cid, session, shard: shard, pid: p.pid });
-            }
+
+            // Persist mode
+            this.shardMode.set(ctx, [cid, session], mode);
         }
 
-        // Update peers
-        for (let u of updatePeers) {
-            let allocatedShards = await this.getPeerShards(ctx, cid, session, u.pid);
+        //
+        // Remove producers
+        //
 
-            // Remove consumers
-            if (!u.consumer) {
-                for (let sh of allocatedShards) {
-                    if (sh.kind === 'consumer') {
-                        this.removePeerFromShard(ctx, cid, session, u.pid, sh.shard, 'consumer');
-                        await this.shardWorker.pushWork(ctx, workerKey(cid, session, sh.shard), { type: 'remove-consumer', cid, session, shard: sh.shard, pid: u.pid });
+        if (removedProducers.size > 0) {
+            for (let producer of removedProducers) {
+                if (mode.region.producers[producer]) {
+
+                    // Update producer state
+                    mode.region.producers[producer] = false;
+
+                    // For each shard schedule removal
+                    for (let shardId of Object.keys(mode.region.shards)) {
+                        await this.shardWorker.pushWork(ctx, workerKey(cid, session, shardId), { type: 'remove-producer', cid, session, shard: shardId, pid: producer });
                     }
                 }
             }
 
-            // Add consumers
-            if (u.consumer) {
-                if (!allocatedShards.find((v) => v.kind === 'consumer')) {
-                    this.setPeerToShard(ctx, cid, session, u.pid, shard, 'consumer', true);
-                    await this.shardWorker.pushWork(ctx, workerKey(cid, session, shard), { type: 'add-consumer', cid, session, shard: shard, pid: u.pid });
-                }
-            }
+            // Persist mode
+            this.shardMode.set(ctx, [cid, session], mode);
+        }
 
-            // Remove producers
-            if (!u.producer) {
-                for (let sh of allocatedShards) {
-                    if (sh.kind === 'producer' && sh.enabled) {
-                        this.setPeerToShard(ctx, cid, session, u.pid, sh.shard, 'producer', false);
-                        await this.shardWorker.pushWork(ctx, workerKey(cid, session, sh.shard), { type: 'remove-producer', cid, session, shard: sh.shard, pid: u.pid });
-                    }
-                }
-            }
+        //
+        // Adding consumers
+        //
 
-            // Add producers
-            if (u.producer) {
-                let existing = allocatedShards.find((v) => v.kind === 'producer');
-                if (existing) {
-                    if (!existing.enabled) {
-                        this.setPeerToShard(ctx, cid, session, u.pid, existing.shard, 'producer', true);
-                        await this.shardWorker.pushWork(ctx, workerKey(cid, session, existing.shard), { type: 'add-producer', cid, session, shard: existing.shard, pid: u.pid });
+        if (addedConsumers.size > 0) {
+
+            // Allocating resources
+            let allocatorState = buildAllocatorState(workers, workerAllocations, mode.region.shards);
+            for (let consumer of addedConsumers) {
+
+                let expanded = allocatorExpand(allocatorState, CONSUMER_BUDGET);
+                if (expanded) {
+
+                    // Update shard
+                    mode.region.shards[expanded.allocation.id].consumers[consumer] = true;
+
+                    // Update shard budgets
+                    mode.region.shards[expanded.allocation.id].usedBudget = expanded.allocation.used;
+                    mode.region.shards[expanded.allocation.id].allocatedBudget = expanded.allocation.available + expanded.allocation.used;
+
+                    // Update worker budgets
+                    let workerDelta = expanded.resource.used - allocatorState.resources[expanded.allocation.resource].used;
+                    if (workerDelta > 0) {
+                        this.allocator.allocWorker(ctx, expanded.resource.id, workerDelta);
                     }
+
+                    // Update allocatorState
+                    allocatorState = {
+                        resources: {
+                            ...allocatorState.resources,
+                            [expanded.resource.id]: expanded.resource
+                        },
+                        allocations: {
+                            ...allocatorState.allocations,
+                            [expanded.allocation.id]: expanded.allocation
+                        }
+                    };
+
+                    // Add to schard
+                    const shardId = expanded.allocation.id;
+                    await this.shardWorker.pushWork(ctx, workerKey(cid, session, shardId), { type: 'add-consumer', cid, session, shard: shardId, pid: consumer });
                 } else {
-                    this.setPeerToShard(ctx, cid, session, u.pid, shard, 'producer', true);
-                    await this.shardWorker.pushWork(ctx, workerKey(cid, session, shard), { type: 'add-producer', cid, session, shard: shard, pid: u.pid });
+
+                    // Allocate new
+                    let allocated = allocatorAllocate(allocatorState, CONSUMER_BUDGET, INITIAL_BUDGET - CONSUMER_BUDGET);
+                    if (!allocated) {
+                        throw Error('Unable to allocated media shard');
+                    }
+
+                    // Add shard
+                    mode.region.shards[allocated.allocation.id] = {
+                        allocatedBudget: INITIAL_BUDGET,
+                        usedBudget: CONSUMER_BUDGET,
+                        worker: allocated.resource.id,
+                        consumers: { [consumer]: true }
+                    };
+
+                    // Update worker allocation
+                    this.allocator.allocWorker(ctx, allocated.resource.id, INITIAL_BUDGET);
+
+                    // Update allocatorState
+                    allocatorState = {
+                        resources: {
+                            ...allocatorState.resources,
+                            [allocated.resource.id]: allocated.resource
+                        },
+                        allocations: {
+                            ...allocatorState.allocations,
+                            [allocated.allocation.id]: allocated.allocation
+                        }
+                    };
+
+                    // Create and init shard
+                    const shardId = allocated.allocation.id;
+                    await this.shardWorker.pushWork(ctx, workerKey(cid, session, shardId), { type: 'start', cid, session, shard: shardId, worker: allocated.resource.id });
+                    await this.shardWorker.pushWork(ctx, workerKey(cid, session, shardId), { type: 'add-consumer', cid, session, shard: shardId, pid: consumer });
+                    for (let p of Object.keys(mode.region.producers)) {
+                        let producer = parseInt(p, 10);
+                        if (mode.region.producers[producer]) {
+                            await this.shardWorker.pushWork(ctx, workerKey(cid, session, shardId), { type: 'add-producer', cid, session, shard: shardId, pid: producer });
+                        }
+                    }
                 }
             }
+
+            // Persist mode
+            this.shardMode.set(ctx, [cid, session], mode);
+        }
+
+        //
+        // Adding producers
+        //
+
+        if (addedProducers.size > 0) {
+            for (let producer of addedProducers) {
+                if (!mode.region.producers[producer]) {
+
+                    // Update producer state
+                    mode.region.producers[producer] = true;
+
+                    // For each shard schedule addition
+                    for (let shardId of Object.keys(mode.region.shards)) {
+                        await this.shardWorker.pushWork(ctx, workerKey(cid, session, shardId), { type: 'add-producer', cid, session, shard: shardId, pid: producer });
+                    }
+                }
+            }
+
+            // Persist mode
+            this.shardMode.set(ctx, [cid, session], mode);
         }
     }
 
-    private setPeerToShard(ctx: Context, cid: number, session: string, pid: number, shard: string, kind: 'consumer' | 'producer', enabled: boolean) {
-        this.peerShards.set(ctx, [cid, session, pid, shard, kind === 'producer' ? 0 : 1], enabled);
+    //
+    // Metrics
+    //
+
+    async getSessionsCount(ctx: Context) {
+        return (await this.sessions.range(ctx, [])).length;
     }
 
-    private removePeerFromShard(ctx: Context, cid: number, session: string, pid: number, shard: string, kind: 'consumer' | 'producer') {
-        this.peerShards.clear(ctx, [cid, session, pid, shard, kind === 'producer' ? 0 : 1]);
+    async getSessions(ctx: Context) {
+        let sessions = (await this.sessions.range(ctx, []));
+        let res: { cid: number, session: string }[] = [];
+        for (let s of sessions) {
+            res.push({ cid: s.key[0] as number, session: s.value });
+        }
+        return res;
     }
 
-    private async getPeerShards(ctx: Context, cid: number, session: string, pid: number) {
-        return (await this.peerShards.range(ctx, [cid, session, pid])).map((v) => ({
-            shard: v.key[3] as string,
-            kind: (v.key[4] === 0 ? 'producer' : 'consumer') as 'producer' | 'consumer',
-            enabled: v.value
-        }));
+    async getSessionTotalProducers(ctx: Context, cid: number, session: string) {
+        let mode = (await this.shardMode.get(ctx, [cid, session]));
+        if (!mode) {
+            return 0;
+        }
+        return Object.keys(mode.region.producers).length;
+    }
+
+    async getSessionActiveProducers(ctx: Context, cid: number, session: string) {
+        let mode = (await this.shardMode.get(ctx, [cid, session]));
+        if (!mode) {
+            return 0;
+        }
+        return Object.values(mode.region.producers).filter(Boolean).length;
+    }
+
+    async getSessionShards(ctx: Context, cid: number, session: string) {
+        let mode = (await this.shardMode.get(ctx, [cid, session]));
+        let res: { shard: string, worker: string, consumers: number }[] = [];
+        if (!mode) {
+            return res;
+        }
+        for (let shardId of Object.keys(mode.region.shards)) {
+            const shard = mode.region.shards[shardId];
+            const consumers = Object.keys(shard.consumers).length;
+            res.push({ shard: shardId, worker: shard.worker, consumers });
+        }
+        return res;
+    }
+
+    async getWorkerStats(ctx: Context) {
+        const workers = (await Store.KitchenWorker.active.findAll(ctx))
+            .filter((v) => !v.deleted)
+            .map((v) => v.id);
+        const allocations = await this.allocator.getWorkersAllocations(ctx);
+        let res: { worker: string, used: number, available: number, total: number }[] = [];
+        for (let w of workers) {
+            const total = WORKER_BUDGET;
+            const used = allocations[w] || 0;
+            res.push({ worker: w, total, used, available: total - used });
+        }
+        return res;
     }
 }

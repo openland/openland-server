@@ -17,6 +17,7 @@ import { loadMonitoringModule } from 'openland-module-monitoring/loadMonitoringM
 import { Modules } from './Modules';
 import { createHandyClient } from 'handy-redis';
 import { Config } from 'openland-config/Config';
+import { inTx } from '@openland/foundationdb';
 
 const logger = createLogger('environment');
 
@@ -48,7 +49,7 @@ export async function testEnvironmentStart(name: string) {
     let storage = new EntityStorage(db);
     start = currentTime();
     logger.log(ctx, 'Opening store');
-    let store = await openStore(storage);
+    let store = await inTx(ctx, (c) => openStore(c, storage));
     logger.log(ctx, 'Store opened in ' + (currentTime() - start) + ' ms');
     container.bind<Store>('Store')
         .toConstantValue(store);
