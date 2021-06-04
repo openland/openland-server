@@ -1,4 +1,11 @@
-import { MessageInput, MessageSpan, MessageAttachmentInput, MessageRichAttachmentInput, MessageAttachmentFileInput } from '../openland-module-messaging/MessageInput';
+import {
+    MessageInput,
+    MessageSpan,
+    MessageAttachmentInput,
+    MessageRichAttachmentInput,
+    MessageAttachmentFileInput,
+    ServiceMetadata
+} from '../openland-module-messaging/MessageInput';
 
 export type MessagePart = string
     | { type: 'bold_text', text: string }
@@ -94,5 +101,12 @@ export function buildServiceMessage(...parts: MessagePart[]): MessageInput {
     return {
         isService: true,
         ...buildMessage(...parts)
+    };
+}
+
+export function withServiceMetadata(input: MessageInput, metadata: ServiceMetadata): MessageInput {
+    return {
+        ...input,
+        serviceMetadata: metadata
     };
 }

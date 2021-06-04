@@ -4,11 +4,22 @@ import { GQL } from '../openland-module-api/schema/SchemaSpec';
 import VideoMetadata = GQL.VideoMetadata;
 import VideoMetadataInput = GQL.VideoMetadataInput;
 
-export type ServiceMessageMetadataType =
-    'user_invite' |
-    'user_kick' |
-    'title_change' |
-    'photo_change';
+export type UserKickMetadata =  { type: 'user_kick', userId: number, kickedById: number };
+export type PhotoChangeMetadata = { type: 'photo_change', picture: any };
+export type TitleChangeMetadata = { type: 'title_change', title: string };
+export type UserInviteMetadata = { type: 'user_invite', userIds: number[], invitedById: number };
+export type VoiceChatStartedMetadata = { type: 'voice_chat_started' };
+export type VoiceChatEndedMetadata = { type: 'voice_chat_ended', duration: number, membersCount: number, lastMemberUid?: number };
+export type CallStartedMetadata = { type: 'call_started'};
+
+export type ServiceMetadata =
+    | UserKickMetadata
+    | PhotoChangeMetadata
+    | TitleChangeMetadata
+    | UserInviteMetadata
+    | VoiceChatStartedMetadata
+    | VoiceChatEndedMetadata
+    | CallStartedMetadata;
 
 export type MessageButton = {
     title: string;
@@ -162,7 +173,7 @@ export interface MessageInput {
     isService?: boolean | null;
     visibleOnlyForUids?: number[] | null;
     repeatKey?: string | null;
-    serviceMetadata?: any & { type: ServiceMessageMetadataType };
+    serviceMetadata?: ServiceMetadata;
     replyMessages?: number[] | null;
     stickerId?: string | null;
     purchaseId?: string | null;

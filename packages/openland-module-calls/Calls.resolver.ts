@@ -8,7 +8,7 @@ import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { resolveTurnServices } from './services/TURNService';
-import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
+import { buildServiceMessage, userMention, withServiceMetadata } from '../openland-utils/MessageBuilder';
 import { GQLRoots } from 'openland-module-api/schema/SchemaRoots';
 import { fastWatch } from 'openland-module-db/fastWatch';
 import { NotFoundError } from '../openland-errors/NotFoundError';
@@ -337,10 +337,15 @@ export const Resolver: GQLResolver = {
                 });
                 if (res.justStarted && conv.kind !== 'voice') {
                     let fullName = await Modules.Users.getUserFullName(ctx, uid);
-                    await Modules.Messaging.sendMessage(ctx, cid, uid, {
-                        ...buildMessage(userMention(fullName, uid), ' started a\u00A0call'),
-                        isService: true
-                    });
+                    await Modules.Messaging.sendMessage(
+                        ctx,
+                        cid,
+                        uid,
+                        withServiceMetadata(
+                            buildServiceMessage(userMention(fullName, uid), ' started a\u00A0call'),
+                            { type: 'call_started' }
+                        )
+                    );
                 }
                 return {
                     peerId: IDs.ConferencePeer.serialize(res.peer.id),

@@ -130,7 +130,17 @@ import {
     RoomMentionSpan,
     RotatingTextSpan,
     UserMentionSpan,
-    OrganizationMentionSpan, MessageAttachmentPurchase, HashTagSpan,
+    OrganizationMentionSpan,
+    MessageAttachmentPurchase,
+    HashTagSpan,
+    ServiceMetadata,
+    UserInviteMetadata,
+    UserKickMetadata,
+    TitleChangeMetadata,
+    PhotoChangeMetadata,
+    VoiceChatStartedMetadata,
+    VoiceChatEndedMetadata,
+    CallStartedMetadata,
 } from '../../openland-module-messaging/MessageInput';
 import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import { FileInfo } from '../../openland-module-media/FileInfo';
@@ -292,11 +302,19 @@ export namespace GQLRoots {
     export type SharedConversationRoot = Conversation;
     export type PrivateConversationRoot = Conversation;
     export type GroupConversationRoot = Conversation;
-    export type ServiceMetadataRoot = any;
-    export type InviteServiceMetadataRoot = any;
-    export type KickServiceMetadataRoot = any;
-    export type TitleChangeServiceMetadataRoot = any;
-    export type PhotoChangeServiceMetadataRoot = any;
+
+    //
+    // Service metadata
+    //
+    export type ServiceMetadataRoot = ServiceMetadata;
+    export type InviteServiceMetadataRoot = UserInviteMetadata;
+    export type KickServiceMetadataRoot = UserKickMetadata;
+    export type TitleChangeServiceMetadataRoot = TitleChangeMetadata;
+    export type PhotoChangeServiceMetadataRoot = PhotoChangeMetadata;
+    export type VoiceChatStartedServiceMetadataRoot = VoiceChatStartedMetadata;
+    export type VoiceChatEndedServiceMetadataRoot = VoiceChatEndedMetadata;
+    export type CallStartedServiceMetadataRoot = CallStartedMetadata;
+
     export type UrlAugmentationExtraRoot = User | Organization | Conversation;
     export type UrlAugmentationRoot = URLAugmentation;
     export type MessageReactionRoot = { userId: number, reaction: string };

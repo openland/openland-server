@@ -1,6 +1,6 @@
 import { Context } from '@openland/context';
 import { IDs } from '../../openland-module-api/IDs';
-import { withUser, resolveUser } from '../../openland-module-api/Resolvers';
+import { withUser } from '../../openland-module-api/Resolvers';
 import { URLAugmentation } from '../workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
@@ -11,8 +11,22 @@ import { User, Organization, Conversation } from 'openland-module-db/store';
 import { isDefined } from '../../openland-utils/misc';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import MessageTypeRoot = GQLRoots.MessageTypeRoot;
+import ServiceMetadataRoot = GQLRoots.ServiceMetadataRoot;
 
 const logger = createLogger('chat');
+
+const ServiceMetadataTypesMap = {
+    user_invite: 'InviteServiceMetadata',
+    user_kick: 'KickServiceMetadata',
+    title_change: 'TitleChangeServiceMetadata',
+    photo_change: 'PhotoChangeServiceMetadata',
+    post_respond: 'PostRespondServiceMetadata',
+    voice_chat_started: 'VoiceChatStartedServiceMetadata',
+    voice_chat_ended: 'VoiceChatEndedServiceMetadata',
+    call_started: 'CallStartedServiceMetadata',
+} as const;
+
+const SPEED_OF_LIGHT = 299792458;
 
 export const Resolver: GQLResolver = {
     Conversation: {
@@ -260,13 +274,26 @@ export const Resolver: GQLResolver = {
         postType: async src => src.postType,
         alphaTitle: async src => src.title,
     },
+    //
+    // Service metadata
+    //
+    ServiceMetadata: {
+        __resolveType(src: ServiceMetadataRoot) {
+            let type = ServiceMetadataTypesMap[src.type];
+            if (!type) {
+                throw new Error('Unknown type');
+            }
+            return type;
+        }
+    },
+
     InviteServiceMetadata: {
         // users: (src: any, args: {}, ctx: Context) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),
         users: (src, args, ctx) => [],
         invitedBy: async (src, args, ctx) => (await Store.User.findById(ctx, src.invitedById))!
     },
     KickServiceMetadata: {
-        user: resolveUser(),
+        user: src => src.userId,
         kickedBy: async (src, args, ctx) => (await Store.User.findById(ctx, src.kickedById))!
     },
     PostRespondServiceMetadata: {
@@ -274,26 +301,23 @@ export const Resolver: GQLResolver = {
         responder: (src) => src.responderId,
         respondType: (src) => src.respondType
     },
-    ServiceMetadata: {
-        __resolveType(src: any) {
-            if (src.type === 'user_invite') {
-                return 'InviteServiceMetadata';
-            } else if (src.type === 'user_kick') {
-                return 'KickServiceMetadata';
-            } else if (src.type === 'title_change') {
-                return 'TitleChangeServiceMetadata';
-            } else if (src.type === 'photo_change') {
-                return 'PhotoChangeServiceMetadata';
-            } else if (src.type === 'post_respond') {
-                return 'PostRespondServiceMetadata';
-            }
-
-            throw new Error('Unknown type');
-        }
-    },
     PhotoChangeServiceMetadata: {
         photo: (src: any) => src.picture ? buildBaseImageUrl(src.picture as any) : null,
         photoRef: (src: any) => src.picture,
+    },
+    TitleChangeServiceMetadata: {
+        title: src => src.title
+    },
+    VoiceChatStartedServiceMetadata: {
+        speedOfLight: () => SPEED_OF_LIGHT
+    },
+    VoiceChatEndedServiceMetadata: {
+        duration: src => src.duration,
+        membersCount: src => src.membersCount,
+        lastMember: src => src.lastMemberUid || null
+    },
+    CallStartedServiceMetadata: {
+        speedOfLight: () => SPEED_OF_LIGHT
     },
 
     NotificationCounter: {

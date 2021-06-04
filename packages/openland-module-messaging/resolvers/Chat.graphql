@@ -69,6 +69,17 @@ type GroupConversation implements Conversation {
 # Messaging Contents
 #
 
+union ServiceMetadata =
+    | InviteServiceMetadata
+    | KickServiceMetadata
+    | TitleChangeServiceMetadata
+    | PhotoChangeServiceMetadata
+    | PostRespondServiceMetadata
+    | VoiceChatStartedServiceMetadata
+    | VoiceChatEndedServiceMetadata
+    | CallStartedServiceMetadata
+
+
 type InviteServiceMetadata {
     users: [User!]
     invitedBy: User!
@@ -94,6 +105,23 @@ type PostRespondServiceMetadata {
     respondType: ID!
 }
 
+# Graphql dousn't allow to define empty types
+# so in such cases we return single field with speed of light ¯\_(ツ)_/¯
+
+type VoiceChatStartedServiceMetadata {
+    speedOfLight: Int
+}
+
+type VoiceChatEndedServiceMetadata {
+    duration: Int!
+    membersCount: Int!
+    lastMember: User
+}
+
+type CallStartedServiceMetadata {
+    speedOfLight: Int!
+}
+
 union UrlAugmentationExtra = User | Organization | ChannelConversation
 
 type UrlAugmentation {
@@ -111,8 +139,6 @@ type UrlAugmentation {
     type: String
     extra: UrlAugmentationExtra @disabled
 }
-
-union ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata | PostRespondServiceMetadata
 
 type ConversationMessage {
     id: ID!

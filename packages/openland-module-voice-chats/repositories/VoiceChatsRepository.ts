@@ -15,7 +15,7 @@ import {
 } from '../../openland-module-rich-message/repositories/RichMessageRepository';
 import { DeliveryMediator } from '../../openland-module-messaging/mediators/DeliveryMediator';
 import { Modules } from '../../openland-modules/Modules';
-import { buildServiceMessage, userMention } from '../../openland-utils/MessageBuilder';
+import { buildServiceMessage, userMention, withServiceMetadata } from '../../openland-utils/MessageBuilder';
 import moment from 'moment';
 
 export type VoiceChatInput = {
@@ -130,7 +130,10 @@ export class VoiceChatsRepository {
                 ctx,
                 chat.parentChat,
                 chat.startedBy!,
-                buildServiceMessage(userMention(userName, chat.startedBy!), ' started live room')
+                withServiceMetadata(
+                    buildServiceMessage(userMention(userName, chat.startedBy!), ' started live room'),
+                    { type: 'voice_chat_started' }
+                )
             );
         }
     }
@@ -158,7 +161,11 @@ export class VoiceChatsRepository {
                     ctx,
                     chat.parentChat,
                     chat.startedBy!,
-                    buildServiceMessage(`Call ended`)
+                    withServiceMetadata(buildServiceMessage(`Call ended`), {
+                        type: 'voice_chat_ended',
+                        duration: 0,
+                        membersCount: 0
+                    })
                 );
                 return;
             }
@@ -193,7 +200,12 @@ export class VoiceChatsRepository {
                 ctx,
                 chat.parentChat,
                 chat.startedBy!,
-                message
+                withServiceMetadata(message, {
+                    type: 'voice_chat_ended',
+                    duration: chat.duration,
+                    membersCount: totalCount,
+                    lastMemberUid: totalCount < 2 ? undefined : participants.items[0].uid
+                })
             );
         }
     }

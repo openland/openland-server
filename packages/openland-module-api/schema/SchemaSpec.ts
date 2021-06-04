@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd6115023dc5645b5a7e3a022f9c8a292';
+export const GQL_SPEC_VERSION = 'b90c5c25d3545372c423b4a81c20bf37';
 
 export namespace GQL {
     export interface CreditCard {
@@ -1399,6 +1399,7 @@ export namespace GQL {
     export interface GroupConversationPinnedMessageArgs { }
     export interface GroupConversationMembersOnlineArgs { }
     export interface GroupConversationMyRoleArgs { }
+    export type ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata | PostRespondServiceMetadata | VoiceChatStartedServiceMetadata | VoiceChatEndedServiceMetadata | CallStartedServiceMetadata;
     export interface InviteServiceMetadata {
         users: Nullable<User[]>;
         invitedBy: User;
@@ -1429,6 +1430,22 @@ export namespace GQL {
     export interface PostRespondServiceMetadataPostRoomArgs { }
     export interface PostRespondServiceMetadataResponderArgs { }
     export interface PostRespondServiceMetadataRespondTypeArgs { }
+    export interface VoiceChatStartedServiceMetadata {
+        speedOfLight: Nullable<number>;
+    }
+    export interface VoiceChatStartedServiceMetadataSpeedOfLightArgs { }
+    export interface VoiceChatEndedServiceMetadata {
+        duration: number;
+        membersCount: number;
+        lastMember: Nullable<User>;
+    }
+    export interface VoiceChatEndedServiceMetadataDurationArgs { }
+    export interface VoiceChatEndedServiceMetadataMembersCountArgs { }
+    export interface VoiceChatEndedServiceMetadataLastMemberArgs { }
+    export interface CallStartedServiceMetadata {
+        speedOfLight: number;
+    }
+    export interface CallStartedServiceMetadataSpeedOfLightArgs { }
     export type UrlAugmentationExtra = User | Organization | ChannelConversation;
     export interface UrlAugmentation {
         url: string;
@@ -1458,7 +1475,6 @@ export namespace GQL {
     export interface UrlAugmentationHostnameArgs { }
     export interface UrlAugmentationTypeArgs { }
     export interface UrlAugmentationExtraArgs { }
-    export type ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata | PostRespondServiceMetadata;
     export interface ConversationMessage {
         id: string;
         message: Nullable<string>;
@@ -8178,6 +8194,7 @@ export interface GQLResolver {
             myRole: GQL.GroupConversationMyRoleArgs,
         }
     >;
+    ServiceMetadata?: UnionTypeResolver<GQLRoots.ServiceMetadataRoot, 'InviteServiceMetadata' | 'KickServiceMetadata' | 'TitleChangeServiceMetadata' | 'PhotoChangeServiceMetadata' | 'PostRespondServiceMetadata' | 'VoiceChatStartedServiceMetadata' | 'VoiceChatEndedServiceMetadata' | 'CallStartedServiceMetadata'>;
     InviteServiceMetadata?: ComplexTypedResolver<
         GQL.InviteServiceMetadata,
         GQLRoots.InviteServiceMetadataRoot,
@@ -8235,6 +8252,36 @@ export interface GQLResolver {
             respondType: GQL.PostRespondServiceMetadataRespondTypeArgs,
         }
     >;
+    VoiceChatStartedServiceMetadata?: ComplexTypedResolver<
+        GQL.VoiceChatStartedServiceMetadata,
+        GQLRoots.VoiceChatStartedServiceMetadataRoot,
+        {
+        },
+        {
+            speedOfLight: GQL.VoiceChatStartedServiceMetadataSpeedOfLightArgs,
+        }
+    >;
+    VoiceChatEndedServiceMetadata?: ComplexTypedResolver<
+        GQL.VoiceChatEndedServiceMetadata,
+        GQLRoots.VoiceChatEndedServiceMetadataRoot,
+        {
+            lastMember: Nullable<GQLRoots.UserRoot>,
+        },
+        {
+            duration: GQL.VoiceChatEndedServiceMetadataDurationArgs,
+            membersCount: GQL.VoiceChatEndedServiceMetadataMembersCountArgs,
+            lastMember: GQL.VoiceChatEndedServiceMetadataLastMemberArgs,
+        }
+    >;
+    CallStartedServiceMetadata?: ComplexTypedResolver<
+        GQL.CallStartedServiceMetadata,
+        GQLRoots.CallStartedServiceMetadataRoot,
+        {
+        },
+        {
+            speedOfLight: GQL.CallStartedServiceMetadataSpeedOfLightArgs,
+        }
+    >;
     UrlAugmentationExtra?: UnionTypeResolver<GQLRoots.UrlAugmentationExtraRoot, 'User' | 'Organization' | 'ChannelConversation'>;
     UrlAugmentation?: ComplexTypedResolver<
         GQL.UrlAugmentation,
@@ -8262,7 +8309,6 @@ export interface GQLResolver {
             extra: GQL.UrlAugmentationExtraArgs,
         }
     >;
-    ServiceMetadata?: UnionTypeResolver<GQLRoots.ServiceMetadataRoot, 'InviteServiceMetadata' | 'KickServiceMetadata' | 'TitleChangeServiceMetadata' | 'PhotoChangeServiceMetadata' | 'PostRespondServiceMetadata'>;
     ConversationMessage?: ComplexTypedResolver<
         GQL.ConversationMessage,
         GQLRoots.ConversationMessageRoot,
