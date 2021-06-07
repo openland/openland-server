@@ -1,7 +1,7 @@
 type ConversationSettings {
     id: ID!
     mobileNotifications: NotificationMessages!
-    mute: Boolean!    
+    mute: Boolean!
 }
 
 interface Conversation {
@@ -78,6 +78,9 @@ union ServiceMetadata =
     | VoiceChatStartedServiceMetadata
     | VoiceChatEndedServiceMetadata
     | CallStartedServiceMetadata
+    | MessagePinnedServiceMetadata
+    | ChatCreatedServiceMetadata
+    | PhoneBookUserJoinedServiceMetadata
 
 
 type InviteServiceMetadata {
@@ -120,6 +123,18 @@ type VoiceChatEndedServiceMetadata {
 
 type CallStartedServiceMetadata {
     speedOfLight: Int!
+}
+
+type MessagePinnedServiceMetadata {
+    message: ModernMessage!
+}
+
+type ChatCreatedServiceMetadata {
+    speedOfLight: Int!
+}
+
+type PhoneBookUserJoinedServiceMetadata {
+    user: User!
 }
 
 union UrlAugmentationExtra = User | Organization | ChannelConversation

@@ -140,7 +140,7 @@ import {
     PhotoChangeMetadata,
     VoiceChatStartedMetadata,
     VoiceChatEndedMetadata,
-    CallStartedMetadata,
+    CallStartedMetadata, MessagePinnedServiceMetadata, ChatCreatedServiceMetadata, PhoneBookUserJoinedServiceMetadata,
 } from '../../openland-module-messaging/MessageInput';
 import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import { FileInfo } from '../../openland-module-media/FileInfo';
@@ -314,6 +314,9 @@ export namespace GQLRoots {
     export type VoiceChatStartedServiceMetadataRoot = VoiceChatStartedMetadata;
     export type VoiceChatEndedServiceMetadataRoot = VoiceChatEndedMetadata;
     export type CallStartedServiceMetadataRoot = CallStartedMetadata;
+    export type MessagePinnedServiceMetadataRoot = MessagePinnedServiceMetadata;
+    export type ChatCreatedServiceMetadataRoot = ChatCreatedServiceMetadata;
+    export type PhoneBookUserJoinedServiceMetadataRoot = PhoneBookUserJoinedServiceMetadata;
 
     export type UrlAugmentationExtraRoot = User | Organization | Conversation;
     export type UrlAugmentationRoot = URLAugmentation;

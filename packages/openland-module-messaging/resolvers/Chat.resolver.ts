@@ -24,6 +24,9 @@ const ServiceMetadataTypesMap = {
     voice_chat_started: 'VoiceChatStartedServiceMetadata',
     voice_chat_ended: 'VoiceChatEndedServiceMetadata',
     call_started: 'CallStartedServiceMetadata',
+    message_pinned: 'MessagePinnedServiceMetadata',
+    chat_created: 'ChatCreatedServiceMetadata',
+    phonebook_user_joined: 'PhoneBookUserJoinedServiceMetadata'
 } as const;
 
 const SPEED_OF_LIGHT = 299792458;
@@ -318,6 +321,15 @@ export const Resolver: GQLResolver = {
     },
     CallStartedServiceMetadata: {
         speedOfLight: () => SPEED_OF_LIGHT
+    },
+    MessagePinnedServiceMetadata: {
+        message: async (src, args, ctx) => (await Store.Message.findById(ctx, src.mid))!
+    },
+    ChatCreatedServiceMetadata: {
+        speedOfLight: () => SPEED_OF_LIGHT
+    },
+    PhoneBookUserJoinedServiceMetadata: {
+        user: src => src.uid
     },
 
     NotificationCounter: {

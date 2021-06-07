@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'b90c5c25d3545372c423b4a81c20bf37';
+export const GQL_SPEC_VERSION = '5f2c61ba0dc4cd0c4cce7ec02c7c88a7';
 
 export namespace GQL {
     export interface CreditCard {
@@ -1399,7 +1399,7 @@ export namespace GQL {
     export interface GroupConversationPinnedMessageArgs { }
     export interface GroupConversationMembersOnlineArgs { }
     export interface GroupConversationMyRoleArgs { }
-    export type ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata | PostRespondServiceMetadata | VoiceChatStartedServiceMetadata | VoiceChatEndedServiceMetadata | CallStartedServiceMetadata;
+    export type ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata | PostRespondServiceMetadata | VoiceChatStartedServiceMetadata | VoiceChatEndedServiceMetadata | CallStartedServiceMetadata | MessagePinnedServiceMetadata | ChatCreatedServiceMetadata | PhoneBookUserJoinedServiceMetadata;
     export interface InviteServiceMetadata {
         users: Nullable<User[]>;
         invitedBy: User;
@@ -1446,6 +1446,18 @@ export namespace GQL {
         speedOfLight: number;
     }
     export interface CallStartedServiceMetadataSpeedOfLightArgs { }
+    export interface MessagePinnedServiceMetadata {
+        message: ModernMessage;
+    }
+    export interface MessagePinnedServiceMetadataMessageArgs { }
+    export interface ChatCreatedServiceMetadata {
+        speedOfLight: number;
+    }
+    export interface ChatCreatedServiceMetadataSpeedOfLightArgs { }
+    export interface PhoneBookUserJoinedServiceMetadata {
+        user: User;
+    }
+    export interface PhoneBookUserJoinedServiceMetadataUserArgs { }
     export type UrlAugmentationExtra = User | Organization | ChannelConversation;
     export interface UrlAugmentation {
         url: string;
@@ -8194,7 +8206,7 @@ export interface GQLResolver {
             myRole: GQL.GroupConversationMyRoleArgs,
         }
     >;
-    ServiceMetadata?: UnionTypeResolver<GQLRoots.ServiceMetadataRoot, 'InviteServiceMetadata' | 'KickServiceMetadata' | 'TitleChangeServiceMetadata' | 'PhotoChangeServiceMetadata' | 'PostRespondServiceMetadata' | 'VoiceChatStartedServiceMetadata' | 'VoiceChatEndedServiceMetadata' | 'CallStartedServiceMetadata'>;
+    ServiceMetadata?: UnionTypeResolver<GQLRoots.ServiceMetadataRoot, 'InviteServiceMetadata' | 'KickServiceMetadata' | 'TitleChangeServiceMetadata' | 'PhotoChangeServiceMetadata' | 'PostRespondServiceMetadata' | 'VoiceChatStartedServiceMetadata' | 'VoiceChatEndedServiceMetadata' | 'CallStartedServiceMetadata' | 'MessagePinnedServiceMetadata' | 'ChatCreatedServiceMetadata' | 'PhoneBookUserJoinedServiceMetadata'>;
     InviteServiceMetadata?: ComplexTypedResolver<
         GQL.InviteServiceMetadata,
         GQLRoots.InviteServiceMetadataRoot,
@@ -8280,6 +8292,35 @@ export interface GQLResolver {
         },
         {
             speedOfLight: GQL.CallStartedServiceMetadataSpeedOfLightArgs,
+        }
+    >;
+    MessagePinnedServiceMetadata?: ComplexTypedResolver<
+        GQL.MessagePinnedServiceMetadata,
+        GQLRoots.MessagePinnedServiceMetadataRoot,
+        {
+            message: GQLRoots.ModernMessageRoot,
+        },
+        {
+            message: GQL.MessagePinnedServiceMetadataMessageArgs,
+        }
+    >;
+    ChatCreatedServiceMetadata?: ComplexTypedResolver<
+        GQL.ChatCreatedServiceMetadata,
+        GQLRoots.ChatCreatedServiceMetadataRoot,
+        {
+        },
+        {
+            speedOfLight: GQL.ChatCreatedServiceMetadataSpeedOfLightArgs,
+        }
+    >;
+    PhoneBookUserJoinedServiceMetadata?: ComplexTypedResolver<
+        GQL.PhoneBookUserJoinedServiceMetadata,
+        GQLRoots.PhoneBookUserJoinedServiceMetadataRoot,
+        {
+            user: GQLRoots.UserRoot,
+        },
+        {
+            user: GQL.PhoneBookUserJoinedServiceMetadataUserArgs,
         }
     >;
     UrlAugmentationExtra?: UnionTypeResolver<GQLRoots.UrlAugmentationExtraRoot, 'User' | 'Organization' | 'ChannelConversation'>;

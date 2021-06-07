@@ -15,7 +15,14 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { UserError } from 'openland-errors/UserError';
 import { Context } from '@openland/context';
 import { MessageInput } from '../MessageInput';
-import { boldString, buildMessage, roomMention, userMention, usersMention } from '../../openland-utils/MessageBuilder';
+import {
+    boldString,
+    buildMessage, buildServiceMessage,
+    roomMention,
+    userMention,
+    usersMention,
+    withServiceMetadata
+} from '../../openland-utils/MessageBuilder';
 import { Store } from 'openland-module-db/FDB';
 import { createWelcomeMessageWorker } from 'openland-module-messaging/workers/welcomeMessageWorker';
 import { UserStateRepository } from 'openland-module-messaging/repositories/UserStateRepository';
@@ -89,10 +96,10 @@ export class RoomMediator {
             // Send initial messages
             let userName = await Modules.Users.getUserFullName(ctx, uid);
             let chatTypeString = channel ? 'channel' : 'group';
-            await this.messaging.sendMessage(ctx, uid, res.id, {
-                ...buildMessage(userMention(userName, uid), ` created the\u00A0${chatTypeString} `, boldString(profile.title)),
-                isService: true,
-            });
+            await this.messaging.sendMessage(ctx, uid, res.id, withServiceMetadata(
+                buildServiceMessage(userMention(userName, uid), ` created the\u00A0${chatTypeString} `, boldString(profile.title)),
+                { type: 'chat_created' }
+            ));
             if (message) {
                 await this.messaging.sendMessage(ctx, uid, res.id, { message: message });
             }

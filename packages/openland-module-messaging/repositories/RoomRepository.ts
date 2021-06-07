@@ -12,7 +12,12 @@ import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { Context } from '@openland/context';
 import { Modules } from '../../openland-modules/Modules';
 // import { MessagingRepository } from './MessagingRepository';
-import { boldString, buildMessage, userMention } from '../../openland-utils/MessageBuilder';
+import {
+    boldString,
+    buildServiceMessage,
+    userMention,
+    withServiceMetadata
+} from '../../openland-utils/MessageBuilder';
 import { MessageAttachmentFile } from '../MessageInput';
 import { ChatMetricsRepository } from './ChatMetricsRepository';
 import { User, ConversationRoom } from 'openland-module-db/store';
@@ -447,10 +452,10 @@ export class RoomRepository {
                 return messageContent;
             };
 
-            await Modules.Messaging.sendMessage(ctx, cid, uid, {
-                ...buildMessage(userMention(userName, uid), ' pinned “', boldString(await getMessageContent(message)), '”'),
-                isService: true
-            });
+            await Modules.Messaging.sendMessage(ctx, cid, uid, withServiceMetadata(
+                buildServiceMessage(userMention(userName, uid), ' pinned “', boldString(await getMessageContent(message)), '”'),
+                { type: 'message_pinned', mid }
+            ));
             return true;
         });
     }

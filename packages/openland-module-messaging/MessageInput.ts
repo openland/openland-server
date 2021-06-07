@@ -4,13 +4,16 @@ import { GQL } from '../openland-module-api/schema/SchemaSpec';
 import VideoMetadata = GQL.VideoMetadata;
 import VideoMetadataInput = GQL.VideoMetadataInput;
 
-export type UserKickMetadata =  { type: 'user_kick', userId: number, kickedById: number };
+export type UserKickMetadata = { type: 'user_kick', userId: number, kickedById: number };
 export type PhotoChangeMetadata = { type: 'photo_change', picture: any };
 export type TitleChangeMetadata = { type: 'title_change', title: string };
 export type UserInviteMetadata = { type: 'user_invite', userIds: number[], invitedById: number };
 export type VoiceChatStartedMetadata = { type: 'voice_chat_started' };
 export type VoiceChatEndedMetadata = { type: 'voice_chat_ended', duration: number, membersCount: number, lastMemberUid?: number };
-export type CallStartedMetadata = { type: 'call_started'};
+export type CallStartedMetadata = { type: 'call_started' };
+export type MessagePinnedServiceMetadata = { type: 'message_pinned', mid: number };
+export type ChatCreatedServiceMetadata = { type: 'chat_created' };
+export type PhoneBookUserJoinedServiceMetadata = { type: 'phonebook_user_joined', uid: number };
 
 export type ServiceMetadata =
     | UserKickMetadata
@@ -19,7 +22,10 @@ export type ServiceMetadata =
     | UserInviteMetadata
     | VoiceChatStartedMetadata
     | VoiceChatEndedMetadata
-    | CallStartedMetadata;
+    | CallStartedMetadata
+    | MessagePinnedServiceMetadata
+    | ChatCreatedServiceMetadata
+    | PhoneBookUserJoinedServiceMetadata;
 
 export type MessageButton = {
     title: string;
@@ -152,11 +158,14 @@ export type MessageRichAttachmentInput = {
 };
 
 export type MessageAttachmentPurchaseInput = {
-  type: 'purchase_attachment',
-  pid: string
+    type: 'purchase_attachment',
+    pid: string
 };
 
-export type MessageAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput | MessageAttachmentPurchaseInput;
+export type MessageAttachmentInput =
+    MessageAttachmentFileInput
+    | MessageRichAttachmentInput
+    | MessageAttachmentPurchaseInput;
 export type RichMessageAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput;
 export type CommentAttachmentInput = RichMessageAttachmentInput;
 
