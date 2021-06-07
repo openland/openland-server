@@ -316,8 +316,7 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentSuccess(ctx, operation.id);
         } else if (operation.type === 'purchase') {
-            // Obsolete
-            // await this.purchases.onPurchaseSuccessful(ctx, operation.id);
+            await this.purchases.onPurchaseSuccessful(ctx, operation.id);
         } else {
             throw Error('Unknown operation type');
         }
@@ -330,8 +329,7 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentCanceled(ctx, operation.id);
         } else if (operation.type === 'purchase') {
-            // Obsolete
-            // await this.purchases.onPurchaseCanceled(ctx, operation.id);
+            await this.purchases.onPurchaseCanceled(ctx, operation.id);
         } else {
             throw Error('Unknown operation type');
         }
@@ -344,7 +342,7 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentActionRequired(ctx, operation.id);
         } else if (operation.type === 'purchase') {
-            // Obsolete
+            await this.payments.handlePaymentActionRequired(ctx, operation.id);
         } else {
             throw Error('Unknown operation type');
         }
@@ -357,7 +355,7 @@ export class RoutingRepositoryImpl {
         } else if (operation.type === 'payment') {
             await this.payments.handlePaymentFailing(ctx, operation.id);
         } else if (operation.type === 'purchase') {
-            // Obsolete
+            await this.payments.handlePaymentFailing(ctx, operation.id);
         } else {
             throw Error('Unknown operation type');
         }
