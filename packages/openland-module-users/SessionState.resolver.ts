@@ -3,6 +3,7 @@ import { Store } from 'openland-module-db/FDB';
 import { Context } from '@openland/context';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { withUser } from '../openland-module-api/Resolvers';
 
 export const Resolver: GQLResolver = {
     Query: {
@@ -65,4 +66,17 @@ export const Resolver: GQLResolver = {
             return queryResult;
         },
     },
+    Mutation: {
+        setSessionLanguage: withUser(async (ctx, args, uid) => {
+            let token = await Store.AuthToken.findById(ctx, ctx.auth.tid!);
+            if (!token) {
+                return false;
+            }
+
+            token.language = args.lang;
+            await token.flush(ctx);
+
+            return true;
+        })
+    }
 };

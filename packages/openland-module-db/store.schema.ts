@@ -2408,6 +2408,7 @@ export default declareSchema(() => {
         field('lastIp', string());
         field('platform', optional(string()));
         field('enabled', optional(boolean()));
+        field('language', optional(enumString('RU', 'EN')));
         uniqueIndex('salt', ['salt']);
         rangeIndex('user', ['uid', 'uuid'])
             .withCondition(src => src.enabled !== false);

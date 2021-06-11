@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5f2c61ba0dc4cd0c4cce7ec02c7c88a7';
+export const GQL_SPEC_VERSION = 'd69f73eb7944a08b0c01429e871977f1';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2246,6 +2246,7 @@ export namespace GQL {
         debugSendAppleDataPush: boolean;
         terminateSession: boolean;
         terminateAllSessionsExcept: boolean;
+        setSessionLanguage: boolean;
         betaDiscoverSkip: Nullable<DiscoverPage>;
         betaNextDiscoverReset: boolean;
         betaNextDiscoverPageOrChats: Nullable<DiscoverPage>;
@@ -3081,6 +3082,9 @@ export namespace GQL {
     }
     export interface MutationTerminateAllSessionsExceptArgs {
         id: string;
+    }
+    export interface MutationSetSessionLanguageArgs {
+        lang: Language;
     }
     export interface MutationBetaDiscoverSkipArgs {
         selectedTagsIds: string[];
@@ -4914,6 +4918,8 @@ export namespace GQL {
     export interface SessionStateIsBlockedArgs { }
     export interface SessionStateIsAccountPickedArgs { }
     export interface SessionStateIsAccountActivatedArgs { }
+    export type LanguageValues = 'EN' | 'RU';
+    export type Language = GQLRoots.LanguageRoot;
     export interface Subscription {
         lifecheck: Nullable<string>;
         walletUpdates: WalletUpdateContainer;
@@ -9339,6 +9345,7 @@ export interface GQLResolver {
             debugSendAppleDataPush: GQL.MutationDebugSendAppleDataPushArgs,
             terminateSession: GQL.MutationTerminateSessionArgs,
             terminateAllSessionsExcept: GQL.MutationTerminateAllSessionsExceptArgs,
+            setSessionLanguage: GQL.MutationSetSessionLanguageArgs,
             betaDiscoverSkip: GQL.MutationBetaDiscoverSkipArgs,
             betaNextDiscoverReset: GQL.MutationBetaNextDiscoverResetArgs,
             betaNextDiscoverPageOrChats: GQL.MutationBetaNextDiscoverPageOrChatsArgs,
@@ -10443,6 +10450,7 @@ export interface GQLResolver {
             isAccountActivated: GQL.SessionStateIsAccountActivatedArgs,
         }
     >;
+    Language?: EnumTypeResolver<'EN' | 'RU', GQLRoots.LanguageRoot>;
     Subscription?: ComplexTypedSubscriptionResolver<
         GQL.Subscription,
         GQLRoots.SubscriptionRoot,

@@ -14,3 +14,12 @@ type SessionState {
 extend type Query {
     sessionState: SessionState!
 }
+
+enum Language {
+    EN,
+    RU
+}
+
+extend type Mutation {
+    setSessionLanguage(lang: Language!): Boolean!
+}

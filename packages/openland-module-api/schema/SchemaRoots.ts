@@ -201,6 +201,7 @@ export namespace GQLRoots {
     import PostContentTypeValues = GQL.PostContentTypeValues;
     import PostSpanTypeValues = GQL.PostSpanTypeValues;
     import ReleasePlatformValues = GQL.ReleasePlatformValues;
+    import LanguageValues = GQL.LanguageValues;
     export type MutationRoot = any;
     export type QueryRoot = any;
     export type SubscriptionRoot = any;
@@ -975,4 +976,6 @@ export namespace GQLRoots {
     //
     export type UserInfoTupleRoot = { name: string, value: string };
     export type UserInfoRoot = { uid: number, info: UserInfoTupleRoot[] };
+
+    export type LanguageRoot = LanguageValues;
 }
