@@ -143,12 +143,16 @@ const handleMessage = async (ctx: Context, uid: number, unreadCounter: number, s
     if (message.isService) {
         pushTitle = chatTitle;
     }
-    let pushBody = await fetchMessageFallback(message);
+    let pushBody = {
+        EN: await fetchMessageFallback(ctx, 'EN',  message),
+        RU: await fetchMessageFallback(ctx, 'RU',  message)
+    };
 
     let push = {
         uid: uid,
         title: pushTitle,
-        body: pushBody,
+        body: pushBody.EN,
+        bodyMultiLang: pushBody,
         picture: senderPicture ? buildBaseImageUrl(senderPicture) : null,
         counter: unreadCounter,
         conversationId: conversation.id,

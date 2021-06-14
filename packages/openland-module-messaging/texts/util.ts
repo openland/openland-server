@@ -9,3 +9,11 @@ export function templated<T extends { [key: string]: string } = any>(template: s
         return rendered;
     };
 }
+
+type TemplateFn = (vars: ({ [key: string]: string })) => string;
+
+type MultiLangSpec = { [Key: string]: string | TemplateFn };
+
+export function multiLang<T extends MultiLangSpec>(spec: T) {
+    return (lang: keyof T) => spec[lang];
+}

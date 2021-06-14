@@ -107,7 +107,7 @@ async function handleNotification(ctx: Context, uid: number, settings: UserSetti
             } else {
                 title = 'New comment in ' + chatName;
             }
-            pushBody = `${userName}: ${await fetchMessageFallback(comment!)}`;
+            pushBody = `${userName}: ${await fetchMessageFallback(ctx, 'EN', comment!)}`;
         }
     }
 

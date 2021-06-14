@@ -7,6 +7,8 @@ import { Context } from '@openland/context';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 import { Store } from 'openland-module-db/FDB';
 import { withLogPath } from '@openland/log';
+import { fetchSessionLanguage } from '../../openland-module-users/fetchSessionLanguage';
+import { Push } from './types';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -17,23 +19,6 @@ export function doSimpleHash(key: string): number {
     }
     return Math.abs(h);
 }
-
-type Push = {
-    uid: number;
-    title: string;
-    body: string;
-    picture: string | null;
-    counter: number | null;
-    conversationId: number | null;
-    deepLink: string | null;
-    mobile: boolean;
-    desktop: boolean;
-    mobileAlert: boolean;
-    mobileIncludeText: boolean;
-    silent: boolean | null;
-    messageId: string | null;
-    commentId: string | null;
-};
 
 async function handlePush(root: Context, repo: PushRepository, push: Push) {
     let ctx = withLogPath(root, 'user ' + push.uid);
@@ -46,11 +31,13 @@ async function handlePush(root: Context, repo: PushRepository, push: Push) {
         //
         let webTokens = await repo.getUserWebPushTokens(ctx, push.uid);
         for (let wp of webTokens) {
+            let lang = await fetchSessionLanguage(ctx, wp.tid);
+
             Modules.Push.webWorker.pushWork(ctx, {
                 uid: push.uid,
                 tokenId: wp.id,
                 title: push.title,
-                body: push.body,
+                body: push.bodyMultiLang ? push.bodyMultiLang[lang] : push.body,
                 picture: push.picture ? push.picture : undefined,
             });
         }
@@ -82,12 +69,20 @@ async function handlePush(root: Context, repo: PushRepository, push: Push) {
             unread++;
         }
 
-        let mobileBody = push.mobileIncludeText ? push.body : Texts.Notifications.NEW_MESSAGE_ANONYMOUS;
         //
         // iOS
         //
         let iosTokens = await repo.getUserApplePushTokens(ctx, push.uid);
         for (let t of iosTokens) {
+            let lang = await fetchSessionLanguage(ctx, t.tid);
+            let mobileBody;
+
+            if (push.mobileIncludeText) {
+                mobileBody = push.bodyMultiLang ? push.bodyMultiLang[lang] : push.body;
+            } else {
+                mobileBody = Texts.Notifications.NEW_MESSAGE_ANONYMOUS(lang);
+            }
+
             if (push.silent) {
                 Modules.Push.appleWorker.pushWork(ctx, {
                     uid: push.uid,
@@ -133,6 +128,15 @@ async function handlePush(root: Context, repo: PushRepository, push: Push) {
 
         let androidTokens = await repo.getUserAndroidPushTokens(ctx, push.uid);
         for (let token of androidTokens) {
+            let lang = await fetchSessionLanguage(ctx, token.tid);
+            let mobileBody;
+
+            if (push.mobileIncludeText) {
+                mobileBody = push.bodyMultiLang ? push.bodyMultiLang[lang] : push.body;
+            } else {
+                mobileBody = Texts.Notifications.NEW_MESSAGE_ANONYMOUS(lang);
+            }
+
             if (push.silent) {
                 Modules.Push.androidWorker.pushWork(ctx, {
                     uid: push.uid,

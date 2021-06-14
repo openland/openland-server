@@ -345,18 +345,18 @@ export function parseLinks(message: string): MessageSpan[] {
 
 const urlInfoService = createUrlInfoService();
 
-export function fetchMessageFallback(message: Message | PrivateMessage | Comment | RichMessage): string {
+export function fetchMessageFallback(ctx: Context, lang: GQLRoots.LanguageRoot, message: Message | PrivateMessage | Comment | RichMessage): string {
     const attachFallback = (mime?: string | null, isImage?: boolean | null) => {
         if (!mime) {
-            return Texts.Notifications.DOCUMENT_ATTACH;
+            return Texts.Notifications.DOCUMENT_ATTACH(lang);
         } else if (mime === 'image/gif') {
-            return Texts.Notifications.GIF_ATTACH;
+            return Texts.Notifications.GIF_ATTACH(lang);
         } else if (isImage) {
-            return Texts.Notifications.IMAGE_ATTACH;
+            return Texts.Notifications.IMAGE_ATTACH(lang);
         } else if (mime.startsWith('video/')) {
-            return Texts.Notifications.VIDEO_ATTACH;
+            return Texts.Notifications.VIDEO_ATTACH(lang);
         } else {
-            return Texts.Notifications.DOCUMENT_ATTACH;
+            return Texts.Notifications.DOCUMENT_ATTACH(lang);
         }
     };
 
@@ -366,7 +366,7 @@ export function fetchMessageFallback(message: Message | PrivateMessage | Comment
         fallback.push(message.text);
     }
     if ((message instanceof Message || message instanceof Comment || message instanceof PrivateMessage) && message.stickerId) {
-        fallback.push(Texts.Notifications.STICKER);
+        fallback.push(Texts.Notifications.STICKER(lang));
     }
     if ((message instanceof Message || message instanceof PrivateMessage) && message.fileMetadata) {
         fallback.push(attachFallback(message.fileMetadata && message.fileMetadata.mimeType, message.fileMetadata && message.fileMetadata.isImage));
@@ -395,7 +395,7 @@ export function fetchMessageFallback(message: Message | PrivateMessage | Comment
                     fallback.push(attachFallback(attach.imageInfo.mimeType, attach.imageInfo.isImage));
                 }
             } else if (attach.type === 'purchase_attachment') {
-                fallback.push(Texts.Notifications.DONATION_ATTACH);
+                fallback.push(Texts.Notifications.DONATION_ATTACH(lang));
             }
         }
         for (let [type, count] of attachmentsByType) {
@@ -408,7 +408,7 @@ export function fetchMessageFallback(message: Message | PrivateMessage | Comment
     }
 
     if ((message instanceof Message || message instanceof PrivateMessage) && message.replyMessages && message.replyMessages.length > 0) {
-        fallback.push(Texts.Notifications.REPLY_ATTACH);
+        fallback.push(Texts.Notifications.REPLY_ATTACH(lang));
     }
 
     return fallback.join('\n');
@@ -577,7 +577,7 @@ export const Resolver: GQLResolver = {
 
             return null;
         },
-        fallback: src => fetchMessageFallback(src),
+        fallback: (src, _, ctx) => fetchMessageFallback(ctx, 'EN', src),
         overrideAvatar: src => src.overrideAvatar,
         overrideName: src => src.overrideName,
     },
@@ -832,7 +832,7 @@ export const Resolver: GQLResolver = {
             let state = await Store.CommentState.findById(ctx, 'message', src.id);
             return (state && state.commentsCount) || 0;
         },
-        fallback: src => fetchMessageFallback(src),
+        fallback: (src, _, ctx) => fetchMessageFallback(ctx, 'EN', src),
         overrideAvatar: src => src.overrideAvatar,
         overrideName: src => src.overrideName,
     },
@@ -903,7 +903,7 @@ export const Resolver: GQLResolver = {
             let state = await Store.CommentState.findById(ctx, 'message', src.id);
             return (state && state.commentsCount) || 0;
         },
-        fallback: src => fetchMessageFallback(src),
+        fallback: (src, _, ctx) => fetchMessageFallback(ctx, 'EN', src),
         overrideAvatar: src => src.overrideAvatar,
         overrideName: src => src.overrideName,
     },

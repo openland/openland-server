@@ -88,7 +88,7 @@ export const Resolver: GQLResolver = {
             return (state && state.commentsCount) || 0;
         }),
         slides: withRichMessage((ctx, message) => message.slides || []),
-        fallback: withRichMessage((ctx, message) => fetchMessageFallback(message)),
+        fallback: withRichMessage((ctx, message) => fetchMessageFallback(ctx, 'EN', message)),
     },
     FeedItemConnection: {
         items: src => src.items,

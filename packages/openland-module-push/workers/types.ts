@@ -2,6 +2,7 @@ export type Push = {
     uid: number;
     title: string;
     body: string;
+    bodyMultiLang?: { [lang: string]: string };
     picture: string | null;
     counter: number | null;
     conversationId: number | null;
