@@ -14,8 +14,8 @@ import { QueueStorage } from 'openland-module-workers/QueueStorage';
 
 export class ConversationLastSeqFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('conversationLastSeq');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'conversationLastSeq');
         return new ConversationLastSeqFactory(storage, directory);
     }
 
@@ -54,8 +54,8 @@ export class ConversationLastSeqFactory extends AtomicIntegerFactory {
 
 export class AutoSubscribeWasExecutedForUserFactory extends AtomicBooleanFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('autoSubscribeWasExecutedForUser');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'autoSubscribeWasExecutedForUser');
         return new AutoSubscribeWasExecutedForUserFactory(storage, directory);
     }
 
@@ -86,8 +86,8 @@ export class AutoSubscribeWasExecutedForUserFactory extends AtomicBooleanFactory
 
 export class RoomParticipantsVersionFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('roomParticipantsVersion');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'roomParticipantsVersion');
         return new RoomParticipantsVersionFactory(storage, directory);
     }
 
@@ -126,8 +126,8 @@ export class RoomParticipantsVersionFactory extends AtomicIntegerFactory {
 
 export class VoiceChatParticipantCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('voiceChatParticipantCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'voiceChatParticipantCounter');
         return new VoiceChatParticipantCounterFactory(storage, directory);
     }
 
@@ -166,8 +166,8 @@ export class VoiceChatParticipantCounterFactory extends AtomicIntegerFactory {
 
 export class VoiceChatParticipantActiveFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('voiceChatParticipantActive');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'voiceChatParticipantActive');
         return new VoiceChatParticipantActiveFactory(storage, directory);
     }
 
@@ -206,8 +206,8 @@ export class VoiceChatParticipantActiveFactory extends AtomicIntegerFactory {
 
 export class ChatMediaCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('chatMediaCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'chatMediaCounter');
         return new ChatMediaCounterFactory(storage, directory);
     }
 
@@ -246,8 +246,8 @@ export class ChatMediaCounterFactory extends AtomicIntegerFactory {
 
 export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userDialogReadMessageId');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userDialogReadMessageId');
         return new UserDialogReadMessageIdFactory(storage, directory);
     }
 
@@ -286,8 +286,8 @@ export class UserDialogReadMessageIdFactory extends AtomicIntegerFactory {
 
 export class ConferenceRoomVersionFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('conferenceRoomVersion');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'conferenceRoomVersion');
         return new ConferenceRoomVersionFactory(storage, directory);
     }
 
@@ -326,8 +326,8 @@ export class ConferenceRoomVersionFactory extends AtomicIntegerFactory {
 
 export class ConferencePeerVersionFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('conferencePeerVersion');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'conferencePeerVersion');
         return new ConferencePeerVersionFactory(storage, directory);
     }
 
@@ -366,8 +366,8 @@ export class ConferencePeerVersionFactory extends AtomicIntegerFactory {
 
 export class ConferenceKitchenPeersCountFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('conferenceKitchenPeersCount');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'conferenceKitchenPeersCount');
         return new ConferenceKitchenPeersCountFactory(storage, directory);
     }
 
@@ -406,8 +406,8 @@ export class ConferenceKitchenPeersCountFactory extends AtomicIntegerFactory {
 
 export class ConferenceKitchenConsumersCountFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('conferenceKitchenConsumersCount');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'conferenceKitchenConsumersCount');
         return new ConferenceKitchenConsumersCountFactory(storage, directory);
     }
 
@@ -446,8 +446,8 @@ export class ConferenceKitchenConsumersCountFactory extends AtomicIntegerFactory
 
 export class ConferenceKitchenProducersCountFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('conferenceKitchenProducersCount');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'conferenceKitchenProducersCount');
         return new ConferenceKitchenProducersCountFactory(storage, directory);
     }
 
@@ -486,8 +486,8 @@ export class ConferenceKitchenProducersCountFactory extends AtomicIntegerFactory
 
 export class ConferenceKitchenTransportsCountFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('conferenceKitchenTransportsCount');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'conferenceKitchenTransportsCount');
         return new ConferenceKitchenTransportsCountFactory(storage, directory);
     }
 
@@ -526,8 +526,8 @@ export class ConferenceKitchenTransportsCountFactory extends AtomicIntegerFactor
 
 export class ConferenceScalableStartedFactory extends AtomicBooleanFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('conferenceScalableStarted');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'conferenceScalableStarted');
         return new ConferenceScalableStartedFactory(storage, directory);
     }
 
@@ -558,8 +558,8 @@ export class ConferenceScalableStartedFactory extends AtomicBooleanFactory {
 
 export class ConferenceScalablePeersCountFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('conferenceScalablePeersCount');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'conferenceScalablePeersCount');
         return new ConferenceScalablePeersCountFactory(storage, directory);
     }
 
@@ -598,8 +598,8 @@ export class ConferenceScalablePeersCountFactory extends AtomicIntegerFactory {
 
 export class FeedChannelMembersCountFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('feedChannelMembersCount');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'feedChannelMembersCount');
         return new FeedChannelMembersCountFactory(storage, directory);
     }
 
@@ -638,8 +638,8 @@ export class FeedChannelMembersCountFactory extends AtomicIntegerFactory {
 
 export class FeedChannelPostsCountFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('feedChannelPostsCount');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'feedChannelPostsCount');
         return new FeedChannelPostsCountFactory(storage, directory);
     }
 
@@ -678,8 +678,8 @@ export class FeedChannelPostsCountFactory extends AtomicIntegerFactory {
 
 export class UserCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userCounter');
         return new UserCounterFactory(storage, directory);
     }
 
@@ -718,8 +718,8 @@ export class UserCounterFactory extends AtomicIntegerFactory {
 
 export class UserMessagesSentCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userMessagesSentCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userMessagesSentCounter');
         return new UserMessagesSentCounterFactory(storage, directory);
     }
 
@@ -758,8 +758,8 @@ export class UserMessagesSentCounterFactory extends AtomicIntegerFactory {
 
 export class UserMessagesSentWeeklyCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userMessagesSentWeeklyCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userMessagesSentWeeklyCounter');
         return new UserMessagesSentWeeklyCounterFactory(storage, directory);
     }
 
@@ -798,8 +798,8 @@ export class UserMessagesSentWeeklyCounterFactory extends AtomicIntegerFactory {
 
 export class UserMessagesSentInDirectChatTotalCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userMessagesSentInDirectChatTotalCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userMessagesSentInDirectChatTotalCounter');
         return new UserMessagesSentInDirectChatTotalCounterFactory(storage, directory);
     }
 
@@ -838,8 +838,8 @@ export class UserMessagesSentInDirectChatTotalCounterFactory extends AtomicInteg
 
 export class UserMessagesReceivedCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userMessagesReceivedCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userMessagesReceivedCounter');
         return new UserMessagesReceivedCounterFactory(storage, directory);
     }
 
@@ -878,8 +878,8 @@ export class UserMessagesReceivedCounterFactory extends AtomicIntegerFactory {
 
 export class UserMessagesChatsCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userMessagesChatsCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userMessagesChatsCounter');
         return new UserMessagesChatsCounterFactory(storage, directory);
     }
 
@@ -918,8 +918,8 @@ export class UserMessagesChatsCounterFactory extends AtomicIntegerFactory {
 
 export class UserMessagesChannelsCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userMessagesChannelsCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userMessagesChannelsCounter');
         return new UserMessagesChannelsCounterFactory(storage, directory);
     }
 
@@ -958,8 +958,8 @@ export class UserMessagesChannelsCounterFactory extends AtomicIntegerFactory {
 
 export class UserMessagesDirectChatsCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userMessagesDirectChatsCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userMessagesDirectChatsCounter');
         return new UserMessagesDirectChatsCounterFactory(storage, directory);
     }
 
@@ -998,8 +998,8 @@ export class UserMessagesDirectChatsCounterFactory extends AtomicIntegerFactory 
 
 export class UserSuccessfulInvitesCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userSuccessfulInvitesCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userSuccessfulInvitesCounter');
         return new UserSuccessfulInvitesCounterFactory(storage, directory);
     }
 
@@ -1038,8 +1038,8 @@ export class UserSuccessfulInvitesCounterFactory extends AtomicIntegerFactory {
 
 export class UserSuccessfulInvitesPrevWeekCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userSuccessfulInvitesPrevWeekCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userSuccessfulInvitesPrevWeekCounter');
         return new UserSuccessfulInvitesPrevWeekCounterFactory(storage, directory);
     }
 
@@ -1078,8 +1078,8 @@ export class UserSuccessfulInvitesPrevWeekCounterFactory extends AtomicIntegerFa
 
 export class UserEmailSentCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userEmailSentCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userEmailSentCounter');
         return new UserEmailSentCounterFactory(storage, directory);
     }
 
@@ -1118,8 +1118,8 @@ export class UserEmailSentCounterFactory extends AtomicIntegerFactory {
 
 export class UserBrowserPushSentCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userBrowserPushSentCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userBrowserPushSentCounter');
         return new UserBrowserPushSentCounterFactory(storage, directory);
     }
 
@@ -1158,8 +1158,8 @@ export class UserBrowserPushSentCounterFactory extends AtomicIntegerFactory {
 
 export class UserMobilePushSentCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userMobilePushSentCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userMobilePushSentCounter');
         return new UserMobilePushSentCounterFactory(storage, directory);
     }
 
@@ -1198,8 +1198,8 @@ export class UserMobilePushSentCounterFactory extends AtomicIntegerFactory {
 
 export class UserEmailSentWeeklyCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userEmailSentWeeklyCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userEmailSentWeeklyCounter');
         return new UserEmailSentWeeklyCounterFactory(storage, directory);
     }
 
@@ -1238,8 +1238,8 @@ export class UserEmailSentWeeklyCounterFactory extends AtomicIntegerFactory {
 
 export class UserBrowserPushSentWeeklyCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userBrowserPushSentWeeklyCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userBrowserPushSentWeeklyCounter');
         return new UserBrowserPushSentWeeklyCounterFactory(storage, directory);
     }
 
@@ -1278,8 +1278,8 @@ export class UserBrowserPushSentWeeklyCounterFactory extends AtomicIntegerFactor
 
 export class UserMobilePushSentWeeklyCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userMobilePushSentWeeklyCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userMobilePushSentWeeklyCounter');
         return new UserMobilePushSentWeeklyCounterFactory(storage, directory);
     }
 
@@ -1318,8 +1318,8 @@ export class UserMobilePushSentWeeklyCounterFactory extends AtomicIntegerFactory
 
 export class UserDialogCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userDialogCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userDialogCounter');
         return new UserDialogCounterFactory(storage, directory);
     }
 
@@ -1358,8 +1358,8 @@ export class UserDialogCounterFactory extends AtomicIntegerFactory {
 
 export class UserDialogHaveMentionFactory extends AtomicBooleanFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userDialogHaveMention');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userDialogHaveMention');
         return new UserDialogHaveMentionFactory(storage, directory);
     }
 
@@ -1390,8 +1390,8 @@ export class UserDialogHaveMentionFactory extends AtomicBooleanFactory {
 
 export class NotificationCenterCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('notificationCenterCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'notificationCenterCounter');
         return new NotificationCenterCounterFactory(storage, directory);
     }
 
@@ -1430,8 +1430,8 @@ export class NotificationCenterCounterFactory extends AtomicIntegerFactory {
 
 export class UserAudienceCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userAudienceCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userAudienceCounter');
         return new UserAudienceCounterFactory(storage, directory);
     }
 
@@ -1470,8 +1470,8 @@ export class UserAudienceCounterFactory extends AtomicIntegerFactory {
 
 export class UserMessagesSentInDirectChatCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userMessagesSentInDirectChatCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userMessagesSentInDirectChatCounter');
         return new UserMessagesSentInDirectChatCounterFactory(storage, directory);
     }
 
@@ -1510,8 +1510,8 @@ export class UserMessagesSentInDirectChatCounterFactory extends AtomicIntegerFac
 
 export class User2WayDirectChatsCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('user2WayDirectChatsCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'user2WayDirectChatsCounter');
         return new User2WayDirectChatsCounterFactory(storage, directory);
     }
 
@@ -1550,8 +1550,8 @@ export class User2WayDirectChatsCounterFactory extends AtomicIntegerFactory {
 
 export class GlobalStatisticsCountersFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('globalStatisticsCounters');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'globalStatisticsCounters');
         return new GlobalStatisticsCountersFactory(storage, directory);
     }
 
@@ -1590,8 +1590,8 @@ export class GlobalStatisticsCountersFactory extends AtomicIntegerFactory {
 
 export class UserGlobalCounterAllUnreadMessagesFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userGlobalCounterAllUnreadMessages');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userGlobalCounterAllUnreadMessages');
         return new UserGlobalCounterAllUnreadMessagesFactory(storage, directory);
     }
 
@@ -1630,8 +1630,8 @@ export class UserGlobalCounterAllUnreadMessagesFactory extends AtomicIntegerFact
 
 export class UserGlobalCounterUnreadMessagesWithoutMutedFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userGlobalCounterUnreadMessagesWithoutMuted');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userGlobalCounterUnreadMessagesWithoutMuted');
         return new UserGlobalCounterUnreadMessagesWithoutMutedFactory(storage, directory);
     }
 
@@ -1670,8 +1670,8 @@ export class UserGlobalCounterUnreadMessagesWithoutMutedFactory extends AtomicIn
 
 export class UserGlobalCounterAllUnreadChatsFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userGlobalCounterAllUnreadChats');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userGlobalCounterAllUnreadChats');
         return new UserGlobalCounterAllUnreadChatsFactory(storage, directory);
     }
 
@@ -1710,8 +1710,8 @@ export class UserGlobalCounterAllUnreadChatsFactory extends AtomicIntegerFactory
 
 export class UserGlobalCounterUnreadChatsWithoutMutedFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userGlobalCounterUnreadChatsWithoutMuted');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userGlobalCounterUnreadChatsWithoutMuted');
         return new UserGlobalCounterUnreadChatsWithoutMutedFactory(storage, directory);
     }
 
@@ -1750,8 +1750,8 @@ export class UserGlobalCounterUnreadChatsWithoutMutedFactory extends AtomicInteg
 
 export class UserHasFilledAboutFactory extends AtomicBooleanFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userHasFilledAbout');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userHasFilledAbout');
         return new UserHasFilledAboutFactory(storage, directory);
     }
 
@@ -1782,8 +1782,8 @@ export class UserHasFilledAboutFactory extends AtomicBooleanFactory {
 
 export class UserReactionsGotFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userReactionsGot');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userReactionsGot');
         return new UserReactionsGotFactory(storage, directory);
     }
 
@@ -1822,8 +1822,8 @@ export class UserReactionsGotFactory extends AtomicIntegerFactory {
 
 export class UserReactionsGivenFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('userReactionsGiven');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'userReactionsGiven');
         return new UserReactionsGivenFactory(storage, directory);
     }
 
@@ -1862,8 +1862,8 @@ export class UserReactionsGivenFactory extends AtomicIntegerFactory {
 
 export class StatsRecordsFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('statsRecords');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'statsRecords');
         return new StatsRecordsFactory(storage, directory);
     }
 
@@ -1902,8 +1902,8 @@ export class StatsRecordsFactory extends AtomicIntegerFactory {
 
 export class RoomMessagesCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('roomMessagesCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'roomMessagesCounter');
         return new RoomMessagesCounterFactory(storage, directory);
     }
 
@@ -1942,8 +1942,8 @@ export class RoomMessagesCounterFactory extends AtomicIntegerFactory {
 
 export class RoomActiveMembersPrevWeekCounterFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('roomActiveMembersPrevWeekCounter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'roomActiveMembersPrevWeekCounter');
         return new RoomActiveMembersPrevWeekCounterFactory(storage, directory);
     }
 
@@ -1982,8 +1982,8 @@ export class RoomActiveMembersPrevWeekCounterFactory extends AtomicIntegerFactor
 
 export class StickerPackWasAddedFactory extends AtomicBooleanFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('stickerPackWasAdded');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'stickerPackWasAdded');
         return new StickerPackWasAddedFactory(storage, directory);
     }
 
@@ -2014,8 +2014,8 @@ export class StickerPackWasAddedFactory extends AtomicBooleanFactory {
 
 export class ReaderEstimateFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('readerEstimate');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'readerEstimate');
         return new ReaderEstimateFactory(storage, directory);
     }
 
@@ -2054,8 +2054,8 @@ export class ReaderEstimateFactory extends AtomicIntegerFactory {
 
 export class LastAuthEmailSentTimeFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('lastAuthEmailSentTime');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'lastAuthEmailSentTime');
         return new LastAuthEmailSentTimeFactory(storage, directory);
     }
 
@@ -2094,8 +2094,8 @@ export class LastAuthEmailSentTimeFactory extends AtomicIntegerFactory {
 
 export class AuthEmailsSentCountFactory extends AtomicIntegerFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('authEmailsSentCount');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'authEmailsSentCount');
         return new AuthEmailsSentCountFactory(storage, directory);
     }
 
@@ -2134,8 +2134,8 @@ export class AuthEmailsSentCountFactory extends AtomicIntegerFactory {
 
 export class PhonebookJoinMessageSentForPhoneFactory extends AtomicBooleanFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('phonebookJoinMessageSentForPhone');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'phonebookJoinMessageSentForPhone');
         return new PhonebookJoinMessageSentForPhoneFactory(storage, directory);
     }
 
@@ -2166,8 +2166,8 @@ export class PhonebookJoinMessageSentForPhoneFactory extends AtomicBooleanFactor
 
 export class PhonebookUserImportedContactsFactory extends AtomicBooleanFactory {
 
-    static async open(storage: EntityStorage) {
-        let directory = await storage.resolveAtomicDirectory('phonebookUserImportedContacts');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let directory = await storage.resolveAtomicDirectory(ctx, 'phonebookUserImportedContacts');
         return new PhonebookUserImportedContactsFactory(storage, directory);
     }
 
@@ -2308,16 +2308,16 @@ export class User extends Entity<UserShape> {
 
 export class UserFactory extends EntityFactory<UserShape, User> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('user');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'user');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'authId', storageKey: 'authId', type: { type: 'unique', fields: [{ name: 'authId', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'authId'), condition: src => src.status !== 'deleted' });
-        secondaryIndexes.push({ name: 'email', storageKey: 'email', type: { type: 'unique', fields: [{ name: 'email', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'email'), condition: src => (!!src.email) && src.status !== 'deleted' });
-        secondaryIndexes.push({ name: 'googleId', storageKey: 'googleId', type: { type: 'unique', fields: [{ name: 'googleId', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'googleId'), condition: src => (!!src.googleId) && src.status !== 'deleted' });
-        secondaryIndexes.push({ name: 'fromPhone', storageKey: 'fromPhone', type: { type: 'unique', fields: [{ name: 'phone', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'fromPhone'), condition: src => (!!src.phone) && src.status !== 'deleted' });
-        secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'botOwner', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'owner'), condition: src => src.botOwner });
-        secondaryIndexes.push({ name: 'superBots', storageKey: 'superBots', type: { type: 'range', fields: [] }, subspace: await storage.resolveEntityIndexDirectory('user', 'superBots'), condition: src => src.isBot === true && src.isSuperBot });
-        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('user', 'created'), condition: undefined });
+        secondaryIndexes.push({ name: 'authId', storageKey: 'authId', type: { type: 'unique', fields: [{ name: 'authId', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'user', 'authId'), condition: src => src.status !== 'deleted' });
+        secondaryIndexes.push({ name: 'email', storageKey: 'email', type: { type: 'unique', fields: [{ name: 'email', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'user', 'email'), condition: src => (!!src.email) && src.status !== 'deleted' });
+        secondaryIndexes.push({ name: 'googleId', storageKey: 'googleId', type: { type: 'unique', fields: [{ name: 'googleId', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'user', 'googleId'), condition: src => (!!src.googleId) && src.status !== 'deleted' });
+        secondaryIndexes.push({ name: 'fromPhone', storageKey: 'fromPhone', type: { type: 'unique', fields: [{ name: 'phone', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'user', 'fromPhone'), condition: src => (!!src.phone) && src.status !== 'deleted' });
+        secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'botOwner', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'user', 'owner'), condition: src => src.botOwner });
+        secondaryIndexes.push({ name: 'superBots', storageKey: 'superBots', type: { type: 'range', fields: [] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'user', 'superBots'), condition: src => src.isBot === true && src.isSuperBot });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'user', 'created'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -2692,11 +2692,11 @@ export class UserProfile extends Entity<UserProfileShape> {
 
 export class UserProfileFactory extends EntityFactory<UserProfileShape, UserProfile> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userProfile');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userProfile');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'byUpdatedAt', storageKey: 'byUpdatedAt', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userProfile', 'byUpdatedAt'), condition: undefined });
-        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userProfile', 'created'), condition: undefined });
+        secondaryIndexes.push({ name: 'byUpdatedAt', storageKey: 'byUpdatedAt', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userProfile', 'byUpdatedAt'), condition: undefined });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userProfile', 'created'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -2855,8 +2855,8 @@ export class UserProfilePrefil extends Entity<UserProfilePrefilShape> {
 
 export class UserProfilePrefilFactory extends EntityFactory<UserProfilePrefilShape, UserProfilePrefil> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userProfilePrefil');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userProfilePrefil');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -2956,10 +2956,10 @@ export class AppRelease extends Entity<AppReleaseShape> {
 
 export class AppReleaseFactory extends EntityFactory<AppReleaseShape, AppRelease> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('appRelease');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'appRelease');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'platform', storageKey: 'platform', type: { type: 'range', fields: [{ name: 'platform', type: 'string' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('appRelease', 'platform'), condition: undefined });
+        secondaryIndexes.push({ name: 'platform', storageKey: 'platform', type: { type: 'range', fields: [{ name: 'platform', type: 'string' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'appRelease', 'platform'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'platform', type: 'string' });
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -3172,8 +3172,8 @@ export class UserSettings extends Entity<UserSettingsShape> {
 
 export class UserSettingsFactory extends EntityFactory<UserSettingsShape, UserSettings> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userSettings');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userSettings');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -3256,10 +3256,10 @@ export class UserIndexingQueue extends Entity<UserIndexingQueueShape> {
 
 export class UserIndexingQueueFactory extends EntityFactory<UserIndexingQueueShape, UserIndexingQueue> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userIndexingQueue');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userIndexingQueue');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userIndexingQueue', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userIndexingQueue', 'updated'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -3387,11 +3387,11 @@ export class ModernBadge extends Entity<ModernBadgeShape> {
 
 export class ModernBadgeFactory extends EntityFactory<ModernBadgeShape, ModernBadge> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('modernBadge');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'modernBadge');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'duplicates', storageKey: 'duplicates', type: { type: 'unique', fields: [{ name: 'emoji', type: 'string' }, { name: 'text', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('modernBadge', 'duplicates'), condition: undefined });
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('modernBadge', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'duplicates', storageKey: 'duplicates', type: { type: 'unique', fields: [{ name: 'emoji', type: 'string' }, { name: 'text', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'modernBadge', 'duplicates'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'modernBadge', 'updated'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -3499,11 +3499,11 @@ export class UserModernBadge extends Entity<UserModernBadgeShape> {
 
 export class UserModernBadgeFactory extends EntityFactory<UserModernBadgeShape, UserModernBadge> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userModernBadge');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userModernBadge');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'byBid', storageKey: 'byBid', type: { type: 'range', fields: [{ name: 'bid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userModernBadge', 'byBid'), condition: a => !a.deleted });
-        secondaryIndexes.push({ name: 'byUid', storageKey: 'byUid', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userModernBadge', 'byUid'), condition: a => !a.deleted });
+        secondaryIndexes.push({ name: 'byBid', storageKey: 'byBid', type: { type: 'range', fields: [{ name: 'bid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userModernBadge', 'byBid'), condition: a => !a.deleted });
+        secondaryIndexes.push({ name: 'byUid', storageKey: 'byUid', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userModernBadge', 'byUid'), condition: a => !a.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'bid', type: 'integer' });
@@ -3683,10 +3683,10 @@ export class Organization extends Entity<OrganizationShape> {
 
 export class OrganizationFactory extends EntityFactory<OrganizationShape, Organization> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('organization');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'organization');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'community', storageKey: 'community', type: { type: 'range', fields: [] }, subspace: await storage.resolveEntityIndexDirectory('organization', 'community'), condition: (src) => src.kind === 'community' && src.status === 'activated' });
+        secondaryIndexes.push({ name: 'community', storageKey: 'community', type: { type: 'range', fields: [] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organization', 'community'), condition: (src) => src.kind === 'community' && src.status === 'activated' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -3904,8 +3904,8 @@ export class OrganizationProfile extends Entity<OrganizationProfileShape> {
 
 export class OrganizationProfileFactory extends EntityFactory<OrganizationProfileShape, OrganizationProfile> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('organizationProfile');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'organizationProfile');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -4010,8 +4010,8 @@ export class OrganizationEditorial extends Entity<OrganizationEditorialShape> {
 
 export class OrganizationEditorialFactory extends EntityFactory<OrganizationEditorialShape, OrganizationEditorial> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('organizationEditorial');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'organizationEditorial');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -4109,15 +4109,15 @@ export class OrganizationMember extends Entity<OrganizationMemberShape> {
 
 export class OrganizationMemberFactory extends EntityFactory<OrganizationMemberShape, OrganizationMember> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('organizationMember');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'organizationMember');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'ids', storageKey: 'ids', type: { type: 'unique', fields: [{ name: 'oid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'ids'), condition: undefined });
-        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'range', fields: [{ name: 'status', type: 'string' }, { name: 'oid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'organization'), condition: undefined });
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'status', type: 'string' }, { name: 'uid', type: 'integer' }, { name: 'oid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'updated'), condition: undefined });
-        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'created'), condition: undefined });
-        secondaryIndexes.push({ name: 'admins', storageKey: 'admins', type: { type: 'range', fields: [{ name: 'oid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationMember', 'admins'), condition: (src) => src.status === 'joined' && src.role === 'admin' });
+        secondaryIndexes.push({ name: 'ids', storageKey: 'ids', type: { type: 'unique', fields: [{ name: 'oid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organizationMember', 'ids'), condition: undefined });
+        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'range', fields: [{ name: 'status', type: 'string' }, { name: 'oid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organizationMember', 'organization'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'status', type: 'string' }, { name: 'uid', type: 'integer' }, { name: 'oid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organizationMember', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organizationMember', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organizationMember', 'created'), condition: undefined });
+        secondaryIndexes.push({ name: 'admins', storageKey: 'admins', type: { type: 'range', fields: [{ name: 'oid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organizationMember', 'admins'), condition: (src) => src.status === 'joined' && src.role === 'admin' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'oid', type: 'integer' });
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -4270,10 +4270,10 @@ export class OrganizationIndexingQueue extends Entity<OrganizationIndexingQueueS
 
 export class OrganizationIndexingQueueFactory extends EntityFactory<OrganizationIndexingQueueShape, OrganizationIndexingQueue> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('organizationIndexingQueue');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'organizationIndexingQueue');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationIndexingQueue', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organizationIndexingQueue', 'updated'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -4379,8 +4379,8 @@ export class Online extends Entity<OnlineShape> {
 
 export class OnlineFactory extends EntityFactory<OnlineShape, Online> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('online');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'online');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -4491,10 +4491,10 @@ export class Presence extends Entity<PresenceShape> {
 
 export class PresenceFactory extends EntityFactory<PresenceShape, Presence> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('presence');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'presence');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'lastSeen', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('presence', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'lastSeen', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'presence', 'user'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'tid', type: 'string' });
@@ -4610,8 +4610,8 @@ export class Conversation extends Entity<ConversationShape> {
 
 export class ConversationFactory extends EntityFactory<ConversationShape, Conversation> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conversation');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conversation');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -4709,11 +4709,11 @@ export class ConversationPrivate extends Entity<ConversationPrivateShape> {
 
 export class ConversationPrivateFactory extends EntityFactory<ConversationPrivateShape, ConversationPrivate> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conversationPrivate');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conversationPrivate');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'users', storageKey: 'users', type: { type: 'unique', fields: [{ name: 'uid1', type: 'integer' }, { name: 'uid2', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationPrivate', 'users'), condition: undefined });
-        secondaryIndexes.push({ name: 'usersReverse', storageKey: 'usersReverse', type: { type: 'unique', fields: [{ name: 'uid2', type: 'integer' }, { name: 'uid1', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationPrivate', 'usersReverse'), condition: undefined });
+        secondaryIndexes.push({ name: 'users', storageKey: 'users', type: { type: 'unique', fields: [{ name: 'uid1', type: 'integer' }, { name: 'uid2', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conversationPrivate', 'users'), condition: undefined });
+        secondaryIndexes.push({ name: 'usersReverse', storageKey: 'usersReverse', type: { type: 'unique', fields: [{ name: 'uid2', type: 'integer' }, { name: 'uid1', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conversationPrivate', 'usersReverse'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -4812,10 +4812,10 @@ export class ConversationOrganization extends Entity<ConversationOrganizationSha
 
 export class ConversationOrganizationFactory extends EntityFactory<ConversationOrganizationShape, ConversationOrganization> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conversationOrganization');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conversationOrganization');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'unique', fields: [{ name: 'oid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationOrganization', 'organization'), condition: undefined });
+        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'unique', fields: [{ name: 'oid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conversationOrganization', 'organization'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -4986,11 +4986,11 @@ export class ConversationRoom extends Entity<ConversationRoomShape> {
 
 export class ConversationRoomFactory extends EntityFactory<ConversationRoomShape, ConversationRoom> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conversationRoom');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conversationRoom');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'range', fields: [{ name: 'oid', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationRoom', 'organization'), condition: (v) => (v.kind === 'public' || v.kind === 'internal') && !v.isDeleted });
-        secondaryIndexes.push({ name: 'organizationPublicRooms', storageKey: 'organizationPublicRooms', type: { type: 'unique', fields: [{ name: 'oid', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationRoom', 'organizationPublicRooms'), condition: (v) => v.kind === 'public' && !v.isDeleted });
+        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'range', fields: [{ name: 'oid', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conversationRoom', 'organization'), condition: (v) => (v.kind === 'public' || v.kind === 'internal') && !v.isDeleted });
+        secondaryIndexes.push({ name: 'organizationPublicRooms', storageKey: 'organizationPublicRooms', type: { type: 'unique', fields: [{ name: 'oid', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conversationRoom', 'organizationPublicRooms'), condition: (v) => v.kind === 'public' && !v.isDeleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -5126,8 +5126,8 @@ export class PremiumChatSettings extends Entity<PremiumChatSettingsShape> {
 
 export class PremiumChatSettingsFactory extends EntityFactory<PremiumChatSettingsShape, PremiumChatSettings> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('premiumChatSettings');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'premiumChatSettings');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -5216,8 +5216,8 @@ export class PremiumChatUserPass extends Entity<PremiumChatUserPassShape> {
 
 export class PremiumChatUserPassFactory extends EntityFactory<PremiumChatUserPassShape, PremiumChatUserPass> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('premiumChatUserPass');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'premiumChatUserPass');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'cid', type: 'integer' });
@@ -5469,11 +5469,11 @@ export class RoomProfile extends Entity<RoomProfileShape> {
 
 export class RoomProfileFactory extends EntityFactory<RoomProfileShape, RoomProfile> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('roomProfile');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'roomProfile');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomProfile', 'updated'), condition: undefined });
-        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomProfile', 'created'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'roomProfile', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'roomProfile', 'created'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -5630,14 +5630,14 @@ export class RoomParticipant extends Entity<RoomParticipantShape> {
 
 export class RoomParticipantFactory extends EntityFactory<RoomParticipantShape, RoomParticipant> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('roomParticipant');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'roomParticipant');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'active'), condition: (src) => src.status === 'joined' });
-        secondaryIndexes.push({ name: 'requests', storageKey: 'requests', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'requests'), condition: (src) => src.status === 'requested' });
-        secondaryIndexes.push({ name: 'userActive', storageKey: 'userActive', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'userActive'), condition: (src) => src.status === 'joined' });
-        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'created'), condition: undefined });
-        secondaryIndexes.push({ name: 'admins', storageKey: 'admins', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('roomParticipant', 'admins'), condition: (src) => src.status === 'joined' && (src.role === 'admin' || src.role === 'owner') });
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'roomParticipant', 'active'), condition: (src) => src.status === 'joined' });
+        secondaryIndexes.push({ name: 'requests', storageKey: 'requests', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'roomParticipant', 'requests'), condition: (src) => src.status === 'requested' });
+        secondaryIndexes.push({ name: 'userActive', storageKey: 'userActive', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'roomParticipant', 'userActive'), condition: (src) => src.status === 'joined' });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'roomParticipant', 'created'), condition: undefined });
+        secondaryIndexes.push({ name: 'admins', storageKey: 'admins', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'roomParticipant', 'admins'), condition: (src) => src.status === 'joined' && (src.role === 'admin' || src.role === 'owner') });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'cid', type: 'integer' });
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -5868,10 +5868,10 @@ export class ConversationVoice extends Entity<ConversationVoiceShape> {
 
 export class ConversationVoiceFactory extends EntityFactory<ConversationVoiceShape, ConversationVoice> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conversationVoice');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conversationVoice');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationVoice', 'active'), condition: a => a.active && !a.isPrivate });
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conversationVoice', 'active'), condition: a => a.active && !a.isPrivate });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -6019,14 +6019,14 @@ export class VoiceChatParticipant extends Entity<VoiceChatParticipantShape> {
 
 export class VoiceChatParticipantFactory extends EntityFactory<VoiceChatParticipantShape, VoiceChatParticipant> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('voiceChatParticipant');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'voiceChatParticipant');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'chatAll'), condition: undefined });
-        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'chat'), condition: a => a.status === 'joined' });
-        secondaryIndexes.push({ name: 'handRaised', storageKey: 'handRaised', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'handRaised'), condition: a => a.status === 'joined' && !!a.handRaised });
-        secondaryIndexes.push({ name: 'speakers', storageKey: 'speakers', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'speakers'), condition: a => a.status === 'joined' && (a.role === 'speaker' || a.role === 'admin') });
-        secondaryIndexes.push({ name: 'listeners', storageKey: 'listeners', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('voiceChatParticipant', 'listeners'), condition: a => a.status === 'joined' && a.role === 'listener' });
+        secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'voiceChatParticipant', 'chatAll'), condition: undefined });
+        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'voiceChatParticipant', 'chat'), condition: a => a.status === 'joined' });
+        secondaryIndexes.push({ name: 'handRaised', storageKey: 'handRaised', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'voiceChatParticipant', 'handRaised'), condition: a => a.status === 'joined' && !!a.handRaised });
+        secondaryIndexes.push({ name: 'speakers', storageKey: 'speakers', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'voiceChatParticipant', 'speakers'), condition: a => a.status === 'joined' && (a.role === 'speaker' || a.role === 'admin') });
+        secondaryIndexes.push({ name: 'listeners', storageKey: 'listeners', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'voiceChatParticipant', 'listeners'), condition: a => a.status === 'joined' && a.role === 'listener' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'cid', type: 'integer' });
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -6501,13 +6501,13 @@ export class Message extends Entity<MessageShape> {
 
 export class MessageFactory extends EntityFactory<MessageShape, Message> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('message');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'message');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chat'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatAll'), condition: undefined });
-        secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'chatSeq'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasImageAttachment'), condition: (item) => {
+        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'message', 'chat'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'message', 'chatAll'), condition: undefined });
+        secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'message', 'chatSeq'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'message', 'hasImageAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -6534,7 +6534,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasLinkAttachment'), condition: (item) => {
+        secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'message', 'hasLinkAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -6550,7 +6550,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasVideoAttachment'), condition: (item) => {
+        secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'message', 'hasVideoAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -6573,7 +6573,7 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'hasDocumentAttachment'), condition: (item) => {
+        secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'message', 'hasDocumentAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -6600,9 +6600,9 @@ export class MessageFactory extends EntityFactory<MessageShape, Message> {
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'repeat'), condition: (src) => !!src.repeatKey });
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'updated'), condition: undefined });
-        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('message', 'created'), condition: undefined });
+        secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'message', 'repeat'), condition: (src) => !!src.repeatKey });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'message', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'message', 'created'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -7199,13 +7199,13 @@ export class PrivateMessage extends Entity<PrivateMessageShape> {
 
 export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, PrivateMessage> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('privateMessage');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'privateMessage');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'chat'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'chatAll'), condition: undefined });
-        secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'chatSeq'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasImageAttachment'), condition: (item) => {
+        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'privateMessage', 'chat'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'chatAll', storageKey: 'chatAll', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'privateMessage', 'chatAll'), condition: undefined });
+        secondaryIndexes.push({ name: 'chatSeq', storageKey: 'chatSeq', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'privateMessage', 'chatSeq'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'hasImageAttachment', storageKey: 'hasImageAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'privateMessage', 'hasImageAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -7232,7 +7232,7 @@ export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, Pr
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasLinkAttachment'), condition: (item) => {
+        secondaryIndexes.push({ name: 'hasLinkAttachment', storageKey: 'hasLinkAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'privateMessage', 'hasLinkAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -7248,7 +7248,7 @@ export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, Pr
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasVideoAttachment'), condition: (item) => {
+        secondaryIndexes.push({ name: 'hasVideoAttachment', storageKey: 'hasVideoAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'privateMessage', 'hasVideoAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -7271,7 +7271,7 @@ export class PrivateMessageFactory extends EntityFactory<PrivateMessageShape, Pr
     }
     return false;
 } });
-        secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('privateMessage', 'hasDocumentAttachment'), condition: (item) => {
+        secondaryIndexes.push({ name: 'hasDocumentAttachment', storageKey: 'hasDocumentAttachment', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'inboxUid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'privateMessage', 'hasDocumentAttachment'), condition: (item) => {
     if (item.deleted) {
         return false;
     }
@@ -7687,12 +7687,12 @@ export class Comment extends Entity<CommentShape> {
 
 export class CommentFactory extends EntityFactory<CommentShape, Comment> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('comment');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'comment');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'peer', storageKey: 'peer', type: { type: 'range', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('comment', 'peer'), condition: undefined });
-        secondaryIndexes.push({ name: 'child', storageKey: 'child', type: { type: 'range', fields: [{ name: 'parentCommentId', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('comment', 'child'), condition: undefined });
-        secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('comment', 'repeat'), condition: (src) => !!src.repeatKey });
+        secondaryIndexes.push({ name: 'peer', storageKey: 'peer', type: { type: 'range', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'comment', 'peer'), condition: undefined });
+        secondaryIndexes.push({ name: 'child', storageKey: 'child', type: { type: 'range', fields: [{ name: 'parentCommentId', type: 'opt_integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'comment', 'child'), condition: undefined });
+        secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'comment', 'repeat'), condition: (src) => !!src.repeatKey });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -7943,10 +7943,10 @@ export class RichMessage extends Entity<RichMessageShape> {
 
 export class RichMessageFactory extends EntityFactory<RichMessageShape, RichMessage> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('richMessage');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'richMessage');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('richMessage', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'richMessage', 'user'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -8054,8 +8054,8 @@ export class MessageDraft extends Entity<MessageDraftShape> {
 
 export class MessageDraftFactory extends EntityFactory<MessageDraftShape, MessageDraft> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('messageDraft');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'messageDraft');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -8129,8 +8129,8 @@ export class ConversationSeq extends Entity<ConversationSeqShape> {
 
 export class ConversationSeqFactory extends EntityFactory<ConversationSeqShape, ConversationSeq> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conversationSeq');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conversationSeq');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'cid', type: 'integer' });
@@ -8226,10 +8226,10 @@ export class ConversationEvent extends Entity<ConversationEventShape> {
 
 export class ConversationEventFactory extends EntityFactory<ConversationEventShape, ConversationEvent> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conversationEvent');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conversationEvent');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conversationEvent', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conversationEvent', 'user'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'cid', type: 'integer' });
         primaryKeys.push({ name: 'seq', type: 'integer' });
@@ -8378,11 +8378,11 @@ export class UserDialog extends Entity<UserDialogShape> {
 
 export class UserDialogFactory extends EntityFactory<UserDialogShape, UserDialog> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userDialog');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userDialog');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'date', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialog', 'user'), condition: (src) => !!src.date });
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userDialog', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'date', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userDialog', 'user'), condition: (src) => !!src.date });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userDialog', 'updated'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'cid', type: 'integer' });
@@ -8497,8 +8497,8 @@ export class UserDialogSettings extends Entity<UserDialogSettingsShape> {
 
 export class UserDialogSettingsFactory extends EntityFactory<UserDialogSettingsShape, UserDialogSettings> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userDialogSettings');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userDialogSettings');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -8572,8 +8572,8 @@ export class UserDialogListSettings extends Entity<UserDialogListSettingsShape> 
 
 export class UserDialogListSettingsFactory extends EntityFactory<UserDialogListSettingsShape, UserDialogListSettings> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userDialogListSettings');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userDialogListSettings');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -8647,8 +8647,8 @@ export class CommentState extends Entity<CommentStateShape> {
 
 export class CommentStateFactory extends EntityFactory<CommentStateShape, CommentState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('commentState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'commentState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'peerType', type: 'string' });
@@ -8724,8 +8724,8 @@ export class CommentSeq extends Entity<CommentSeqShape> {
 
 export class CommentSeqFactory extends EntityFactory<CommentSeqShape, CommentSeq> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('commentSeq');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'commentSeq');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'peerType', type: 'string' });
@@ -8825,10 +8825,10 @@ export class CommentEvent extends Entity<CommentEventShape> {
 
 export class CommentEventFactory extends EntityFactory<CommentEventShape, CommentEvent> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('commentEvent');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'commentEvent');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('commentEvent', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'commentEvent', 'user'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'peerType', type: 'string' });
         primaryKeys.push({ name: 'peerId', type: 'integer' });
@@ -8937,10 +8937,10 @@ export class CommentsSubscription extends Entity<CommentsSubscriptionShape> {
 
 export class CommentsSubscriptionFactory extends EntityFactory<CommentsSubscriptionShape, CommentsSubscription> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('commentsSubscription');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'commentsSubscription');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'peer', storageKey: 'peer', type: { type: 'range', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('commentsSubscription', 'peer'), condition: undefined });
+        secondaryIndexes.push({ name: 'peer', storageKey: 'peer', type: { type: 'range', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'commentsSubscription', 'peer'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'peerType', type: 'string' });
         primaryKeys.push({ name: 'peerId', type: 'integer' });
@@ -9056,10 +9056,10 @@ export class CommentEventGlobal extends Entity<CommentEventGlobalShape> {
 
 export class CommentEventGlobalFactory extends EntityFactory<CommentEventGlobalShape, CommentEventGlobal> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('commentEventGlobal');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'commentEventGlobal');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('commentEventGlobal', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'commentEventGlobal', 'user'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'seq', type: 'integer' });
@@ -9217,8 +9217,8 @@ export class ConferenceRoom extends Entity<ConferenceRoomShape> {
 
 export class ConferenceRoomFactory extends EntityFactory<ConferenceRoomShape, ConferenceRoom> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceRoom');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conferenceRoom');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -9379,14 +9379,14 @@ export class ConferencePeer extends Entity<ConferencePeerShape> {
 
 export class ConferencePeerFactory extends EntityFactory<ConferencePeerShape, ConferencePeer> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferencePeer');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conferencePeer');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'auth', storageKey: 'auth', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }, { name: 'tid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'auth'), condition: (src) => src.enabled });
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }, { name: 'tid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'user'), condition: (src) => src.enabled });
-        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'keepAliveTimeout', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'conference'), condition: (src) => src.enabled });
-        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'keepAliveTimeout', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'active'), condition: (src) => src.enabled });
-        secondaryIndexes.push({ name: 'byRole', storageKey: 'byRole', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'role', type: 'opt_string' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferencePeer', 'byRole'), condition: (src) => src.enabled && !!src.role });
+        secondaryIndexes.push({ name: 'auth', storageKey: 'auth', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }, { name: 'tid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferencePeer', 'auth'), condition: (src) => src.enabled });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }, { name: 'tid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferencePeer', 'user'), condition: (src) => src.enabled });
+        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'keepAliveTimeout', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferencePeer', 'conference'), condition: (src) => src.enabled });
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'keepAliveTimeout', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferencePeer', 'active'), condition: (src) => src.enabled });
+        secondaryIndexes.push({ name: 'byRole', storageKey: 'byRole', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'role', type: 'opt_string' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferencePeer', 'byRole'), condition: (src) => src.enabled && !!src.role });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -9642,10 +9642,10 @@ export class ConferenceEndStream extends Entity<ConferenceEndStreamShape> {
 
 export class ConferenceEndStreamFactory extends EntityFactory<ConferenceEndStreamShape, ConferenceEndStream> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceEndStream');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conferenceEndStream');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'peer', storageKey: 'peer', type: { type: 'range', fields: [{ name: 'pid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceEndStream', 'peer'), condition: (s) => s.state !== 'completed' });
+        secondaryIndexes.push({ name: 'peer', storageKey: 'peer', type: { type: 'range', fields: [{ name: 'pid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferenceEndStream', 'peer'), condition: (s) => s.state !== 'completed' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -9762,10 +9762,10 @@ export class ConferenceMeshPeer extends Entity<ConferenceMeshPeerShape> {
 
 export class ConferenceMeshPeerFactory extends EntityFactory<ConferenceMeshPeerShape, ConferenceMeshPeer> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceMeshPeer');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conferenceMeshPeer');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceMeshPeer', 'conference'), condition: (src) => src.active });
+        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferenceMeshPeer', 'conference'), condition: (src) => src.active });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'cid', type: 'integer' });
         primaryKeys.push({ name: 'pid', type: 'integer' });
@@ -9932,11 +9932,11 @@ export class ConferenceMeshLink extends Entity<ConferenceMeshLinkShape> {
 
 export class ConferenceMeshLinkFactory extends EntityFactory<ConferenceMeshLinkShape, ConferenceMeshLink> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceMeshLink');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conferenceMeshLink');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceMeshLink', 'conference'), condition: (src) => src.state !== 'completed' });
-        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'pid1', type: 'integer' }, { name: 'pid2', type: 'integer' }, { name: 'kind', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceMeshLink', 'active'), condition: (src) => src.state !== 'completed' });
+        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferenceMeshLink', 'conference'), condition: (src) => src.state !== 'completed' });
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }, { name: 'pid1', type: 'integer' }, { name: 'pid2', type: 'integer' }, { name: 'kind', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferenceMeshLink', 'active'), condition: (src) => src.state !== 'completed' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -10059,10 +10059,10 @@ export class ConferenceKitchenRouter extends Entity<ConferenceKitchenRouterShape
 
 export class ConferenceKitchenRouterFactory extends EntityFactory<ConferenceKitchenRouterShape, ConferenceKitchenRouter> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceKitchenRouter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conferenceKitchenRouter');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceKitchenRouter', 'conference'), condition: (s) => !s.deleted });
+        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'unique', fields: [{ name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferenceKitchenRouter', 'conference'), condition: (s) => !s.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -10202,11 +10202,11 @@ export class ConferenceKitchenPeer extends Entity<ConferenceKitchenPeerShape> {
 
 export class ConferenceKitchenPeerFactory extends EntityFactory<ConferenceKitchenPeerShape, ConferenceKitchenPeer> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceKitchenPeer');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conferenceKitchenPeer');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceKitchenPeer', 'conference'), condition: (src) => src.active });
-        secondaryIndexes.push({ name: 'conferenceProducers', storageKey: 'conferenceProducers', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceKitchenPeer', 'conferenceProducers'), condition: (src) => !!src.producerTransport });
+        secondaryIndexes.push({ name: 'conference', storageKey: 'conference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferenceKitchenPeer', 'conference'), condition: (src) => src.active });
+        secondaryIndexes.push({ name: 'conferenceProducers', storageKey: 'conferenceProducers', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferenceKitchenPeer', 'conferenceProducers'), condition: (src) => !!src.producerTransport });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'pid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -10427,10 +10427,10 @@ export class ConferenceKitchenProducerTransport extends Entity<ConferenceKitchen
 
 export class ConferenceKitchenProducerTransportFactory extends EntityFactory<ConferenceKitchenProducerTransportShape, ConferenceKitchenProducerTransport> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceKitchenProducerTransport');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conferenceKitchenProducerTransport');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'fromConference', storageKey: 'fromConference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceKitchenProducerTransport', 'fromConference'), condition: (src) => src.state !== 'closed' });
+        secondaryIndexes.push({ name: 'fromConference', storageKey: 'fromConference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferenceKitchenProducerTransport', 'fromConference'), condition: (src) => src.state !== 'closed' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -10591,10 +10591,10 @@ export class ConferenceKitchenConsumerTransport extends Entity<ConferenceKitchen
 
 export class ConferenceKitchenConsumerTransportFactory extends EntityFactory<ConferenceKitchenConsumerTransportShape, ConferenceKitchenConsumerTransport> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('conferenceKitchenConsumerTransport');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'conferenceKitchenConsumerTransport');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'fromConference', storageKey: 'fromConference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('conferenceKitchenConsumerTransport', 'fromConference'), condition: (src) => src.state !== 'closed' });
+        secondaryIndexes.push({ name: 'fromConference', storageKey: 'fromConference', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'conferenceKitchenConsumerTransport', 'fromConference'), condition: (src) => src.state !== 'closed' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -10701,10 +10701,10 @@ export class KitchenWorker extends Entity<KitchenWorkerShape> {
 
 export class KitchenWorkerFactory extends EntityFactory<KitchenWorkerShape, KitchenWorker> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('kitchenWorker');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'kitchenWorker');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('kitchenWorker', 'active'), condition: (s) => !s.deleted });
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'kitchenWorker', 'active'), condition: (s) => !s.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -10803,10 +10803,10 @@ export class KitchenRouter extends Entity<KitchenRouterShape> {
 
 export class KitchenRouterFactory extends EntityFactory<KitchenRouterShape, KitchenRouter> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('kitchenRouter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'kitchenRouter');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'workerActive', storageKey: 'workerActive', type: { type: 'range', fields: [{ name: 'workerId', type: 'opt_string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('kitchenRouter', 'workerActive'), condition: (s) => !!s.workerId && s.state !== 'deleted' });
+        secondaryIndexes.push({ name: 'workerActive', storageKey: 'workerActive', type: { type: 'range', fields: [{ name: 'workerId', type: 'opt_string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'kitchenRouter', 'workerActive'), condition: (s) => !!s.workerId && s.state !== 'deleted' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -10927,10 +10927,10 @@ export class KitchenTransport extends Entity<KitchenTransportShape> {
 
 export class KitchenTransportFactory extends EntityFactory<KitchenTransportShape, KitchenTransport> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('kitchenTransport');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'kitchenTransport');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'routerActive', storageKey: 'routerActive', type: { type: 'range', fields: [{ name: 'routerId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('kitchenTransport', 'routerActive'), condition: (s) => s.state !== 'deleted' });
+        secondaryIndexes.push({ name: 'routerActive', storageKey: 'routerActive', type: { type: 'range', fields: [{ name: 'routerId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'kitchenTransport', 'routerActive'), condition: (s) => s.state !== 'deleted' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -11088,11 +11088,11 @@ export class KitchenProducer extends Entity<KitchenProducerShape> {
 
 export class KitchenProducerFactory extends EntityFactory<KitchenProducerShape, KitchenProducer> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('kitchenProducer');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'kitchenProducer');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'routerActive', storageKey: 'routerActive', type: { type: 'range', fields: [{ name: 'routerId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('kitchenProducer', 'routerActive'), condition: (s) => s.state !== 'deleted' });
-        secondaryIndexes.push({ name: 'transportActive', storageKey: 'transportActive', type: { type: 'range', fields: [{ name: 'transportId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('kitchenProducer', 'transportActive'), condition: (s) => s.state !== 'deleted' });
+        secondaryIndexes.push({ name: 'routerActive', storageKey: 'routerActive', type: { type: 'range', fields: [{ name: 'routerId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'kitchenProducer', 'routerActive'), condition: (s) => s.state !== 'deleted' });
+        secondaryIndexes.push({ name: 'transportActive', storageKey: 'transportActive', type: { type: 'range', fields: [{ name: 'transportId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'kitchenProducer', 'transportActive'), condition: (s) => s.state !== 'deleted' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -11271,12 +11271,12 @@ export class KitchenConsumer extends Entity<KitchenConsumerShape> {
 
 export class KitchenConsumerFactory extends EntityFactory<KitchenConsumerShape, KitchenConsumer> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('kitchenConsumer');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'kitchenConsumer');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'routerActive', storageKey: 'routerActive', type: { type: 'range', fields: [{ name: 'routerId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('kitchenConsumer', 'routerActive'), condition: (s) => s.state !== 'deleted' });
-        secondaryIndexes.push({ name: 'transportActive', storageKey: 'transportActive', type: { type: 'range', fields: [{ name: 'transportId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('kitchenConsumer', 'transportActive'), condition: (s) => s.state !== 'deleted' });
-        secondaryIndexes.push({ name: 'producerActive', storageKey: 'producerActive', type: { type: 'range', fields: [{ name: 'producerId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('kitchenConsumer', 'producerActive'), condition: (s) => s.state !== 'deleted' });
+        secondaryIndexes.push({ name: 'routerActive', storageKey: 'routerActive', type: { type: 'range', fields: [{ name: 'routerId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'kitchenConsumer', 'routerActive'), condition: (s) => s.state !== 'deleted' });
+        secondaryIndexes.push({ name: 'transportActive', storageKey: 'transportActive', type: { type: 'range', fields: [{ name: 'transportId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'kitchenConsumer', 'transportActive'), condition: (s) => s.state !== 'deleted' });
+        secondaryIndexes.push({ name: 'producerActive', storageKey: 'producerActive', type: { type: 'range', fields: [{ name: 'producerId', type: 'string' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'kitchenConsumer', 'producerActive'), condition: (s) => s.state !== 'deleted' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -11406,13 +11406,13 @@ export class UserEdge extends Entity<UserEdgeShape> {
 
 export class UserEdgeFactory extends EntityFactory<UserEdgeShape, UserEdge> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userEdge');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userEdge');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'forward', storageKey: 'forward', type: { type: 'range', fields: [{ name: 'uid1', type: 'integer' }, { name: 'uid2', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userEdge', 'forward'), condition: undefined });
-        secondaryIndexes.push({ name: 'reverse', storageKey: 'reverse', type: { type: 'range', fields: [{ name: 'uid2', type: 'integer' }, { name: 'uid1', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userEdge', 'reverse'), condition: undefined });
-        secondaryIndexes.push({ name: 'forwardWeight', storageKey: 'forwardWeight', type: { type: 'range', fields: [{ name: 'uid1', type: 'integer' }, { name: 'weight', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userEdge', 'forwardWeight'), condition: undefined });
-        secondaryIndexes.push({ name: 'reverseWeight', storageKey: 'reverseWeight', type: { type: 'range', fields: [{ name: 'uid2', type: 'integer' }, { name: 'weight', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userEdge', 'reverseWeight'), condition: undefined });
+        secondaryIndexes.push({ name: 'forward', storageKey: 'forward', type: { type: 'range', fields: [{ name: 'uid1', type: 'integer' }, { name: 'uid2', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userEdge', 'forward'), condition: undefined });
+        secondaryIndexes.push({ name: 'reverse', storageKey: 'reverse', type: { type: 'range', fields: [{ name: 'uid2', type: 'integer' }, { name: 'uid1', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userEdge', 'reverse'), condition: undefined });
+        secondaryIndexes.push({ name: 'forwardWeight', storageKey: 'forwardWeight', type: { type: 'range', fields: [{ name: 'uid1', type: 'integer' }, { name: 'weight', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userEdge', 'forwardWeight'), condition: undefined });
+        secondaryIndexes.push({ name: 'reverseWeight', storageKey: 'reverseWeight', type: { type: 'range', fields: [{ name: 'uid2', type: 'integer' }, { name: 'weight', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userEdge', 'reverseWeight'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid1', type: 'integer' });
         primaryKeys.push({ name: 'uid2', type: 'integer' });
@@ -11547,10 +11547,10 @@ export class UserGroupEdge extends Entity<UserGroupEdgeShape> {
 
 export class UserGroupEdgeFactory extends EntityFactory<UserGroupEdgeShape, UserGroupEdge> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userGroupEdge');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userGroupEdge');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'weight', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userGroupEdge', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'weight', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userGroupEdge', 'user'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'cid', type: 'integer' });
@@ -11638,8 +11638,8 @@ export class UserInfluencerUserIndex extends Entity<UserInfluencerUserIndexShape
 
 export class UserInfluencerUserIndexFactory extends EntityFactory<UserInfluencerUserIndexShape, UserInfluencerUserIndex> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userInfluencerUserIndex');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userInfluencerUserIndex');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -11711,8 +11711,8 @@ export class UserInfluencerIndex extends Entity<UserInfluencerIndexShape> {
 
 export class UserInfluencerIndexFactory extends EntityFactory<UserInfluencerIndexShape, UserInfluencerIndex> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userInfluencerIndex');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userInfluencerIndex');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -11817,11 +11817,11 @@ export class UserBadge extends Entity<UserBadgeShape> {
 
 export class UserBadgeFactory extends EntityFactory<UserBadgeShape, UserBadge> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userBadge');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userBadge');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userBadge', 'user'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'name', storageKey: 'name', type: { type: 'range', fields: [{ name: 'name', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userBadge', 'name'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userBadge', 'user'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'name', storageKey: 'name', type: { type: 'range', fields: [{ name: 'name', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userBadge', 'name'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -11930,11 +11930,11 @@ export class UserRoomBadge extends Entity<UserRoomBadgeShape> {
 
 export class UserRoomBadgeFactory extends EntityFactory<UserRoomBadgeShape, UserRoomBadge> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userRoomBadge');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userRoomBadge');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userRoomBadge', 'chat'), condition: (src) => !!src.bid });
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userRoomBadge', 'user'), condition: (src) => !!src.bid });
+        secondaryIndexes.push({ name: 'chat', storageKey: 'chat', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userRoomBadge', 'chat'), condition: (src) => !!src.bid });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'cid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userRoomBadge', 'user'), condition: (src) => !!src.bid });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'cid', type: 'integer' });
@@ -12059,12 +12059,12 @@ export class ShortnameReservation extends Entity<ShortnameReservationShape> {
 
 export class ShortnameReservationFactory extends EntityFactory<ShortnameReservationShape, ShortnameReservation> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('shortnameReservation');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'shortnameReservation');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'unique', fields: [{ name: 'ownerId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('shortnameReservation', 'user'), condition: (src) => src.ownerType === 'user' && src.enabled });
-        secondaryIndexes.push({ name: 'org', storageKey: 'org', type: { type: 'unique', fields: [{ name: 'ownerId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('shortnameReservation', 'org'), condition: (src) => src.ownerType === 'org' && src.enabled });
-        secondaryIndexes.push({ name: 'fromOwner', storageKey: 'fromOwner', type: { type: 'unique', fields: [{ name: 'ownerType', type: 'string' }, { name: 'ownerId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('shortnameReservation', 'fromOwner'), condition: (src) => src.enabled });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'unique', fields: [{ name: 'ownerId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'shortnameReservation', 'user'), condition: (src) => src.ownerType === 'user' && src.enabled });
+        secondaryIndexes.push({ name: 'org', storageKey: 'org', type: { type: 'unique', fields: [{ name: 'ownerId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'shortnameReservation', 'org'), condition: (src) => src.ownerType === 'org' && src.enabled });
+        secondaryIndexes.push({ name: 'fromOwner', storageKey: 'fromOwner', type: { type: 'unique', fields: [{ name: 'ownerType', type: 'string' }, { name: 'ownerId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'shortnameReservation', 'fromOwner'), condition: (src) => src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'shortname', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -12175,8 +12175,8 @@ export class NotificationCenter extends Entity<NotificationCenterShape> {
 
 export class NotificationCenterFactory extends EntityFactory<NotificationCenterShape, NotificationCenter> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('notificationCenter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'notificationCenter');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -12248,10 +12248,10 @@ export class UserNotificationCenter extends Entity<UserNotificationCenterShape> 
 
 export class UserNotificationCenterFactory extends EntityFactory<UserNotificationCenterShape, UserNotificationCenter> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userNotificationCenter');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userNotificationCenter');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userNotificationCenter', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userNotificationCenter', 'user'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -12367,10 +12367,10 @@ export class Notification extends Entity<NotificationShape> {
 
 export class NotificationFactory extends EntityFactory<NotificationShape, Notification> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('notification');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'notification');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'notificationCenter', storageKey: 'notificationCenter', type: { type: 'range', fields: [{ name: 'ncid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('notification', 'notificationCenter'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'notificationCenter', storageKey: 'notificationCenter', type: { type: 'range', fields: [{ name: 'ncid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'notification', 'notificationCenter'), condition: (src) => !src.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -12528,8 +12528,8 @@ export class NotificationCenterState extends Entity<NotificationCenterStateShape
 
 export class NotificationCenterStateFactory extends EntityFactory<NotificationCenterStateShape, NotificationCenterState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('notificationCenterState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'notificationCenterState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'ncid', type: 'integer' });
@@ -12637,10 +12637,10 @@ export class NotificationCenterEvent extends Entity<NotificationCenterEventShape
 
 export class NotificationCenterEventFactory extends EntityFactory<NotificationCenterEventShape, NotificationCenterEvent> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('notificationCenterEvent');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'notificationCenterEvent');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'notificationCenter', storageKey: 'notificationCenter', type: { type: 'range', fields: [{ name: 'ncid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('notificationCenterEvent', 'notificationCenter'), condition: undefined });
+        secondaryIndexes.push({ name: 'notificationCenter', storageKey: 'notificationCenter', type: { type: 'range', fields: [{ name: 'ncid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'notificationCenterEvent', 'notificationCenter'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'ncid', type: 'integer' });
         primaryKeys.push({ name: 'seq', type: 'integer' });
@@ -12732,8 +12732,8 @@ export class UserMessagingState extends Entity<UserMessagingStateShape> {
 
 export class UserMessagingStateFactory extends EntityFactory<UserMessagingStateShape, UserMessagingState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userMessagingState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userMessagingState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -12871,8 +12871,8 @@ export class UserNotificationsState extends Entity<UserNotificationsStateShape> 
 
 export class UserNotificationsStateFactory extends EntityFactory<UserNotificationsStateShape, UserNotificationsState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userNotificationsState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userNotificationsState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -12956,10 +12956,10 @@ export class FeedSubscriber extends Entity<FeedSubscriberShape> {
 
 export class FeedSubscriberFactory extends EntityFactory<FeedSubscriberShape, FeedSubscriber> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('feedSubscriber');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'feedSubscriber');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'key', storageKey: 'key', type: { type: 'unique', fields: [{ name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('feedSubscriber', 'key'), condition: undefined });
+        secondaryIndexes.push({ name: 'key', storageKey: 'key', type: { type: 'unique', fields: [{ name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedSubscriber', 'key'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -13044,11 +13044,11 @@ export class FeedSubscription extends Entity<FeedSubscriptionShape> {
 
 export class FeedSubscriptionFactory extends EntityFactory<FeedSubscriptionShape, FeedSubscription> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('feedSubscription');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'feedSubscription');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'subscriber', storageKey: 'subscriber', type: { type: 'range', fields: [{ name: 'sid', type: 'integer' }, { name: 'tid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedSubscription', 'subscriber'), condition: (state) => state.enabled });
-        secondaryIndexes.push({ name: 'topic', storageKey: 'topic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'sid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedSubscription', 'topic'), condition: (state) => state.enabled });
+        secondaryIndexes.push({ name: 'subscriber', storageKey: 'subscriber', type: { type: 'range', fields: [{ name: 'sid', type: 'integer' }, { name: 'tid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedSubscription', 'subscriber'), condition: (state) => state.enabled });
+        secondaryIndexes.push({ name: 'topic', storageKey: 'topic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'sid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedSubscription', 'topic'), condition: (state) => state.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'sid', type: 'integer' });
         primaryKeys.push({ name: 'tid', type: 'integer' });
@@ -13162,12 +13162,12 @@ export class FeedTopic extends Entity<FeedTopicShape> {
 
 export class FeedTopicFactory extends EntityFactory<FeedTopicShape, FeedTopic> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('feedTopic');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'feedTopic');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'key', storageKey: 'key', type: { type: 'unique', fields: [{ name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('feedTopic', 'key'), condition: undefined });
-        secondaryIndexes.push({ name: 'global', storageKey: 'global', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedTopic', 'global'), condition: src => src.isGlobal });
-        secondaryIndexes.push({ name: 'fromGlobal', storageKey: 'fromGlobal', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedTopic', 'fromGlobal'), condition: src => src.isGlobal });
+        secondaryIndexes.push({ name: 'key', storageKey: 'key', type: { type: 'unique', fields: [{ name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedTopic', 'key'), condition: undefined });
+        secondaryIndexes.push({ name: 'global', storageKey: 'global', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedTopic', 'global'), condition: src => src.isGlobal });
+        secondaryIndexes.push({ name: 'fromGlobal', storageKey: 'fromGlobal', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedTopic', 'fromGlobal'), condition: src => src.isGlobal });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -13337,13 +13337,13 @@ export class FeedEvent extends Entity<FeedEventShape> {
 
 export class FeedEventFactory extends EntityFactory<FeedEventShape, FeedEvent> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('feedEvent');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'feedEvent');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'topic', storageKey: 'topic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'topic'), condition: undefined });
-        secondaryIndexes.push({ name: 'fromTopic', storageKey: 'fromTopic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'fromTopic'), condition: src => !src.deleted });
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'updated'), condition: undefined });
-        secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'tid', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('feedEvent', 'repeat'), condition: (src) => !!src.repeatKey });
+        secondaryIndexes.push({ name: 'topic', storageKey: 'topic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedEvent', 'topic'), condition: undefined });
+        secondaryIndexes.push({ name: 'fromTopic', storageKey: 'fromTopic', type: { type: 'range', fields: [{ name: 'tid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedEvent', 'fromTopic'), condition: src => !src.deleted });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedEvent', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'repeat', storageKey: 'repeat', type: { type: 'unique', fields: [{ name: 'tid', type: 'integer' }, { name: 'repeatKey', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedEvent', 'repeat'), condition: (src) => !!src.repeatKey });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -13558,11 +13558,11 @@ export class FeedChannel extends Entity<FeedChannelShape> {
 
 export class FeedChannelFactory extends EntityFactory<FeedChannelShape, FeedChannel> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('feedChannel');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'feedChannel');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'ownerId', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannel', 'owner'), condition: src => !src.isHidden });
-        secondaryIndexes.push({ name: 'global', storageKey: 'global', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannel', 'global'), condition: src => !!src.isGlobal });
+        secondaryIndexes.push({ name: 'owner', storageKey: 'owner', type: { type: 'range', fields: [{ name: 'ownerId', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedChannel', 'owner'), condition: src => !src.isHidden });
+        secondaryIndexes.push({ name: 'global', storageKey: 'global', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedChannel', 'global'), condition: src => !!src.isGlobal });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -13701,11 +13701,11 @@ export class FeedChannelAdmin extends Entity<FeedChannelAdminShape> {
 
 export class FeedChannelAdminFactory extends EntityFactory<FeedChannelAdminShape, FeedChannelAdmin> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('feedChannelAdmin');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'feedChannelAdmin');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'channel', storageKey: 'channel', type: { type: 'range', fields: [{ name: 'channelId', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannelAdmin', 'channel'), condition: src => !!src.enabled });
-        secondaryIndexes.push({ name: 'fromUser', storageKey: 'fromUser', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'channelId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannelAdmin', 'fromUser'), condition: src => !!src.enabled });
+        secondaryIndexes.push({ name: 'channel', storageKey: 'channel', type: { type: 'range', fields: [{ name: 'channelId', type: 'integer' }, { name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedChannelAdmin', 'channel'), condition: src => !!src.enabled });
+        secondaryIndexes.push({ name: 'fromUser', storageKey: 'fromUser', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'channelId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedChannelAdmin', 'fromUser'), condition: src => !!src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'channelId', type: 'integer' });
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -13801,10 +13801,10 @@ export class FeedChannelIndexingQueue extends Entity<FeedChannelIndexingQueueSha
 
 export class FeedChannelIndexingQueueFactory extends EntityFactory<FeedChannelIndexingQueueShape, FeedChannelIndexingQueue> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('feedChannelIndexingQueue');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'feedChannelIndexingQueue');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannelIndexingQueue', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedChannelIndexingQueue', 'updated'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -13888,8 +13888,8 @@ export class UserFeedState extends Entity<UserFeedStateShape> {
 
 export class UserFeedStateFactory extends EntityFactory<UserFeedStateShape, UserFeedState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userFeedState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userFeedState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -13976,11 +13976,11 @@ export class FeedChannelAutoSubscription extends Entity<FeedChannelAutoSubscript
 
 export class FeedChannelAutoSubscriptionFactory extends EntityFactory<FeedChannelAutoSubscriptionShape, FeedChannelAutoSubscription> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('feedChannelAutoSubscription');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'feedChannelAutoSubscription');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'fromPeer', storageKey: 'fromPeer', type: { type: 'range', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannelAutoSubscription', 'fromPeer'), condition: src => src.enabled });
-        secondaryIndexes.push({ name: 'fromChannel', storageKey: 'fromChannel', type: { type: 'range', fields: [{ name: 'channelId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('feedChannelAutoSubscription', 'fromChannel'), condition: src => src.enabled });
+        secondaryIndexes.push({ name: 'fromPeer', storageKey: 'fromPeer', type: { type: 'range', fields: [{ name: 'peerType', type: 'string' }, { name: 'peerId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedChannelAutoSubscription', 'fromPeer'), condition: src => src.enabled });
+        secondaryIndexes.push({ name: 'fromChannel', storageKey: 'fromChannel', type: { type: 'range', fields: [{ name: 'channelId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'feedChannelAutoSubscription', 'fromChannel'), condition: src => src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'channelId', type: 'integer' });
         primaryKeys.push({ name: 'peerType', type: 'string' });
@@ -14098,10 +14098,10 @@ export class ChatAudienceCalculatingQueue extends Entity<ChatAudienceCalculating
 
 export class ChatAudienceCalculatingQueueFactory extends EntityFactory<ChatAudienceCalculatingQueueShape, ChatAudienceCalculatingQueue> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('chatAudienceCalculatingQueue');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'chatAudienceCalculatingQueue');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('chatAudienceCalculatingQueue', 'active'), condition: (src) => !!src.active });
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'chatAudienceCalculatingQueue', 'active'), condition: (src) => !!src.active });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -14211,10 +14211,10 @@ export class ChannelLink extends Entity<ChannelLinkShape> {
 
 export class ChannelLinkFactory extends EntityFactory<ChannelLinkShape, ChannelLink> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('channelLink');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'channelLink');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'channel', storageKey: 'channel', type: { type: 'range', fields: [{ name: 'channelId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('channelLink', 'channel'), condition: undefined });
+        secondaryIndexes.push({ name: 'channel', storageKey: 'channel', type: { type: 'range', fields: [{ name: 'channelId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'channelLink', 'channel'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -14304,10 +14304,10 @@ export class AppInviteLink extends Entity<AppInviteLinkShape> {
 
 export class AppInviteLinkFactory extends EntityFactory<AppInviteLinkShape, AppInviteLink> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('appInviteLink');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'appInviteLink');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('appInviteLink', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'appInviteLink', 'user'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -14412,10 +14412,10 @@ export class OrganizationPublicInviteLink extends Entity<OrganizationPublicInvit
 
 export class OrganizationPublicInviteLinkFactory extends EntityFactory<OrganizationPublicInviteLinkShape, OrganizationPublicInviteLink> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('organizationPublicInviteLink');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'organizationPublicInviteLink');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'userInOrganization', storageKey: 'userInOrganization', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'oid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationPublicInviteLink', 'userInOrganization'), condition: src => src.enabled });
+        secondaryIndexes.push({ name: 'userInOrganization', storageKey: 'userInOrganization', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'oid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organizationPublicInviteLink', 'userInOrganization'), condition: src => src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -14601,11 +14601,11 @@ export class OrganizationInviteLink extends Entity<OrganizationInviteLinkShape> 
 
 export class OrganizationInviteLinkFactory extends EntityFactory<OrganizationInviteLinkShape, OrganizationInviteLink> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('organizationInviteLink');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'organizationInviteLink');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'unique', fields: [{ name: 'oid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationInviteLink', 'organization'), condition: src => src.enabled });
-        secondaryIndexes.push({ name: 'emailInOrganization', storageKey: 'emailInOrganization', type: { type: 'unique', fields: [{ name: 'email', type: 'string' }, { name: 'oid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationInviteLink', 'emailInOrganization'), condition: src => src.enabled });
+        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'unique', fields: [{ name: 'oid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organizationInviteLink', 'organization'), condition: src => src.enabled });
+        secondaryIndexes.push({ name: 'emailInOrganization', storageKey: 'emailInOrganization', type: { type: 'unique', fields: [{ name: 'email', type: 'string' }, { name: 'oid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organizationInviteLink', 'emailInOrganization'), condition: src => src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -14795,11 +14795,11 @@ export class ChannelInvitation extends Entity<ChannelInvitationShape> {
 
 export class ChannelInvitationFactory extends EntityFactory<ChannelInvitationShape, ChannelInvitation> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('channelInvitation');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'channelInvitation');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'channel', storageKey: 'channel', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }, { name: 'channelId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('channelInvitation', 'channel'), condition: undefined });
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('channelInvitation', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'channel', storageKey: 'channel', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }, { name: 'channelId', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'channelInvitation', 'channel'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'channelInvitation', 'updated'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -14916,10 +14916,10 @@ export class DiscoverUserPickedTags extends Entity<DiscoverUserPickedTagsShape> 
 
 export class DiscoverUserPickedTagsFactory extends EntityFactory<DiscoverUserPickedTagsShape, DiscoverUserPickedTags> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('discoverUserPickedTags');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'discoverUserPickedTags');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('discoverUserPickedTags', 'user'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'discoverUserPickedTags', 'user'), condition: (src) => !src.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'id', type: 'string' });
@@ -15004,8 +15004,8 @@ export class DiscoverState extends Entity<DiscoverStateShape> {
 
 export class DiscoverStateFactory extends EntityFactory<DiscoverStateShape, DiscoverState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('discoverState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'discoverState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -15121,8 +15121,8 @@ export class UserOnboardingState extends Entity<UserOnboardingStateShape> {
 
 export class UserOnboardingStateFactory extends EntityFactory<UserOnboardingStateShape, UserOnboardingState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userOnboardingState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userOnboardingState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -15301,11 +15301,11 @@ export class PushFirebase extends Entity<PushFirebaseShape> {
 
 export class PushFirebaseFactory extends EntityFactory<PushFirebaseShape, PushFirebase> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('pushFirebase');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'pushFirebase');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushFirebase', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'token', storageKey: 'token', type: { type: 'unique', fields: [{ name: 'token', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushFirebase', 'token'), condition: src => src.enabled });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'pushFirebase', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'token', storageKey: 'token', type: { type: 'unique', fields: [{ name: 'token', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'pushFirebase', 'token'), condition: src => src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -15520,11 +15520,11 @@ export class PushApple extends Entity<PushAppleShape> {
 
 export class PushAppleFactory extends EntityFactory<PushAppleShape, PushApple> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('pushApple');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'pushApple');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushApple', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'token', storageKey: 'token', type: { type: 'unique', fields: [{ name: 'token', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushApple', 'token'), condition: src => src.enabled });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'pushApple', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'token', storageKey: 'token', type: { type: 'unique', fields: [{ name: 'token', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'pushApple', 'token'), condition: src => src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -15728,11 +15728,11 @@ export class PushSafari extends Entity<PushSafariShape> {
 
 export class PushSafariFactory extends EntityFactory<PushSafariShape, PushSafari> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('pushSafari');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'pushSafari');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushSafari', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'token', storageKey: 'token', type: { type: 'unique', fields: [{ name: 'token', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushSafari', 'token'), condition: src => src.enabled });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'pushSafari', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'token', storageKey: 'token', type: { type: 'unique', fields: [{ name: 'token', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'pushSafari', 'token'), condition: src => src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -15923,11 +15923,11 @@ export class PushWeb extends Entity<PushWebShape> {
 
 export class PushWebFactory extends EntityFactory<PushWebShape, PushWeb> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('pushWeb');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'pushWeb');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushWeb', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'endpoint', storageKey: 'endpoint', type: { type: 'unique', fields: [{ name: 'endpoint', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('pushWeb', 'endpoint'), condition: src => src.enabled });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'pushWeb', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'endpoint', storageKey: 'endpoint', type: { type: 'unique', fields: [{ name: 'endpoint', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'pushWeb', 'endpoint'), condition: src => src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -16041,10 +16041,10 @@ export class AppHook extends Entity<AppHookShape> {
 
 export class AppHookFactory extends EntityFactory<AppHookShape, AppHook> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('appHook');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'appHook');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'key', storageKey: 'key', type: { type: 'unique', fields: [{ name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('appHook', 'key'), condition: undefined });
+        secondaryIndexes.push({ name: 'key', storageKey: 'key', type: { type: 'unique', fields: [{ name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'appHook', 'key'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'appId', type: 'integer' });
         primaryKeys.push({ name: 'chatId', type: 'integer' });
@@ -16195,11 +16195,11 @@ export class StickerPack extends Entity<StickerPackShape> {
 
 export class StickerPackFactory extends EntityFactory<StickerPackShape, StickerPack> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('stickerPack');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'stickerPack');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'author', storageKey: 'author', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('stickerPack', 'author'), condition: undefined });
-        secondaryIndexes.push({ name: 'listed', storageKey: 'listed', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('stickerPack', 'listed'), condition: a => a.listed });
+        secondaryIndexes.push({ name: 'author', storageKey: 'author', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'stickerPack', 'author'), condition: undefined });
+        secondaryIndexes.push({ name: 'listed', storageKey: 'listed', type: { type: 'range', fields: [{ name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'stickerPack', 'listed'), condition: a => a.listed });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -16345,8 +16345,8 @@ export class UserStickersState extends Entity<UserStickersStateShape> {
 
 export class UserStickersStateFactory extends EntityFactory<UserStickersStateShape, UserStickersState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userStickersState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userStickersState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -16479,11 +16479,11 @@ export class Sticker extends Entity<StickerShape> {
 
 export class StickerFactory extends EntityFactory<StickerShape, Sticker> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('sticker');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'sticker');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'pack', storageKey: 'pack', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('sticker', 'pack'), condition: undefined });
-        secondaryIndexes.push({ name: 'packActive', storageKey: 'packActive', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'order', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('sticker', 'packActive'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'pack', storageKey: 'pack', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'sticker', 'pack'), condition: undefined });
+        secondaryIndexes.push({ name: 'packActive', storageKey: 'packActive', type: { type: 'range', fields: [{ name: 'packId', type: 'integer' }, { name: 'order', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'sticker', 'packActive'), condition: (src) => !src.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -16607,8 +16607,8 @@ export class MatchmakingRoom extends Entity<MatchmakingRoomShape> {
 
 export class MatchmakingRoomFactory extends EntityFactory<MatchmakingRoomShape, MatchmakingRoom> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('matchmakingRoom');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'matchmakingRoom');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'peerId', type: 'integer' });
@@ -16688,10 +16688,10 @@ export class MatchmakingProfile extends Entity<MatchmakingProfileShape> {
 
 export class MatchmakingProfileFactory extends EntityFactory<MatchmakingProfileShape, MatchmakingProfile> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('matchmakingProfile');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'matchmakingProfile');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'room', storageKey: 'room', type: { type: 'range', fields: [{ name: 'peerId', type: 'integer' }, { name: 'peerType', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('matchmakingProfile', 'room'), condition: undefined });
+        secondaryIndexes.push({ name: 'room', storageKey: 'room', type: { type: 'range', fields: [{ name: 'peerId', type: 'integer' }, { name: 'peerType', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'matchmakingProfile', 'room'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'peerId', type: 'integer' });
         primaryKeys.push({ name: 'peerType', type: 'string' });
@@ -16858,11 +16858,11 @@ export class OauthApplication extends Entity<OauthApplicationShape> {
 
 export class OauthApplicationFactory extends EntityFactory<OauthApplicationShape, OauthApplication> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('oauthApplication');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'oauthApplication');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthApplication', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'byClientId', storageKey: 'byClientId', type: { type: 'unique', fields: [{ name: 'clientId', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthApplication', 'byClientId'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'oauthApplication', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'byClientId', storageKey: 'byClientId', type: { type: 'unique', fields: [{ name: 'clientId', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'oauthApplication', 'byClientId'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -17040,10 +17040,10 @@ export class OauthContext extends Entity<OauthContextShape> {
 
 export class OauthContextFactory extends EntityFactory<OauthContextShape, OauthContext> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('oauthContext');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'oauthContext');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'fromCode', storageKey: 'fromCode', type: { type: 'unique', fields: [{ name: 'code', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthContext', 'fromCode'), condition: undefined });
+        secondaryIndexes.push({ name: 'fromCode', storageKey: 'fromCode', type: { type: 'unique', fields: [{ name: 'code', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'oauthContext', 'fromCode'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -17182,12 +17182,12 @@ export class OauthToken extends Entity<OauthTokenShape> {
 
 export class OauthTokenFactory extends EntityFactory<OauthTokenShape, OauthToken> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('oauthToken');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'oauthToken');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'salt', storageKey: 'salt', type: { type: 'unique', fields: [{ name: 'salt', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthToken', 'salt'), condition: undefined });
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'uuid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthToken', 'user'), condition: src => src.enabled !== false });
-        secondaryIndexes.push({ name: 'app', storageKey: 'app', type: { type: 'range', fields: [{ name: 'clientId', type: 'string' }, { name: 'uuid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oauthToken', 'app'), condition: src => src.enabled !== false });
+        secondaryIndexes.push({ name: 'salt', storageKey: 'salt', type: { type: 'unique', fields: [{ name: 'salt', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'oauthToken', 'salt'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'uuid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'oauthToken', 'user'), condition: src => src.enabled !== false });
+        secondaryIndexes.push({ name: 'app', storageKey: 'app', type: { type: 'range', fields: [{ name: 'clientId', type: 'string' }, { name: 'uuid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'oauthToken', 'app'), condition: src => src.enabled !== false });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uuid', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -17319,8 +17319,8 @@ export class UserLocation extends Entity<UserLocationShape> {
 
 export class UserLocationFactory extends EntityFactory<UserLocationShape, UserLocation> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userLocation');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userLocation');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -17460,8 +17460,8 @@ export class Powerup extends Entity<PowerupShape> {
 
 export class PowerupFactory extends EntityFactory<PowerupShape, Powerup> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('powerup');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'powerup');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -17558,11 +17558,11 @@ export class ChatPowerup extends Entity<ChatPowerupShape> {
 
 export class ChatPowerupFactory extends EntityFactory<ChatPowerupShape, ChatPowerup> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('chatPowerup');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'chatPowerup');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'byPid', storageKey: 'byPid', type: { type: 'range', fields: [{ name: 'pid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('chatPowerup', 'byPid'), condition: undefined });
-        secondaryIndexes.push({ name: 'byCid', storageKey: 'byCid', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('chatPowerup', 'byCid'), condition: undefined });
+        secondaryIndexes.push({ name: 'byPid', storageKey: 'byPid', type: { type: 'range', fields: [{ name: 'pid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'chatPowerup', 'byPid'), condition: undefined });
+        secondaryIndexes.push({ name: 'byCid', storageKey: 'byCid', type: { type: 'range', fields: [{ name: 'cid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'chatPowerup', 'byCid'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'pid', type: 'integer' });
         primaryKeys.push({ name: 'cid', type: 'integer' });
@@ -17733,14 +17733,14 @@ export class PermissionRequest extends Entity<PermissionRequestShape> {
 
 export class PermissionRequestFactory extends EntityFactory<PermissionRequestShape, PermissionRequest> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('permissionRequest');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'permissionRequest');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permissionRequest', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'userGroup', storageKey: 'userGroup', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'gid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permissionRequest', 'userGroup'), condition: undefined });
-        secondaryIndexes.push({ name: 'groupApp', storageKey: 'groupApp', type: { type: 'range', fields: [{ name: 'gid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permissionRequest', 'groupApp'), condition: undefined });
-        secondaryIndexes.push({ name: 'userApp', storageKey: 'userApp', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permissionRequest', 'userApp'), condition: undefined });
-        secondaryIndexes.push({ name: 'single', storageKey: 'single', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'gid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'scopeType', type: 'string' }, { name: 'scopeId', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('permissionRequest', 'single'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'permissionRequest', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'userGroup', storageKey: 'userGroup', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'gid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'permissionRequest', 'userGroup'), condition: undefined });
+        secondaryIndexes.push({ name: 'groupApp', storageKey: 'groupApp', type: { type: 'range', fields: [{ name: 'gid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'permissionRequest', 'groupApp'), condition: undefined });
+        secondaryIndexes.push({ name: 'userApp', storageKey: 'userApp', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'permissionRequest', 'userApp'), condition: undefined });
+        secondaryIndexes.push({ name: 'single', storageKey: 'single', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'gid', type: 'integer' }, { name: 'appType', type: 'string' }, { name: 'appId', type: 'integer' }, { name: 'scopeType', type: 'string' }, { name: 'scopeId', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'permissionRequest', 'single'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -17895,10 +17895,10 @@ export class UserStorageNamespace extends Entity<UserStorageNamespaceShape> {
 
 export class UserStorageNamespaceFactory extends EntityFactory<UserStorageNamespaceShape, UserStorageNamespace> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userStorageNamespace');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userStorageNamespace');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'namespace', storageKey: 'namespace', type: { type: 'unique', fields: [{ name: 'ns', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('userStorageNamespace', 'namespace'), condition: undefined });
+        secondaryIndexes.push({ name: 'namespace', storageKey: 'namespace', type: { type: 'unique', fields: [{ name: 'ns', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userStorageNamespace', 'namespace'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -18005,10 +18005,10 @@ export class UserStorageRecord extends Entity<UserStorageRecordShape> {
 
 export class UserStorageRecordFactory extends EntityFactory<UserStorageRecordShape, UserStorageRecord> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userStorageRecord');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userStorageRecord');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'key', storageKey: 'key', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'ns', type: 'integer' }, { name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('userStorageRecord', 'key'), condition: undefined });
+        secondaryIndexes.push({ name: 'key', storageKey: 'key', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }, { name: 'ns', type: 'integer' }, { name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userStorageRecord', 'key'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -18108,10 +18108,10 @@ export class UserStripeCustomer extends Entity<UserStripeCustomerShape> {
 
 export class UserStripeCustomerFactory extends EntityFactory<UserStripeCustomerShape, UserStripeCustomer> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userStripeCustomer');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userStripeCustomer');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'stripe', storageKey: 'stripe', type: { type: 'unique', fields: [{ name: 'stripeId', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory('userStripeCustomer', 'stripe'), condition: (s) => !!s.stripeId });
+        secondaryIndexes.push({ name: 'stripe', storageKey: 'stripe', type: { type: 'unique', fields: [{ name: 'stripeId', type: 'opt_string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userStripeCustomer', 'stripe'), condition: (s) => !!s.stripeId });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -18286,12 +18286,12 @@ export class UserStripeCard extends Entity<UserStripeCardShape> {
 
 export class UserStripeCardFactory extends EntityFactory<UserStripeCardShape, UserStripeCard> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('userStripeCard');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'userStripeCard');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'default', storageKey: 'default', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('userStripeCard', 'default'), condition: (s) => s.default });
-        secondaryIndexes.push({ name: 'pmid', storageKey: 'pmid', type: { type: 'unique', fields: [{ name: 'pmid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('userStripeCard', 'pmid'), condition: undefined });
-        secondaryIndexes.push({ name: 'users', storageKey: 'users', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'pmid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('userStripeCard', 'users'), condition: (s) => !s.deleted });
+        secondaryIndexes.push({ name: 'default', storageKey: 'default', type: { type: 'unique', fields: [{ name: 'uid', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userStripeCard', 'default'), condition: (s) => s.default });
+        secondaryIndexes.push({ name: 'pmid', storageKey: 'pmid', type: { type: 'unique', fields: [{ name: 'pmid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userStripeCard', 'pmid'), condition: undefined });
+        secondaryIndexes.push({ name: 'users', storageKey: 'users', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'pmid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'userStripeCard', 'users'), condition: (s) => !s.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'pmid', type: 'string' });
@@ -18441,8 +18441,8 @@ export class Wallet extends Entity<WalletShape> {
 
 export class WalletFactory extends EntityFactory<WalletShape, Wallet> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('wallet');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'wallet');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -18562,12 +18562,12 @@ export class WalletTransaction extends Entity<WalletTransactionShape> {
 
 export class WalletTransactionFactory extends EntityFactory<WalletTransactionShape, WalletTransaction> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('walletTransaction');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'walletTransaction');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('walletTransaction', 'pending'), condition: (s) => !s.deleted && (s.status === 'pending' || s.status === 'canceling') });
-        secondaryIndexes.push({ name: 'history', storageKey: 'history', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('walletTransaction', 'history'), condition: (s) => !s.deleted && !(s.status === 'pending' || s.status === 'canceling') });
-        secondaryIndexes.push({ name: 'pendingChild', storageKey: 'pendingChild', type: { type: 'range', fields: [{ name: 'parentId', type: 'opt_string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('walletTransaction', 'pendingChild'), condition: (s) => s.status === 'pending' });
+        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'walletTransaction', 'pending'), condition: (s) => !s.deleted && (s.status === 'pending' || s.status === 'canceling') });
+        secondaryIndexes.push({ name: 'history', storageKey: 'history', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'walletTransaction', 'history'), condition: (s) => !s.deleted && !(s.status === 'pending' || s.status === 'canceling') });
+        secondaryIndexes.push({ name: 'pendingChild', storageKey: 'pendingChild', type: { type: 'range', fields: [{ name: 'parentId', type: 'opt_string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'walletTransaction', 'pendingChild'), condition: (s) => s.status === 'pending' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -18693,8 +18693,8 @@ export class WalletDepositRequest extends Entity<WalletDepositRequestShape> {
 
 export class WalletDepositRequestFactory extends EntityFactory<WalletDepositRequestShape, WalletDepositRequest> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('walletDepositRequest');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'walletDepositRequest');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -18772,8 +18772,8 @@ export class WalletTransferRequest extends Entity<WalletTransferRequestShape> {
 
 export class WalletTransferRequestFactory extends EntityFactory<WalletTransferRequestShape, WalletTransferRequest> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('walletTransferRequest');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'walletTransferRequest');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'fromUid', type: 'integer' });
@@ -18915,11 +18915,11 @@ export class WalletPurchase extends Entity<WalletPurchaseShape> {
 
 export class WalletPurchaseFactory extends EntityFactory<WalletPurchaseShape, WalletPurchase> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('walletPurchase');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'walletPurchase');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('walletPurchase', 'user'), condition: (s) => !s.deleted });
-        secondaryIndexes.push({ name: 'userSuccess', storageKey: 'userSuccess', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('walletPurchase', 'userSuccess'), condition: (s) => !s.deleted && s.state === 'success' });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'walletPurchase', 'user'), condition: (s) => !s.deleted });
+        secondaryIndexes.push({ name: 'userSuccess', storageKey: 'userSuccess', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'walletPurchase', 'userSuccess'), condition: (s) => !s.deleted && s.state === 'success' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -19087,11 +19087,11 @@ export class WalletSubscription extends Entity<WalletSubscriptionShape> {
 
 export class WalletSubscriptionFactory extends EntityFactory<WalletSubscriptionShape, WalletSubscription> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('walletSubscription');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'walletSubscription');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('walletSubscription', 'active'), condition: (s) => s.state !== 'expired' });
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('walletSubscription', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'active', storageKey: 'active', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'walletSubscription', 'active'), condition: (s) => s.state !== 'expired' });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'walletSubscription', 'user'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -19202,8 +19202,8 @@ export class WalletSubscriptionScheduling extends Entity<WalletSubscriptionSched
 
 export class WalletSubscriptionSchedulingFactory extends EntityFactory<WalletSubscriptionSchedulingShape, WalletSubscriptionScheduling> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('walletSubscriptionScheduling');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'walletSubscriptionScheduling');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
@@ -19321,10 +19321,10 @@ export class WalletSubscriptionPeriod extends Entity<WalletSubscriptionPeriodSha
 
 export class WalletSubscriptionPeriodFactory extends EntityFactory<WalletSubscriptionPeriodShape, WalletSubscriptionPeriod> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('walletSubscriptionPeriod');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'walletSubscriptionPeriod');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'pendingCancel', storageKey: 'pendingCancel', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('walletSubscriptionPeriod', 'pendingCancel'), condition: (s) => s.needCancel && !s.scheduledCancel });
+        secondaryIndexes.push({ name: 'pendingCancel', storageKey: 'pendingCancel', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'walletSubscriptionPeriod', 'pendingCancel'), condition: (s) => s.needCancel && !s.scheduledCancel });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         primaryKeys.push({ name: 'index', type: 'integer' });
@@ -19442,8 +19442,8 @@ export class PaymentIntent extends Entity<PaymentIntentShape> {
 
 export class PaymentIntentFactory extends EntityFactory<PaymentIntentShape, PaymentIntent> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('paymentIntent');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'paymentIntent');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
@@ -19563,12 +19563,12 @@ export class Payment extends Entity<PaymentShape> {
 
 export class PaymentFactory extends EntityFactory<PaymentShape, Payment> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('payment');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'payment');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('payment', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('payment', 'pending'), condition: (s) => s.state === 'pending' || s.state === 'failing' });
-        secondaryIndexes.push({ name: 'userFailing', storageKey: 'userFailing', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('payment', 'userFailing'), condition: (s) => s.state === 'failing' || s.state === 'action_required' });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'payment', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'id', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'payment', 'pending'), condition: (s) => s.state === 'pending' || s.state === 'failing' });
+        secondaryIndexes.push({ name: 'userFailing', storageKey: 'userFailing', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'payment', 'userFailing'), condition: (s) => s.state === 'failing' || s.state === 'action_required' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -19725,8 +19725,8 @@ export class PaymentScheduling extends Entity<PaymentSchedulingShape> {
 
 export class PaymentSchedulingFactory extends EntityFactory<PaymentSchedulingShape, PaymentScheduling> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('paymentScheduling');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'paymentScheduling');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
@@ -19804,8 +19804,8 @@ export class StripeEventsCursor extends Entity<StripeEventsCursorShape> {
 
 export class StripeEventsCursorFactory extends EntityFactory<StripeEventsCursorShape, StripeEventsCursor> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('stripeEventsCursor');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'stripeEventsCursor');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
@@ -19910,8 +19910,8 @@ export class StripeEvent extends Entity<StripeEventShape> {
 
 export class StripeEventFactory extends EntityFactory<StripeEventShape, StripeEvent> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('stripeEvent');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'stripeEvent');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
@@ -19989,8 +19989,8 @@ export class Sequence extends Entity<SequenceShape> {
 
 export class SequenceFactory extends EntityFactory<SequenceShape, Sequence> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('sequence');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'sequence');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'sequence', type: 'string' });
@@ -20062,8 +20062,8 @@ export class Environment extends Entity<EnvironmentShape> {
 
 export class EnvironmentFactory extends EntityFactory<EnvironmentShape, Environment> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('environment');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'environment');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'production', type: 'integer' });
@@ -20135,8 +20135,8 @@ export class EnvironmentVariable extends Entity<EnvironmentVariableShape> {
 
 export class EnvironmentVariableFactory extends EntityFactory<EnvironmentVariableShape, EnvironmentVariable> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('environmentVariable');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'environmentVariable');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'name', type: 'string' });
@@ -20210,10 +20210,10 @@ export class ServiceCache extends Entity<ServiceCacheShape> {
 
 export class ServiceCacheFactory extends EntityFactory<ServiceCacheShape, ServiceCache> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('serviceCache');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'serviceCache');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'fromService', storageKey: 'fromService', type: { type: 'range', fields: [{ name: 'service', type: 'string' }, { name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('serviceCache', 'fromService'), condition: undefined });
+        secondaryIndexes.push({ name: 'fromService', storageKey: 'fromService', type: { type: 'range', fields: [{ name: 'service', type: 'string' }, { name: 'key', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'serviceCache', 'fromService'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'service', type: 'string' });
         primaryKeys.push({ name: 'key', type: 'string' });
@@ -20312,8 +20312,8 @@ export class ReaderState extends Entity<ReaderStateShape> {
 
 export class ReaderStateFactory extends EntityFactory<ReaderStateShape, ReaderState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('readerState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'readerState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
@@ -20398,8 +20398,8 @@ export class SuperAdmin extends Entity<SuperAdminShape> {
 
 export class SuperAdminFactory extends EntityFactory<SuperAdminShape, SuperAdmin> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('superAdmin');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'superAdmin');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -20528,11 +20528,11 @@ export class AuthToken extends Entity<AuthTokenShape> {
 
 export class AuthTokenFactory extends EntityFactory<AuthTokenShape, AuthToken> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('authToken');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'authToken');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'salt', storageKey: 'salt', type: { type: 'unique', fields: [{ name: 'salt', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('authToken', 'salt'), condition: undefined });
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'uuid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('authToken', 'user'), condition: src => src.enabled !== false });
+        secondaryIndexes.push({ name: 'salt', storageKey: 'salt', type: { type: 'unique', fields: [{ name: 'salt', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'authToken', 'salt'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'uuid', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'authToken', 'user'), condition: src => src.enabled !== false });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uuid', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -20695,8 +20695,8 @@ export class AuthCodeSession extends Entity<AuthCodeSessionShape> {
 
 export class AuthCodeSessionFactory extends EntityFactory<AuthCodeSessionShape, AuthCodeSession> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('authCodeSession');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'authCodeSession');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'string' });
@@ -20778,8 +20778,8 @@ export class FeatureFlag extends Entity<FeatureFlagShape> {
 
 export class FeatureFlagFactory extends EntityFactory<FeatureFlagShape, FeatureFlag> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('featureFlag');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'featureFlag');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'key', type: 'string' });
@@ -20873,10 +20873,10 @@ export class OrganizationFeatures extends Entity<OrganizationFeaturesShape> {
 
 export class OrganizationFeaturesFactory extends EntityFactory<OrganizationFeaturesShape, OrganizationFeatures> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('organizationFeatures');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'organizationFeatures');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'unique', fields: [{ name: 'organizationId', type: 'integer' }, { name: 'featureKey', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('organizationFeatures', 'organization'), condition: undefined });
+        secondaryIndexes.push({ name: 'organization', storageKey: 'organization', type: { type: 'unique', fields: [{ name: 'organizationId', type: 'integer' }, { name: 'featureKey', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'organizationFeatures', 'organization'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
         let fields: FieldDescriptor[] = [];
@@ -21068,13 +21068,13 @@ export class Task extends Entity<TaskShape> {
 
 export class TaskFactory extends EntityFactory<TaskShape, Task> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('task');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'task');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'pending'), condition: (src) => src.taskStatus === 'pending' && !src.startAt });
-        secondaryIndexes.push({ name: 'delayedPending', storageKey: 'delayedPending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'startAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'delayedPending'), condition: (src) => src.taskStatus === 'pending' && !!src.startAt });
-        secondaryIndexes.push({ name: 'executing', storageKey: 'executing', type: { type: 'range', fields: [{ name: 'taskLockTimeout', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'executing'), condition: (src) => src.taskStatus === 'executing' });
-        secondaryIndexes.push({ name: 'failing', storageKey: 'failing', type: { type: 'range', fields: [{ name: 'taskFailureTime', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('task', 'failing'), condition: (src) => src.taskStatus === 'failing' });
+        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'task', 'pending'), condition: (src) => src.taskStatus === 'pending' && !src.startAt });
+        secondaryIndexes.push({ name: 'delayedPending', storageKey: 'delayedPending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'startAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'task', 'delayedPending'), condition: (src) => src.taskStatus === 'pending' && !!src.startAt });
+        secondaryIndexes.push({ name: 'executing', storageKey: 'executing', type: { type: 'range', fields: [{ name: 'taskLockTimeout', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'task', 'executing'), condition: (src) => src.taskStatus === 'executing' });
+        secondaryIndexes.push({ name: 'failing', storageKey: 'failing', type: { type: 'range', fields: [{ name: 'taskFailureTime', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'task', 'failing'), condition: (src) => src.taskStatus === 'failing' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'taskType', type: 'string' });
         primaryKeys.push({ name: 'uid', type: 'string' });
@@ -21282,11 +21282,11 @@ export class DelayedTask extends Entity<DelayedTaskShape> {
 
 export class DelayedTaskFactory extends EntityFactory<DelayedTaskShape, DelayedTask> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('delayedTask');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'delayedTask');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'delay', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('delayedTask', 'pending'), condition: (src) => src.taskStatus === 'pending' });
-        secondaryIndexes.push({ name: 'failing', storageKey: 'failing', type: { type: 'range', fields: [{ name: 'taskFailureTime', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('delayedTask', 'failing'), condition: (src) => src.taskStatus === 'failing' });
+        secondaryIndexes.push({ name: 'pending', storageKey: 'pending', type: { type: 'range', fields: [{ name: 'taskType', type: 'string' }, { name: 'delay', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'delayedTask', 'pending'), condition: (src) => src.taskStatus === 'pending' });
+        secondaryIndexes.push({ name: 'failing', storageKey: 'failing', type: { type: 'range', fields: [{ name: 'taskFailureTime', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'delayedTask', 'failing'), condition: (src) => src.taskStatus === 'failing' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'taskType', type: 'string' });
         primaryKeys.push({ name: 'uid', type: 'string' });
@@ -21412,8 +21412,8 @@ export class ServiceThrottle extends Entity<ServiceThrottleShape> {
 
 export class ServiceThrottleFactory extends EntityFactory<ServiceThrottleShape, ServiceThrottle> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('serviceThrottle');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'serviceThrottle');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'service', type: 'string' });
@@ -21535,10 +21535,10 @@ export class OneTimeCode extends Entity<OneTimeCodeShape> {
 
 export class OneTimeCodeFactory extends EntityFactory<OneTimeCodeShape, OneTimeCode> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('oneTimeCode');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'oneTimeCode');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'code', storageKey: 'code', type: { type: 'unique', fields: [{ name: 'service', type: 'string' }, { name: 'code', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory('oneTimeCode', 'code'), condition: undefined });
+        secondaryIndexes.push({ name: 'code', storageKey: 'code', type: { type: 'unique', fields: [{ name: 'service', type: 'string' }, { name: 'code', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'oneTimeCode', 'code'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'service', type: 'string' });
         primaryKeys.push({ name: 'id', type: 'string' });
@@ -21633,10 +21633,10 @@ export class DebugEvent extends Entity<DebugEventShape> {
 
 export class DebugEventFactory extends EntityFactory<DebugEventShape, DebugEvent> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('debugEvent');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'debugEvent');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('debugEvent', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'seq', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'debugEvent', 'user'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'seq', type: 'integer' });
@@ -21724,8 +21724,8 @@ export class DebugEventState extends Entity<DebugEventStateShape> {
 
 export class DebugEventStateFactory extends EntityFactory<DebugEventStateShape, DebugEventState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('debugEventState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'debugEventState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
@@ -21830,8 +21830,8 @@ export class EntityCounterState extends Entity<EntityCounterStateShape> {
 
 export class EntityCounterStateFactory extends EntityFactory<EntityCounterStateShape, EntityCounterState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('entityCounterState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'entityCounterState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
@@ -21909,10 +21909,10 @@ export class GqlTrace extends Entity<GqlTraceShape> {
 
 export class GqlTraceFactory extends EntityFactory<GqlTraceShape, GqlTrace> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('gqlTrace');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'gqlTrace');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'trace', storageKey: 'trace', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('gqlTrace', 'trace'), condition: undefined });
+        secondaryIndexes.push({ name: 'trace', storageKey: 'trace', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'gqlTrace', 'trace'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -22031,8 +22031,8 @@ export class EntityCleanerState extends Entity<EntityCleanerStateShape> {
 
 export class EntityCleanerStateFactory extends EntityFactory<EntityCleanerStateShape, EntityCleanerState> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('entityCleanerState');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'entityCleanerState');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'string' });
@@ -22165,11 +22165,11 @@ export class EditorsChoiceChatsCollection extends Entity<EditorsChoiceChatsColle
 
 export class EditorsChoiceChatsCollectionFactory extends EntityFactory<EditorsChoiceChatsCollectionShape, EditorsChoiceChatsCollection> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('editorsChoiceChatsCollection');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'editorsChoiceChatsCollection');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'collection', storageKey: 'collection', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('editorsChoiceChatsCollection', 'collection'), condition: (src) => !src.deleted });
-        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('editorsChoiceChatsCollection', 'created'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'collection', storageKey: 'collection', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'editorsChoiceChatsCollection', 'collection'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'created', storageKey: 'created', type: { type: 'range', fields: [{ name: 'id', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'editorsChoiceChatsCollection', 'created'), condition: (src) => !src.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -22313,10 +22313,10 @@ export class EditorsChoiceChat extends Entity<EditorsChoiceChatShape> {
 
 export class EditorsChoiceChatFactory extends EntityFactory<EditorsChoiceChatShape, EditorsChoiceChat> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('editorsChoiceChat');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'editorsChoiceChat');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'all', storageKey: 'all', type: { type: 'unique', fields: [{ name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('editorsChoiceChat', 'all'), condition: (src) => !src.deleted });
+        secondaryIndexes.push({ name: 'all', storageKey: 'all', type: { type: 'unique', fields: [{ name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'editorsChoiceChat', 'all'), condition: (src) => !src.deleted });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -22405,8 +22405,8 @@ export class ClickHouseMigrations extends Entity<ClickHouseMigrationsShape> {
 
 export class ClickHouseMigrationsFactory extends EntityFactory<ClickHouseMigrationsShape, ClickHouseMigrations> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('clickHouseMigrations');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'clickHouseMigrations');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'version', type: 'integer' });
@@ -22478,8 +22478,8 @@ export class DiscussionHub extends Entity<DiscussionHubShape> {
 
 export class DiscussionHubFactory extends EntityFactory<DiscussionHubShape, DiscussionHub> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('discussionHub');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'discussionHub');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
@@ -22643,11 +22643,11 @@ export class Discussion extends Entity<DiscussionShape> {
 
 export class DiscussionFactory extends EntityFactory<DiscussionShape, Discussion> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('discussion');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'discussion');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'published', storageKey: 'published', type: { type: 'range', fields: [{ name: 'hubId', type: 'opt_integer' }, { name: 'publishedAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'published'), condition: (src) => src.state === 'published' });
-        secondaryIndexes.push({ name: 'publishedAll', storageKey: 'publishedAll', type: { type: 'range', fields: [{ name: 'publishedAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussion', 'publishedAll'), condition: (src) => src.state === 'published' });
+        secondaryIndexes.push({ name: 'published', storageKey: 'published', type: { type: 'range', fields: [{ name: 'hubId', type: 'opt_integer' }, { name: 'publishedAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'discussion', 'published'), condition: (src) => src.state === 'published' });
+        secondaryIndexes.push({ name: 'publishedAll', storageKey: 'publishedAll', type: { type: 'range', fields: [{ name: 'publishedAt', type: 'opt_integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'discussion', 'publishedAll'), condition: (src) => src.state === 'published' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -22845,10 +22845,10 @@ export class DiscussionDraft extends Entity<DiscussionDraftShape> {
 
 export class DiscussionDraftFactory extends EntityFactory<DiscussionDraftShape, DiscussionDraft> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('discussionDraft');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'discussionDraft');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'draft', storageKey: 'draft', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('discussionDraft', 'draft'), condition: (src) => src.state === 'draft' });
+        secondaryIndexes.push({ name: 'draft', storageKey: 'draft', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'discussionDraft', 'draft'), condition: (src) => src.state === 'draft' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -22954,10 +22954,10 @@ export class Contact extends Entity<ContactShape> {
 
 export class ContactFactory extends EntityFactory<ContactShape, Contact> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('contact');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'contact');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('contact', 'user'), condition: (item) => item.state === 'active' });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'createdAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'contact', 'user'), condition: (item) => item.state === 'active' });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'uid', type: 'integer' });
         primaryKeys.push({ name: 'contactUid', type: 'integer' });
@@ -23089,11 +23089,11 @@ export class PhonebookItem extends Entity<PhonebookItemShape> {
 
 export class PhonebookItemFactory extends EntityFactory<PhonebookItemShape, PhonebookItem> {
 
-    static async open(storage: EntityStorage) {
-        let subspace = await storage.resolveEntityDirectory('phonebookItem');
+    static async open(ctx: Context, storage: EntityStorage) {
+        let subspace = await storage.resolveEntityDirectory(ctx, 'phonebookItem');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('phonebookItem', 'user'), condition: undefined });
-        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory('phonebookItem', 'updated'), condition: undefined });
+        secondaryIndexes.push({ name: 'user', storageKey: 'user', type: { type: 'range', fields: [{ name: 'uid', type: 'integer' }, { name: 'id', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'phonebookItem', 'user'), condition: undefined });
+        secondaryIndexes.push({ name: 'updated', storageKey: 'updated', type: { type: 'range', fields: [{ name: 'updatedAt', type: 'integer' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'phonebookItem', 'updated'), condition: undefined });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'id', type: 'integer' });
         let fields: FieldDescriptor[] = [];
@@ -25199,8 +25199,8 @@ export class BlackListRemovedEvent extends BaseEvent {
 
 export class VoiceChatEventsStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('voiceChatEventsStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'voiceChatEventsStore');
         const descriptor = {
             name: 'VoiceChatEventsStore',
             storageKey: 'voiceChatEventsStore',
@@ -25254,8 +25254,8 @@ export class VoiceChatEventsStore extends EventStore {
 
 export class ConversationEventStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('conversationEventStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'conversationEventStore');
         const descriptor = {
             name: 'ConversationEventStore',
             storageKey: 'conversationEventStore',
@@ -25309,8 +25309,8 @@ export class ConversationEventStore extends EventStore {
 
 export class DialogIndexEventStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('dialogIndexEventStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'dialogIndexEventStore');
         const descriptor = {
             name: 'DialogIndexEventStore',
             storageKey: 'dialogIndexEventStore',
@@ -25364,8 +25364,8 @@ export class DialogIndexEventStore extends EventStore {
 
 export class UserDialogEventStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('userDialogEventStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'userDialogEventStore');
         const descriptor = {
             name: 'UserDialogEventStore',
             storageKey: 'userDialogEventStore',
@@ -25419,8 +25419,8 @@ export class UserDialogEventStore extends EventStore {
 
 export class FeedEventStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('feedEventStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'feedEventStore');
         const descriptor = {
             name: 'FeedEventStore',
             storageKey: 'feedEventStore',
@@ -25474,8 +25474,8 @@ export class FeedEventStore extends EventStore {
 
 export class FeedGlobalEventStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('feedGlobalEventStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'feedGlobalEventStore');
         const descriptor = {
             name: 'FeedGlobalEventStore',
             storageKey: 'feedGlobalEventStore',
@@ -25529,8 +25529,8 @@ export class FeedGlobalEventStore extends EventStore {
 
 export class UserStickersEventStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('userStickersEventStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'userStickersEventStore');
         const descriptor = {
             name: 'UserStickersEventStore',
             storageKey: 'userStickersEventStore',
@@ -25584,8 +25584,8 @@ export class UserStickersEventStore extends EventStore {
 
 export class UserLocationEventStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('userLocationEventStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'userLocationEventStore');
         const descriptor = {
             name: 'UserLocationEventStore',
             storageKey: 'userLocationEventStore',
@@ -25639,8 +25639,8 @@ export class UserLocationEventStore extends EventStore {
 
 export class UserWalletUpdates extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('userWalletUpdates');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'userWalletUpdates');
         const descriptor = {
             name: 'UserWalletUpdates',
             storageKey: 'userWalletUpdates',
@@ -25694,8 +25694,8 @@ export class UserWalletUpdates extends EventStore {
 
 export class StripeEventStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('stripeEventStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'stripeEventStore');
         const descriptor = {
             name: 'StripeEventStore',
             storageKey: 'stripeEventStore',
@@ -25749,8 +25749,8 @@ export class StripeEventStore extends EventStore {
 
 export class HyperLogStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('hyperLogStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'hyperLogStore');
         const descriptor = {
             name: 'HyperLogStore',
             storageKey: 'hyperLogStore',
@@ -25804,8 +25804,8 @@ export class HyperLogStore extends EventStore {
 
 export class UserContactsEventStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('userContactsEventStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'userContactsEventStore');
         const descriptor = {
             name: 'UserContactsEventStore',
             storageKey: 'userContactsEventStore',
@@ -25859,8 +25859,8 @@ export class UserContactsEventStore extends EventStore {
 
 export class BlackListEventStore extends EventStore {
 
-    static async open(storage: EntityStorage, factory: EventFactory) {
-        let subspace = await storage.resolveEventStoreDirectory('blackListEventStore');
+    static async open(ctx: Context, storage: EntityStorage, factory: EventFactory) {
+        let subspace = await storage.resolveEventStoreDirectory(ctx, 'blackListEventStore');
         const descriptor = {
             name: 'BlackListEventStore',
             storageKey: 'blackListEventStore',
@@ -26202,7 +26202,7 @@ export interface Store extends BaseStore {
     readonly EmailSendQueue: QueueStorage;
 }
 
-export async function openStore(storage: EntityStorage): Promise<Store> {
+export async function openStore(ctx: Context, storage: EntityStorage): Promise<Store> {
     const eventFactory = new EventFactory();
     eventFactory.registerEventType('voiceChatParticipantUpdatedEvent', VoiceChatParticipantUpdatedEvent.encode as any, VoiceChatParticipantUpdatedEvent.decode);
     eventFactory.registerEventType('voiceChatUpdatedEvent', VoiceChatUpdatedEvent.encode as any, VoiceChatUpdatedEvent.decode);
@@ -26259,257 +26259,257 @@ export async function openStore(storage: EntityStorage): Promise<Store> {
     eventFactory.registerEventType('contactRemovedEvent', ContactRemovedEvent.encode as any, ContactRemovedEvent.decode);
     eventFactory.registerEventType('blackListAddedEvent', BlackListAddedEvent.encode as any, BlackListAddedEvent.decode);
     eventFactory.registerEventType('blackListRemovedEvent', BlackListRemovedEvent.encode as any, BlackListRemovedEvent.decode);
-    let ConversationLastSeqPromise = ConversationLastSeqFactory.open(storage);
-    let AutoSubscribeWasExecutedForUserPromise = AutoSubscribeWasExecutedForUserFactory.open(storage);
-    let RoomParticipantsVersionPromise = RoomParticipantsVersionFactory.open(storage);
-    let VoiceChatParticipantCounterPromise = VoiceChatParticipantCounterFactory.open(storage);
-    let VoiceChatParticipantActivePromise = VoiceChatParticipantActiveFactory.open(storage);
-    let ChatMediaCounterPromise = ChatMediaCounterFactory.open(storage);
-    let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(storage);
-    let ConferenceRoomVersionPromise = ConferenceRoomVersionFactory.open(storage);
-    let ConferencePeerVersionPromise = ConferencePeerVersionFactory.open(storage);
-    let ConferenceKitchenPeersCountPromise = ConferenceKitchenPeersCountFactory.open(storage);
-    let ConferenceKitchenConsumersCountPromise = ConferenceKitchenConsumersCountFactory.open(storage);
-    let ConferenceKitchenProducersCountPromise = ConferenceKitchenProducersCountFactory.open(storage);
-    let ConferenceKitchenTransportsCountPromise = ConferenceKitchenTransportsCountFactory.open(storage);
-    let ConferenceScalableStartedPromise = ConferenceScalableStartedFactory.open(storage);
-    let ConferenceScalablePeersCountPromise = ConferenceScalablePeersCountFactory.open(storage);
-    let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(storage);
-    let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(storage);
-    let UserCounterPromise = UserCounterFactory.open(storage);
-    let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(storage);
-    let UserMessagesSentWeeklyCounterPromise = UserMessagesSentWeeklyCounterFactory.open(storage);
-    let UserMessagesSentInDirectChatTotalCounterPromise = UserMessagesSentInDirectChatTotalCounterFactory.open(storage);
-    let UserMessagesReceivedCounterPromise = UserMessagesReceivedCounterFactory.open(storage);
-    let UserMessagesChatsCounterPromise = UserMessagesChatsCounterFactory.open(storage);
-    let UserMessagesChannelsCounterPromise = UserMessagesChannelsCounterFactory.open(storage);
-    let UserMessagesDirectChatsCounterPromise = UserMessagesDirectChatsCounterFactory.open(storage);
-    let UserSuccessfulInvitesCounterPromise = UserSuccessfulInvitesCounterFactory.open(storage);
-    let UserSuccessfulInvitesPrevWeekCounterPromise = UserSuccessfulInvitesPrevWeekCounterFactory.open(storage);
-    let UserEmailSentCounterPromise = UserEmailSentCounterFactory.open(storage);
-    let UserBrowserPushSentCounterPromise = UserBrowserPushSentCounterFactory.open(storage);
-    let UserMobilePushSentCounterPromise = UserMobilePushSentCounterFactory.open(storage);
-    let UserEmailSentWeeklyCounterPromise = UserEmailSentWeeklyCounterFactory.open(storage);
-    let UserBrowserPushSentWeeklyCounterPromise = UserBrowserPushSentWeeklyCounterFactory.open(storage);
-    let UserMobilePushSentWeeklyCounterPromise = UserMobilePushSentWeeklyCounterFactory.open(storage);
-    let UserDialogCounterPromise = UserDialogCounterFactory.open(storage);
-    let UserDialogHaveMentionPromise = UserDialogHaveMentionFactory.open(storage);
-    let NotificationCenterCounterPromise = NotificationCenterCounterFactory.open(storage);
-    let UserAudienceCounterPromise = UserAudienceCounterFactory.open(storage);
-    let UserMessagesSentInDirectChatCounterPromise = UserMessagesSentInDirectChatCounterFactory.open(storage);
-    let User2WayDirectChatsCounterPromise = User2WayDirectChatsCounterFactory.open(storage);
-    let GlobalStatisticsCountersPromise = GlobalStatisticsCountersFactory.open(storage);
-    let UserGlobalCounterAllUnreadMessagesPromise = UserGlobalCounterAllUnreadMessagesFactory.open(storage);
-    let UserGlobalCounterUnreadMessagesWithoutMutedPromise = UserGlobalCounterUnreadMessagesWithoutMutedFactory.open(storage);
-    let UserGlobalCounterAllUnreadChatsPromise = UserGlobalCounterAllUnreadChatsFactory.open(storage);
-    let UserGlobalCounterUnreadChatsWithoutMutedPromise = UserGlobalCounterUnreadChatsWithoutMutedFactory.open(storage);
-    let UserHasFilledAboutPromise = UserHasFilledAboutFactory.open(storage);
-    let UserReactionsGotPromise = UserReactionsGotFactory.open(storage);
-    let UserReactionsGivenPromise = UserReactionsGivenFactory.open(storage);
-    let StatsRecordsPromise = StatsRecordsFactory.open(storage);
-    let RoomMessagesCounterPromise = RoomMessagesCounterFactory.open(storage);
-    let RoomActiveMembersPrevWeekCounterPromise = RoomActiveMembersPrevWeekCounterFactory.open(storage);
-    let StickerPackWasAddedPromise = StickerPackWasAddedFactory.open(storage);
-    let ReaderEstimatePromise = ReaderEstimateFactory.open(storage);
-    let LastAuthEmailSentTimePromise = LastAuthEmailSentTimeFactory.open(storage);
-    let AuthEmailsSentCountPromise = AuthEmailsSentCountFactory.open(storage);
-    let PhonebookJoinMessageSentForPhonePromise = PhonebookJoinMessageSentForPhoneFactory.open(storage);
-    let PhonebookUserImportedContactsPromise = PhonebookUserImportedContactsFactory.open(storage);
-    let UserPromise = UserFactory.open(storage);
-    let UserProfilePromise = UserProfileFactory.open(storage);
-    let UserProfilePrefilPromise = UserProfilePrefilFactory.open(storage);
-    let AppReleasePromise = AppReleaseFactory.open(storage);
-    let UserSettingsPromise = UserSettingsFactory.open(storage);
-    let UserIndexingQueuePromise = UserIndexingQueueFactory.open(storage);
-    let ModernBadgePromise = ModernBadgeFactory.open(storage);
-    let UserModernBadgePromise = UserModernBadgeFactory.open(storage);
-    let OrganizationPromise = OrganizationFactory.open(storage);
-    let OrganizationProfilePromise = OrganizationProfileFactory.open(storage);
-    let OrganizationEditorialPromise = OrganizationEditorialFactory.open(storage);
-    let OrganizationMemberPromise = OrganizationMemberFactory.open(storage);
-    let OrganizationIndexingQueuePromise = OrganizationIndexingQueueFactory.open(storage);
-    let OnlinePromise = OnlineFactory.open(storage);
-    let PresencePromise = PresenceFactory.open(storage);
-    let ConversationPromise = ConversationFactory.open(storage);
-    let ConversationPrivatePromise = ConversationPrivateFactory.open(storage);
-    let ConversationOrganizationPromise = ConversationOrganizationFactory.open(storage);
-    let ConversationRoomPromise = ConversationRoomFactory.open(storage);
-    let PremiumChatSettingsPromise = PremiumChatSettingsFactory.open(storage);
-    let PremiumChatUserPassPromise = PremiumChatUserPassFactory.open(storage);
-    let RoomProfilePromise = RoomProfileFactory.open(storage);
-    let RoomParticipantPromise = RoomParticipantFactory.open(storage);
-    let ConversationVoicePromise = ConversationVoiceFactory.open(storage);
-    let VoiceChatParticipantPromise = VoiceChatParticipantFactory.open(storage);
-    let MessagePromise = MessageFactory.open(storage);
-    let PrivateMessagePromise = PrivateMessageFactory.open(storage);
-    let CommentPromise = CommentFactory.open(storage);
-    let RichMessagePromise = RichMessageFactory.open(storage);
-    let MessageDraftPromise = MessageDraftFactory.open(storage);
-    let ConversationSeqPromise = ConversationSeqFactory.open(storage);
-    let ConversationEventPromise = ConversationEventFactory.open(storage);
-    let UserDialogPromise = UserDialogFactory.open(storage);
-    let UserDialogSettingsPromise = UserDialogSettingsFactory.open(storage);
-    let UserDialogListSettingsPromise = UserDialogListSettingsFactory.open(storage);
-    let CommentStatePromise = CommentStateFactory.open(storage);
-    let CommentSeqPromise = CommentSeqFactory.open(storage);
-    let CommentEventPromise = CommentEventFactory.open(storage);
-    let CommentsSubscriptionPromise = CommentsSubscriptionFactory.open(storage);
-    let CommentEventGlobalPromise = CommentEventGlobalFactory.open(storage);
-    let ConferenceRoomPromise = ConferenceRoomFactory.open(storage);
-    let ConferencePeerPromise = ConferencePeerFactory.open(storage);
-    let ConferenceEndStreamPromise = ConferenceEndStreamFactory.open(storage);
-    let ConferenceMeshPeerPromise = ConferenceMeshPeerFactory.open(storage);
-    let ConferenceMeshLinkPromise = ConferenceMeshLinkFactory.open(storage);
-    let ConferenceKitchenRouterPromise = ConferenceKitchenRouterFactory.open(storage);
-    let ConferenceKitchenPeerPromise = ConferenceKitchenPeerFactory.open(storage);
-    let ConferenceKitchenProducerTransportPromise = ConferenceKitchenProducerTransportFactory.open(storage);
-    let ConferenceKitchenConsumerTransportPromise = ConferenceKitchenConsumerTransportFactory.open(storage);
-    let KitchenWorkerPromise = KitchenWorkerFactory.open(storage);
-    let KitchenRouterPromise = KitchenRouterFactory.open(storage);
-    let KitchenTransportPromise = KitchenTransportFactory.open(storage);
-    let KitchenProducerPromise = KitchenProducerFactory.open(storage);
-    let KitchenConsumerPromise = KitchenConsumerFactory.open(storage);
-    let UserEdgePromise = UserEdgeFactory.open(storage);
-    let UserGroupEdgePromise = UserGroupEdgeFactory.open(storage);
-    let UserInfluencerUserIndexPromise = UserInfluencerUserIndexFactory.open(storage);
-    let UserInfluencerIndexPromise = UserInfluencerIndexFactory.open(storage);
-    let UserBadgePromise = UserBadgeFactory.open(storage);
-    let UserRoomBadgePromise = UserRoomBadgeFactory.open(storage);
-    let ShortnameReservationPromise = ShortnameReservationFactory.open(storage);
-    let NotificationCenterPromise = NotificationCenterFactory.open(storage);
-    let UserNotificationCenterPromise = UserNotificationCenterFactory.open(storage);
-    let NotificationPromise = NotificationFactory.open(storage);
-    let NotificationCenterStatePromise = NotificationCenterStateFactory.open(storage);
-    let NotificationCenterEventPromise = NotificationCenterEventFactory.open(storage);
-    let UserMessagingStatePromise = UserMessagingStateFactory.open(storage);
-    let UserNotificationsStatePromise = UserNotificationsStateFactory.open(storage);
-    let FeedSubscriberPromise = FeedSubscriberFactory.open(storage);
-    let FeedSubscriptionPromise = FeedSubscriptionFactory.open(storage);
-    let FeedTopicPromise = FeedTopicFactory.open(storage);
-    let FeedEventPromise = FeedEventFactory.open(storage);
-    let FeedChannelPromise = FeedChannelFactory.open(storage);
-    let FeedChannelAdminPromise = FeedChannelAdminFactory.open(storage);
-    let FeedChannelIndexingQueuePromise = FeedChannelIndexingQueueFactory.open(storage);
-    let UserFeedStatePromise = UserFeedStateFactory.open(storage);
-    let FeedChannelAutoSubscriptionPromise = FeedChannelAutoSubscriptionFactory.open(storage);
-    let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.open(storage);
-    let ChannelLinkPromise = ChannelLinkFactory.open(storage);
-    let AppInviteLinkPromise = AppInviteLinkFactory.open(storage);
-    let OrganizationPublicInviteLinkPromise = OrganizationPublicInviteLinkFactory.open(storage);
-    let OrganizationInviteLinkPromise = OrganizationInviteLinkFactory.open(storage);
-    let ChannelInvitationPromise = ChannelInvitationFactory.open(storage);
-    let DiscoverUserPickedTagsPromise = DiscoverUserPickedTagsFactory.open(storage);
-    let DiscoverStatePromise = DiscoverStateFactory.open(storage);
-    let UserOnboardingStatePromise = UserOnboardingStateFactory.open(storage);
-    let PushFirebasePromise = PushFirebaseFactory.open(storage);
-    let PushApplePromise = PushAppleFactory.open(storage);
-    let PushSafariPromise = PushSafariFactory.open(storage);
-    let PushWebPromise = PushWebFactory.open(storage);
-    let AppHookPromise = AppHookFactory.open(storage);
-    let StickerPackPromise = StickerPackFactory.open(storage);
-    let UserStickersStatePromise = UserStickersStateFactory.open(storage);
-    let StickerPromise = StickerFactory.open(storage);
-    let MatchmakingRoomPromise = MatchmakingRoomFactory.open(storage);
-    let MatchmakingProfilePromise = MatchmakingProfileFactory.open(storage);
-    let OauthApplicationPromise = OauthApplicationFactory.open(storage);
-    let OauthContextPromise = OauthContextFactory.open(storage);
-    let OauthTokenPromise = OauthTokenFactory.open(storage);
-    let UserLocationPromise = UserLocationFactory.open(storage);
-    let PowerupPromise = PowerupFactory.open(storage);
-    let ChatPowerupPromise = ChatPowerupFactory.open(storage);
-    let PermissionRequestPromise = PermissionRequestFactory.open(storage);
-    let UserStorageNamespacePromise = UserStorageNamespaceFactory.open(storage);
-    let UserStorageRecordPromise = UserStorageRecordFactory.open(storage);
-    let UserStripeCustomerPromise = UserStripeCustomerFactory.open(storage);
-    let UserStripeCardPromise = UserStripeCardFactory.open(storage);
-    let WalletPromise = WalletFactory.open(storage);
-    let WalletTransactionPromise = WalletTransactionFactory.open(storage);
-    let WalletDepositRequestPromise = WalletDepositRequestFactory.open(storage);
-    let WalletTransferRequestPromise = WalletTransferRequestFactory.open(storage);
-    let WalletPurchasePromise = WalletPurchaseFactory.open(storage);
-    let WalletSubscriptionPromise = WalletSubscriptionFactory.open(storage);
-    let WalletSubscriptionSchedulingPromise = WalletSubscriptionSchedulingFactory.open(storage);
-    let WalletSubscriptionPeriodPromise = WalletSubscriptionPeriodFactory.open(storage);
-    let PaymentIntentPromise = PaymentIntentFactory.open(storage);
-    let PaymentPromise = PaymentFactory.open(storage);
-    let PaymentSchedulingPromise = PaymentSchedulingFactory.open(storage);
-    let StripeEventsCursorPromise = StripeEventsCursorFactory.open(storage);
-    let StripeEventPromise = StripeEventFactory.open(storage);
-    let SequencePromise = SequenceFactory.open(storage);
-    let EnvironmentPromise = EnvironmentFactory.open(storage);
-    let EnvironmentVariablePromise = EnvironmentVariableFactory.open(storage);
-    let ServiceCachePromise = ServiceCacheFactory.open(storage);
-    let ReaderStatePromise = ReaderStateFactory.open(storage);
-    let SuperAdminPromise = SuperAdminFactory.open(storage);
-    let AuthTokenPromise = AuthTokenFactory.open(storage);
-    let AuthCodeSessionPromise = AuthCodeSessionFactory.open(storage);
-    let FeatureFlagPromise = FeatureFlagFactory.open(storage);
-    let OrganizationFeaturesPromise = OrganizationFeaturesFactory.open(storage);
-    let TaskPromise = TaskFactory.open(storage);
-    let DelayedTaskPromise = DelayedTaskFactory.open(storage);
-    let ServiceThrottlePromise = ServiceThrottleFactory.open(storage);
-    let OneTimeCodePromise = OneTimeCodeFactory.open(storage);
-    let DebugEventPromise = DebugEventFactory.open(storage);
-    let DebugEventStatePromise = DebugEventStateFactory.open(storage);
-    let EntityCounterStatePromise = EntityCounterStateFactory.open(storage);
-    let GqlTracePromise = GqlTraceFactory.open(storage);
-    let EntityCleanerStatePromise = EntityCleanerStateFactory.open(storage);
-    let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(storage);
-    let EditorsChoiceChatPromise = EditorsChoiceChatFactory.open(storage);
-    let ClickHouseMigrationsPromise = ClickHouseMigrationsFactory.open(storage);
-    let DiscussionHubPromise = DiscussionHubFactory.open(storage);
-    let DiscussionPromise = DiscussionFactory.open(storage);
-    let DiscussionDraftPromise = DiscussionDraftFactory.open(storage);
-    let ContactPromise = ContactFactory.open(storage);
-    let PhonebookItemPromise = PhonebookItemFactory.open(storage);
-    let PresenceLogDirectoryPromise = storage.resolveCustomDirectory('presenceLog');
-    let PresenceMobileInstalledDirectoryPromise = storage.resolveCustomDirectory('presenceMobileInstalled');
-    let UserPresenceDirectoryPromise = storage.resolveCustomDirectory('userPresence');
-    let UserOnlineDirectoryPromise = storage.resolveCustomDirectory('userOnline');
-    let RoomParticipantsActiveDirectoryPromise = storage.resolveCustomDirectory('roomParticipantsActive');
-    let UserChatsActiveDirectoryPromise = storage.resolveCustomDirectory('userChatsActive');
-    let UserChatsAllIndexDirectoryPromise = storage.resolveCustomDirectory('userChatsAllIndex');
-    let MessageDeliveryDirectoryPromise = storage.resolveCustomDirectory('messageDelivery');
-    let MessageDeliveryBatchDirectoryPromise = storage.resolveCustomDirectory('messageDeliveryBatch');
-    let MessageCountersDirectoryPromise = storage.resolveCustomDirectory('messageCounters');
-    let FollowersDirectoryPromise = storage.resolveCustomDirectory('followers');
-    let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory('userDialogIndex');
-    let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory('userCountersIndex');
-    let FastCountersDirectoryPromise = storage.resolveCustomDirectory('fastCounters');
-    let ExperimentalCountersDirectoryPromise = storage.resolveCustomDirectory('experimentalCounters');
-    let NewCountersDirectoryPromise = storage.resolveCustomDirectory('newCounters');
-    let SyncCountersDirectoryPromise = storage.resolveCustomDirectory('syncCounters');
-    let UserReadSeqsDirectoryPromise = storage.resolveCustomDirectory('userReadSeqs');
-    let ChatMembersDirectoryPromise = storage.resolveCustomDirectory('chatMembers');
-    let UserDialogMuteSettingDirectoryPromise = storage.resolveCustomDirectory('userDialogMuteSetting');
-    let ConferencePeerKeepAliveDirectoryPromise = storage.resolveCustomDirectory('conferencePeerKeepAlive');
-    let EndStreamDirectoryPromise = storage.resolveCustomDirectory('endStream');
-    let ConferenceSchedulingDirectoryPromise = storage.resolveCustomDirectory('conferenceScheduling');
-    let ConferenceScalableStateDirectoryPromise = storage.resolveCustomDirectory('conferenceScalableState');
-    let ConferenceScalableShardingDirectoryPromise = storage.resolveCustomDirectory('conferenceScalableSharding');
-    let ConferenceScalableAllocatorDirectoryPromise = storage.resolveCustomDirectory('conferenceScalableAllocator');
-    let ConferenceScalablePeersDirectoryPromise = storage.resolveCustomDirectory('conferenceScalablePeers');
-    let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory('notificationCenterNeedDeliveryFlag');
-    let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory('needNotificationFlag');
-    let EventStorageDirectoryPromise = storage.resolveCustomDirectory('eventStorage');
-    let EventRegistrationsDirectoryPromise = storage.resolveCustomDirectory('eventRegistrations');
-    let ShardingDataDirectoryPromise = storage.resolveCustomDirectory('shardingData');
-    let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory('importedPhone');
-    let PhoneImportedByUserDirectoryPromise = storage.resolveCustomDirectory('phoneImportedByUser');
-    let BlackListDirectoryDirectoryPromise = storage.resolveCustomDirectory('blackListDirectory');
-    let VoiceChatEventsStorePromise = VoiceChatEventsStore.open(storage, eventFactory);
-    let ConversationEventStorePromise = ConversationEventStore.open(storage, eventFactory);
-    let DialogIndexEventStorePromise = DialogIndexEventStore.open(storage, eventFactory);
-    let UserDialogEventStorePromise = UserDialogEventStore.open(storage, eventFactory);
-    let FeedEventStorePromise = FeedEventStore.open(storage, eventFactory);
-    let FeedGlobalEventStorePromise = FeedGlobalEventStore.open(storage, eventFactory);
-    let UserStickersEventStorePromise = UserStickersEventStore.open(storage, eventFactory);
-    let UserLocationEventStorePromise = UserLocationEventStore.open(storage, eventFactory);
-    let UserWalletUpdatesPromise = UserWalletUpdates.open(storage, eventFactory);
-    let StripeEventStorePromise = StripeEventStore.open(storage, eventFactory);
-    let HyperLogStorePromise = HyperLogStore.open(storage, eventFactory);
-    let UserContactsEventStorePromise = UserContactsEventStore.open(storage, eventFactory);
-    let BlackListEventStorePromise = BlackListEventStore.open(storage, eventFactory);
+    let ConversationLastSeqPromise = ConversationLastSeqFactory.open(ctx, storage);
+    let AutoSubscribeWasExecutedForUserPromise = AutoSubscribeWasExecutedForUserFactory.open(ctx, storage);
+    let RoomParticipantsVersionPromise = RoomParticipantsVersionFactory.open(ctx, storage);
+    let VoiceChatParticipantCounterPromise = VoiceChatParticipantCounterFactory.open(ctx, storage);
+    let VoiceChatParticipantActivePromise = VoiceChatParticipantActiveFactory.open(ctx, storage);
+    let ChatMediaCounterPromise = ChatMediaCounterFactory.open(ctx, storage);
+    let UserDialogReadMessageIdPromise = UserDialogReadMessageIdFactory.open(ctx, storage);
+    let ConferenceRoomVersionPromise = ConferenceRoomVersionFactory.open(ctx, storage);
+    let ConferencePeerVersionPromise = ConferencePeerVersionFactory.open(ctx, storage);
+    let ConferenceKitchenPeersCountPromise = ConferenceKitchenPeersCountFactory.open(ctx, storage);
+    let ConferenceKitchenConsumersCountPromise = ConferenceKitchenConsumersCountFactory.open(ctx, storage);
+    let ConferenceKitchenProducersCountPromise = ConferenceKitchenProducersCountFactory.open(ctx, storage);
+    let ConferenceKitchenTransportsCountPromise = ConferenceKitchenTransportsCountFactory.open(ctx, storage);
+    let ConferenceScalableStartedPromise = ConferenceScalableStartedFactory.open(ctx, storage);
+    let ConferenceScalablePeersCountPromise = ConferenceScalablePeersCountFactory.open(ctx, storage);
+    let FeedChannelMembersCountPromise = FeedChannelMembersCountFactory.open(ctx, storage);
+    let FeedChannelPostsCountPromise = FeedChannelPostsCountFactory.open(ctx, storage);
+    let UserCounterPromise = UserCounterFactory.open(ctx, storage);
+    let UserMessagesSentCounterPromise = UserMessagesSentCounterFactory.open(ctx, storage);
+    let UserMessagesSentWeeklyCounterPromise = UserMessagesSentWeeklyCounterFactory.open(ctx, storage);
+    let UserMessagesSentInDirectChatTotalCounterPromise = UserMessagesSentInDirectChatTotalCounterFactory.open(ctx, storage);
+    let UserMessagesReceivedCounterPromise = UserMessagesReceivedCounterFactory.open(ctx, storage);
+    let UserMessagesChatsCounterPromise = UserMessagesChatsCounterFactory.open(ctx, storage);
+    let UserMessagesChannelsCounterPromise = UserMessagesChannelsCounterFactory.open(ctx, storage);
+    let UserMessagesDirectChatsCounterPromise = UserMessagesDirectChatsCounterFactory.open(ctx, storage);
+    let UserSuccessfulInvitesCounterPromise = UserSuccessfulInvitesCounterFactory.open(ctx, storage);
+    let UserSuccessfulInvitesPrevWeekCounterPromise = UserSuccessfulInvitesPrevWeekCounterFactory.open(ctx, storage);
+    let UserEmailSentCounterPromise = UserEmailSentCounterFactory.open(ctx, storage);
+    let UserBrowserPushSentCounterPromise = UserBrowserPushSentCounterFactory.open(ctx, storage);
+    let UserMobilePushSentCounterPromise = UserMobilePushSentCounterFactory.open(ctx, storage);
+    let UserEmailSentWeeklyCounterPromise = UserEmailSentWeeklyCounterFactory.open(ctx, storage);
+    let UserBrowserPushSentWeeklyCounterPromise = UserBrowserPushSentWeeklyCounterFactory.open(ctx, storage);
+    let UserMobilePushSentWeeklyCounterPromise = UserMobilePushSentWeeklyCounterFactory.open(ctx, storage);
+    let UserDialogCounterPromise = UserDialogCounterFactory.open(ctx, storage);
+    let UserDialogHaveMentionPromise = UserDialogHaveMentionFactory.open(ctx, storage);
+    let NotificationCenterCounterPromise = NotificationCenterCounterFactory.open(ctx, storage);
+    let UserAudienceCounterPromise = UserAudienceCounterFactory.open(ctx, storage);
+    let UserMessagesSentInDirectChatCounterPromise = UserMessagesSentInDirectChatCounterFactory.open(ctx, storage);
+    let User2WayDirectChatsCounterPromise = User2WayDirectChatsCounterFactory.open(ctx, storage);
+    let GlobalStatisticsCountersPromise = GlobalStatisticsCountersFactory.open(ctx, storage);
+    let UserGlobalCounterAllUnreadMessagesPromise = UserGlobalCounterAllUnreadMessagesFactory.open(ctx, storage);
+    let UserGlobalCounterUnreadMessagesWithoutMutedPromise = UserGlobalCounterUnreadMessagesWithoutMutedFactory.open(ctx, storage);
+    let UserGlobalCounterAllUnreadChatsPromise = UserGlobalCounterAllUnreadChatsFactory.open(ctx, storage);
+    let UserGlobalCounterUnreadChatsWithoutMutedPromise = UserGlobalCounterUnreadChatsWithoutMutedFactory.open(ctx, storage);
+    let UserHasFilledAboutPromise = UserHasFilledAboutFactory.open(ctx, storage);
+    let UserReactionsGotPromise = UserReactionsGotFactory.open(ctx, storage);
+    let UserReactionsGivenPromise = UserReactionsGivenFactory.open(ctx, storage);
+    let StatsRecordsPromise = StatsRecordsFactory.open(ctx, storage);
+    let RoomMessagesCounterPromise = RoomMessagesCounterFactory.open(ctx, storage);
+    let RoomActiveMembersPrevWeekCounterPromise = RoomActiveMembersPrevWeekCounterFactory.open(ctx, storage);
+    let StickerPackWasAddedPromise = StickerPackWasAddedFactory.open(ctx, storage);
+    let ReaderEstimatePromise = ReaderEstimateFactory.open(ctx, storage);
+    let LastAuthEmailSentTimePromise = LastAuthEmailSentTimeFactory.open(ctx, storage);
+    let AuthEmailsSentCountPromise = AuthEmailsSentCountFactory.open(ctx, storage);
+    let PhonebookJoinMessageSentForPhonePromise = PhonebookJoinMessageSentForPhoneFactory.open(ctx, storage);
+    let PhonebookUserImportedContactsPromise = PhonebookUserImportedContactsFactory.open(ctx, storage);
+    let UserPromise = UserFactory.open(ctx, storage);
+    let UserProfilePromise = UserProfileFactory.open(ctx, storage);
+    let UserProfilePrefilPromise = UserProfilePrefilFactory.open(ctx, storage);
+    let AppReleasePromise = AppReleaseFactory.open(ctx, storage);
+    let UserSettingsPromise = UserSettingsFactory.open(ctx, storage);
+    let UserIndexingQueuePromise = UserIndexingQueueFactory.open(ctx, storage);
+    let ModernBadgePromise = ModernBadgeFactory.open(ctx, storage);
+    let UserModernBadgePromise = UserModernBadgeFactory.open(ctx, storage);
+    let OrganizationPromise = OrganizationFactory.open(ctx, storage);
+    let OrganizationProfilePromise = OrganizationProfileFactory.open(ctx, storage);
+    let OrganizationEditorialPromise = OrganizationEditorialFactory.open(ctx, storage);
+    let OrganizationMemberPromise = OrganizationMemberFactory.open(ctx, storage);
+    let OrganizationIndexingQueuePromise = OrganizationIndexingQueueFactory.open(ctx, storage);
+    let OnlinePromise = OnlineFactory.open(ctx, storage);
+    let PresencePromise = PresenceFactory.open(ctx, storage);
+    let ConversationPromise = ConversationFactory.open(ctx, storage);
+    let ConversationPrivatePromise = ConversationPrivateFactory.open(ctx, storage);
+    let ConversationOrganizationPromise = ConversationOrganizationFactory.open(ctx, storage);
+    let ConversationRoomPromise = ConversationRoomFactory.open(ctx, storage);
+    let PremiumChatSettingsPromise = PremiumChatSettingsFactory.open(ctx, storage);
+    let PremiumChatUserPassPromise = PremiumChatUserPassFactory.open(ctx, storage);
+    let RoomProfilePromise = RoomProfileFactory.open(ctx, storage);
+    let RoomParticipantPromise = RoomParticipantFactory.open(ctx, storage);
+    let ConversationVoicePromise = ConversationVoiceFactory.open(ctx, storage);
+    let VoiceChatParticipantPromise = VoiceChatParticipantFactory.open(ctx, storage);
+    let MessagePromise = MessageFactory.open(ctx, storage);
+    let PrivateMessagePromise = PrivateMessageFactory.open(ctx, storage);
+    let CommentPromise = CommentFactory.open(ctx, storage);
+    let RichMessagePromise = RichMessageFactory.open(ctx, storage);
+    let MessageDraftPromise = MessageDraftFactory.open(ctx, storage);
+    let ConversationSeqPromise = ConversationSeqFactory.open(ctx, storage);
+    let ConversationEventPromise = ConversationEventFactory.open(ctx, storage);
+    let UserDialogPromise = UserDialogFactory.open(ctx, storage);
+    let UserDialogSettingsPromise = UserDialogSettingsFactory.open(ctx, storage);
+    let UserDialogListSettingsPromise = UserDialogListSettingsFactory.open(ctx, storage);
+    let CommentStatePromise = CommentStateFactory.open(ctx, storage);
+    let CommentSeqPromise = CommentSeqFactory.open(ctx, storage);
+    let CommentEventPromise = CommentEventFactory.open(ctx, storage);
+    let CommentsSubscriptionPromise = CommentsSubscriptionFactory.open(ctx, storage);
+    let CommentEventGlobalPromise = CommentEventGlobalFactory.open(ctx, storage);
+    let ConferenceRoomPromise = ConferenceRoomFactory.open(ctx, storage);
+    let ConferencePeerPromise = ConferencePeerFactory.open(ctx, storage);
+    let ConferenceEndStreamPromise = ConferenceEndStreamFactory.open(ctx, storage);
+    let ConferenceMeshPeerPromise = ConferenceMeshPeerFactory.open(ctx, storage);
+    let ConferenceMeshLinkPromise = ConferenceMeshLinkFactory.open(ctx, storage);
+    let ConferenceKitchenRouterPromise = ConferenceKitchenRouterFactory.open(ctx, storage);
+    let ConferenceKitchenPeerPromise = ConferenceKitchenPeerFactory.open(ctx, storage);
+    let ConferenceKitchenProducerTransportPromise = ConferenceKitchenProducerTransportFactory.open(ctx, storage);
+    let ConferenceKitchenConsumerTransportPromise = ConferenceKitchenConsumerTransportFactory.open(ctx, storage);
+    let KitchenWorkerPromise = KitchenWorkerFactory.open(ctx, storage);
+    let KitchenRouterPromise = KitchenRouterFactory.open(ctx, storage);
+    let KitchenTransportPromise = KitchenTransportFactory.open(ctx, storage);
+    let KitchenProducerPromise = KitchenProducerFactory.open(ctx, storage);
+    let KitchenConsumerPromise = KitchenConsumerFactory.open(ctx, storage);
+    let UserEdgePromise = UserEdgeFactory.open(ctx, storage);
+    let UserGroupEdgePromise = UserGroupEdgeFactory.open(ctx, storage);
+    let UserInfluencerUserIndexPromise = UserInfluencerUserIndexFactory.open(ctx, storage);
+    let UserInfluencerIndexPromise = UserInfluencerIndexFactory.open(ctx, storage);
+    let UserBadgePromise = UserBadgeFactory.open(ctx, storage);
+    let UserRoomBadgePromise = UserRoomBadgeFactory.open(ctx, storage);
+    let ShortnameReservationPromise = ShortnameReservationFactory.open(ctx, storage);
+    let NotificationCenterPromise = NotificationCenterFactory.open(ctx, storage);
+    let UserNotificationCenterPromise = UserNotificationCenterFactory.open(ctx, storage);
+    let NotificationPromise = NotificationFactory.open(ctx, storage);
+    let NotificationCenterStatePromise = NotificationCenterStateFactory.open(ctx, storage);
+    let NotificationCenterEventPromise = NotificationCenterEventFactory.open(ctx, storage);
+    let UserMessagingStatePromise = UserMessagingStateFactory.open(ctx, storage);
+    let UserNotificationsStatePromise = UserNotificationsStateFactory.open(ctx, storage);
+    let FeedSubscriberPromise = FeedSubscriberFactory.open(ctx, storage);
+    let FeedSubscriptionPromise = FeedSubscriptionFactory.open(ctx, storage);
+    let FeedTopicPromise = FeedTopicFactory.open(ctx, storage);
+    let FeedEventPromise = FeedEventFactory.open(ctx, storage);
+    let FeedChannelPromise = FeedChannelFactory.open(ctx, storage);
+    let FeedChannelAdminPromise = FeedChannelAdminFactory.open(ctx, storage);
+    let FeedChannelIndexingQueuePromise = FeedChannelIndexingQueueFactory.open(ctx, storage);
+    let UserFeedStatePromise = UserFeedStateFactory.open(ctx, storage);
+    let FeedChannelAutoSubscriptionPromise = FeedChannelAutoSubscriptionFactory.open(ctx, storage);
+    let ChatAudienceCalculatingQueuePromise = ChatAudienceCalculatingQueueFactory.open(ctx, storage);
+    let ChannelLinkPromise = ChannelLinkFactory.open(ctx, storage);
+    let AppInviteLinkPromise = AppInviteLinkFactory.open(ctx, storage);
+    let OrganizationPublicInviteLinkPromise = OrganizationPublicInviteLinkFactory.open(ctx, storage);
+    let OrganizationInviteLinkPromise = OrganizationInviteLinkFactory.open(ctx, storage);
+    let ChannelInvitationPromise = ChannelInvitationFactory.open(ctx, storage);
+    let DiscoverUserPickedTagsPromise = DiscoverUserPickedTagsFactory.open(ctx, storage);
+    let DiscoverStatePromise = DiscoverStateFactory.open(ctx, storage);
+    let UserOnboardingStatePromise = UserOnboardingStateFactory.open(ctx, storage);
+    let PushFirebasePromise = PushFirebaseFactory.open(ctx, storage);
+    let PushApplePromise = PushAppleFactory.open(ctx, storage);
+    let PushSafariPromise = PushSafariFactory.open(ctx, storage);
+    let PushWebPromise = PushWebFactory.open(ctx, storage);
+    let AppHookPromise = AppHookFactory.open(ctx, storage);
+    let StickerPackPromise = StickerPackFactory.open(ctx, storage);
+    let UserStickersStatePromise = UserStickersStateFactory.open(ctx, storage);
+    let StickerPromise = StickerFactory.open(ctx, storage);
+    let MatchmakingRoomPromise = MatchmakingRoomFactory.open(ctx, storage);
+    let MatchmakingProfilePromise = MatchmakingProfileFactory.open(ctx, storage);
+    let OauthApplicationPromise = OauthApplicationFactory.open(ctx, storage);
+    let OauthContextPromise = OauthContextFactory.open(ctx, storage);
+    let OauthTokenPromise = OauthTokenFactory.open(ctx, storage);
+    let UserLocationPromise = UserLocationFactory.open(ctx, storage);
+    let PowerupPromise = PowerupFactory.open(ctx, storage);
+    let ChatPowerupPromise = ChatPowerupFactory.open(ctx, storage);
+    let PermissionRequestPromise = PermissionRequestFactory.open(ctx, storage);
+    let UserStorageNamespacePromise = UserStorageNamespaceFactory.open(ctx, storage);
+    let UserStorageRecordPromise = UserStorageRecordFactory.open(ctx, storage);
+    let UserStripeCustomerPromise = UserStripeCustomerFactory.open(ctx, storage);
+    let UserStripeCardPromise = UserStripeCardFactory.open(ctx, storage);
+    let WalletPromise = WalletFactory.open(ctx, storage);
+    let WalletTransactionPromise = WalletTransactionFactory.open(ctx, storage);
+    let WalletDepositRequestPromise = WalletDepositRequestFactory.open(ctx, storage);
+    let WalletTransferRequestPromise = WalletTransferRequestFactory.open(ctx, storage);
+    let WalletPurchasePromise = WalletPurchaseFactory.open(ctx, storage);
+    let WalletSubscriptionPromise = WalletSubscriptionFactory.open(ctx, storage);
+    let WalletSubscriptionSchedulingPromise = WalletSubscriptionSchedulingFactory.open(ctx, storage);
+    let WalletSubscriptionPeriodPromise = WalletSubscriptionPeriodFactory.open(ctx, storage);
+    let PaymentIntentPromise = PaymentIntentFactory.open(ctx, storage);
+    let PaymentPromise = PaymentFactory.open(ctx, storage);
+    let PaymentSchedulingPromise = PaymentSchedulingFactory.open(ctx, storage);
+    let StripeEventsCursorPromise = StripeEventsCursorFactory.open(ctx, storage);
+    let StripeEventPromise = StripeEventFactory.open(ctx, storage);
+    let SequencePromise = SequenceFactory.open(ctx, storage);
+    let EnvironmentPromise = EnvironmentFactory.open(ctx, storage);
+    let EnvironmentVariablePromise = EnvironmentVariableFactory.open(ctx, storage);
+    let ServiceCachePromise = ServiceCacheFactory.open(ctx, storage);
+    let ReaderStatePromise = ReaderStateFactory.open(ctx, storage);
+    let SuperAdminPromise = SuperAdminFactory.open(ctx, storage);
+    let AuthTokenPromise = AuthTokenFactory.open(ctx, storage);
+    let AuthCodeSessionPromise = AuthCodeSessionFactory.open(ctx, storage);
+    let FeatureFlagPromise = FeatureFlagFactory.open(ctx, storage);
+    let OrganizationFeaturesPromise = OrganizationFeaturesFactory.open(ctx, storage);
+    let TaskPromise = TaskFactory.open(ctx, storage);
+    let DelayedTaskPromise = DelayedTaskFactory.open(ctx, storage);
+    let ServiceThrottlePromise = ServiceThrottleFactory.open(ctx, storage);
+    let OneTimeCodePromise = OneTimeCodeFactory.open(ctx, storage);
+    let DebugEventPromise = DebugEventFactory.open(ctx, storage);
+    let DebugEventStatePromise = DebugEventStateFactory.open(ctx, storage);
+    let EntityCounterStatePromise = EntityCounterStateFactory.open(ctx, storage);
+    let GqlTracePromise = GqlTraceFactory.open(ctx, storage);
+    let EntityCleanerStatePromise = EntityCleanerStateFactory.open(ctx, storage);
+    let EditorsChoiceChatsCollectionPromise = EditorsChoiceChatsCollectionFactory.open(ctx, storage);
+    let EditorsChoiceChatPromise = EditorsChoiceChatFactory.open(ctx, storage);
+    let ClickHouseMigrationsPromise = ClickHouseMigrationsFactory.open(ctx, storage);
+    let DiscussionHubPromise = DiscussionHubFactory.open(ctx, storage);
+    let DiscussionPromise = DiscussionFactory.open(ctx, storage);
+    let DiscussionDraftPromise = DiscussionDraftFactory.open(ctx, storage);
+    let ContactPromise = ContactFactory.open(ctx, storage);
+    let PhonebookItemPromise = PhonebookItemFactory.open(ctx, storage);
+    let PresenceLogDirectoryPromise = storage.resolveCustomDirectory(ctx, 'presenceLog');
+    let PresenceMobileInstalledDirectoryPromise = storage.resolveCustomDirectory(ctx, 'presenceMobileInstalled');
+    let UserPresenceDirectoryPromise = storage.resolveCustomDirectory(ctx, 'userPresence');
+    let UserOnlineDirectoryPromise = storage.resolveCustomDirectory(ctx, 'userOnline');
+    let RoomParticipantsActiveDirectoryPromise = storage.resolveCustomDirectory(ctx, 'roomParticipantsActive');
+    let UserChatsActiveDirectoryPromise = storage.resolveCustomDirectory(ctx, 'userChatsActive');
+    let UserChatsAllIndexDirectoryPromise = storage.resolveCustomDirectory(ctx, 'userChatsAllIndex');
+    let MessageDeliveryDirectoryPromise = storage.resolveCustomDirectory(ctx, 'messageDelivery');
+    let MessageDeliveryBatchDirectoryPromise = storage.resolveCustomDirectory(ctx, 'messageDeliveryBatch');
+    let MessageCountersDirectoryPromise = storage.resolveCustomDirectory(ctx, 'messageCounters');
+    let FollowersDirectoryPromise = storage.resolveCustomDirectory(ctx, 'followers');
+    let UserDialogIndexDirectoryPromise = storage.resolveCustomDirectory(ctx, 'userDialogIndex');
+    let UserCountersIndexDirectoryPromise = storage.resolveCustomDirectory(ctx, 'userCountersIndex');
+    let FastCountersDirectoryPromise = storage.resolveCustomDirectory(ctx, 'fastCounters');
+    let ExperimentalCountersDirectoryPromise = storage.resolveCustomDirectory(ctx, 'experimentalCounters');
+    let NewCountersDirectoryPromise = storage.resolveCustomDirectory(ctx, 'newCounters');
+    let SyncCountersDirectoryPromise = storage.resolveCustomDirectory(ctx, 'syncCounters');
+    let UserReadSeqsDirectoryPromise = storage.resolveCustomDirectory(ctx, 'userReadSeqs');
+    let ChatMembersDirectoryPromise = storage.resolveCustomDirectory(ctx, 'chatMembers');
+    let UserDialogMuteSettingDirectoryPromise = storage.resolveCustomDirectory(ctx, 'userDialogMuteSetting');
+    let ConferencePeerKeepAliveDirectoryPromise = storage.resolveCustomDirectory(ctx, 'conferencePeerKeepAlive');
+    let EndStreamDirectoryPromise = storage.resolveCustomDirectory(ctx, 'endStream');
+    let ConferenceSchedulingDirectoryPromise = storage.resolveCustomDirectory(ctx, 'conferenceScheduling');
+    let ConferenceScalableStateDirectoryPromise = storage.resolveCustomDirectory(ctx, 'conferenceScalableState');
+    let ConferenceScalableShardingDirectoryPromise = storage.resolveCustomDirectory(ctx, 'conferenceScalableSharding');
+    let ConferenceScalableAllocatorDirectoryPromise = storage.resolveCustomDirectory(ctx, 'conferenceScalableAllocator');
+    let ConferenceScalablePeersDirectoryPromise = storage.resolveCustomDirectory(ctx, 'conferenceScalablePeers');
+    let NotificationCenterNeedDeliveryFlagDirectoryPromise = storage.resolveCustomDirectory(ctx, 'notificationCenterNeedDeliveryFlag');
+    let NeedNotificationFlagDirectoryPromise = storage.resolveCustomDirectory(ctx, 'needNotificationFlag');
+    let EventStorageDirectoryPromise = storage.resolveCustomDirectory(ctx, 'eventStorage');
+    let EventRegistrationsDirectoryPromise = storage.resolveCustomDirectory(ctx, 'eventRegistrations');
+    let ShardingDataDirectoryPromise = storage.resolveCustomDirectory(ctx, 'shardingData');
+    let ImportedPhoneDirectoryPromise = storage.resolveCustomDirectory(ctx, 'importedPhone');
+    let PhoneImportedByUserDirectoryPromise = storage.resolveCustomDirectory(ctx, 'phoneImportedByUser');
+    let BlackListDirectoryDirectoryPromise = storage.resolveCustomDirectory(ctx, 'blackListDirectory');
+    let VoiceChatEventsStorePromise = VoiceChatEventsStore.open(ctx, storage, eventFactory);
+    let ConversationEventStorePromise = ConversationEventStore.open(ctx, storage, eventFactory);
+    let DialogIndexEventStorePromise = DialogIndexEventStore.open(ctx, storage, eventFactory);
+    let UserDialogEventStorePromise = UserDialogEventStore.open(ctx, storage, eventFactory);
+    let FeedEventStorePromise = FeedEventStore.open(ctx, storage, eventFactory);
+    let FeedGlobalEventStorePromise = FeedGlobalEventStore.open(ctx, storage, eventFactory);
+    let UserStickersEventStorePromise = UserStickersEventStore.open(ctx, storage, eventFactory);
+    let UserLocationEventStorePromise = UserLocationEventStore.open(ctx, storage, eventFactory);
+    let UserWalletUpdatesPromise = UserWalletUpdates.open(ctx, storage, eventFactory);
+    let StripeEventStorePromise = StripeEventStore.open(ctx, storage, eventFactory);
+    let HyperLogStorePromise = HyperLogStore.open(ctx, storage, eventFactory);
+    let UserContactsEventStorePromise = UserContactsEventStore.open(ctx, storage, eventFactory);
+    let BlackListEventStorePromise = BlackListEventStore.open(ctx, storage, eventFactory);
     let DeliveryFanOutQueuePromise = QueueStorage.open('DeliveryFanOut', storage);
     let DeliveryUserBatchQueuePromise = QueueStorage.open('DeliveryUserBatch', storage);
     let CommentAugmentationQueuePromise = QueueStorage.open('CommentAugmentation', storage);
