@@ -87,10 +87,14 @@ async function handleNotification(ctx: Context, uid: number, settings: UserSetti
     }
 
     let title = '';
-    let pushBody = '';
+    let pushBody = {
+        EN: '',
+        RU: ''
+    };
 
     if (notification.text) {
-        pushBody += notification.text;
+        pushBody.EN += notification.text;
+        pushBody.RU += notification.text;
     }
 
     if (notification.content) {
@@ -107,7 +111,10 @@ async function handleNotification(ctx: Context, uid: number, settings: UserSetti
             } else {
                 title = 'New comment in ' + chatName;
             }
-            pushBody = `${userName}: ${await fetchMessageFallback(ctx, 'EN', comment!)}`;
+            pushBody = {
+                EN: `${userName}: ${await fetchMessageFallback(ctx, 'EN', comment!)}`,
+                RU: `${userName}: ${await fetchMessageFallback(ctx, 'RU', comment!)}`
+            };
         }
     }
 
@@ -115,7 +122,8 @@ async function handleNotification(ctx: Context, uid: number, settings: UserSetti
     let push: Push = {
         uid: uid,
         title: title,
-        body: pushBody,
+        body: pushBody.EN,
+        bodyMultiLang: pushBody,
         picture: null,
         counter: await Modules.Messaging.counters.fetchUserGlobalCounter(ctx, uid),
         conversationId: null,
