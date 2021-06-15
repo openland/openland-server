@@ -105,7 +105,7 @@ async function handlePush(root: Context, repo: PushRepository, push: Push) {
                     contentAvailable: true,
                     badge: unread,
                     alert: {
-                        title: push.title,
+                        title: push.titleMultiLang ? push.titleMultiLang[lang] : push.title,
                         body: mobileBody,
                     },
                     payload: {
@@ -156,7 +156,7 @@ async function handlePush(root: Context, repo: PushRepository, push: Push) {
                 tokenId: token.id,
                 collapseKey: conversationId,
                 notification: {
-                    title: push.title,
+                    title: push.titleMultiLang ? push.titleMultiLang[lang] : push.title,
                     body: mobileBody,
                     sound: push.mobileAlert ? 'default' : 'silence.mp3',
                     tag: conversationId,

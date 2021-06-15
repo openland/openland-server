@@ -86,7 +86,10 @@ async function handleNotification(ctx: Context, uid: number, settings: UserSetti
         return false;
     }
 
-    let title = '';
+    let title = {
+        EN: '',
+        RU: ''
+    };
     let pushBody = {
         EN: '',
         RU: ''
@@ -107,9 +110,15 @@ async function handleNotification(ctx: Context, uid: number, settings: UserSetti
             let userName = await Modules.Users.getUserFullName(ctx, comment!.uid);
 
             if (chat!.kind === 'private') {
-                title = 'New comment';
+                title = {
+                    EN: 'New comment',
+                    RU: 'Новый комментарий'
+                };
             } else {
-                title = 'New comment in ' + chatName;
+                title = {
+                    EN: 'New comment in ' + chatName,
+                    RU: 'Новый комментарий: ' + chatName
+                };
             }
             pushBody = {
                 EN: `${userName}: ${await fetchMessageFallback(ctx, 'EN', comment!)}`,
@@ -121,7 +130,8 @@ async function handleNotification(ctx: Context, uid: number, settings: UserSetti
     let deprecatedMobileAlert = (settings.mobileAlert !== undefined && settings.mobileAlert !== null) ? settings.mobileAlert : true;
     let push: Push = {
         uid: uid,
-        title: title,
+        title: title.EN,
+        titleMultiLang: title,
         body: pushBody.EN,
         bodyMultiLang: pushBody,
         picture: null,

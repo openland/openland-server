@@ -1,6 +1,7 @@
 export type Push = {
     uid: number;
     title: string;
+    titleMultiLang?: { [lang: string]: string };
     body: string;
     bodyMultiLang?: { [lang: string]: string };
     picture: string | null;
