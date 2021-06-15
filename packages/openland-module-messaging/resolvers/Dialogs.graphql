@@ -12,6 +12,7 @@ type Dialog {
     kind: DialogKind!
     isChannel: Boolean!
     isPremium: Boolean!
+    premiumSubscription: WalletSubscription
     title: String!
     photo: String!
     featured: Boolean!

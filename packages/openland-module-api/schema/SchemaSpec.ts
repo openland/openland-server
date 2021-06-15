@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd69f73eb7944a08b0c01429e871977f1';
+export const GQL_SPEC_VERSION = '96ba847cdf759e9c67dfabda6e65f9bf';
 
 export namespace GQL {
     export interface CreditCard {
@@ -517,6 +517,7 @@ export namespace GQL {
         kind: DialogKind;
         isChannel: boolean;
         isPremium: boolean;
+        premiumSubscription: Nullable<WalletSubscription>;
         title: string;
         photo: string;
         featured: boolean;
@@ -534,6 +535,7 @@ export namespace GQL {
     export interface DialogKindArgs { }
     export interface DialogIsChannelArgs { }
     export interface DialogIsPremiumArgs { }
+    export interface DialogPremiumSubscriptionArgs { }
     export interface DialogTitleArgs { }
     export interface DialogPhotoArgs { }
     export interface DialogFeaturedArgs { }
@@ -7212,6 +7214,7 @@ export interface GQLResolver {
         GQL.Dialog,
         GQLRoots.DialogRoot,
         {
+            premiumSubscription: Nullable<GQLRoots.WalletSubscriptionRoot>,
             alphaTopMessage: Nullable<GQLRoots.ModernMessageRoot>,
         },
         {
@@ -7221,6 +7224,7 @@ export interface GQLResolver {
             kind: GQL.DialogKindArgs,
             isChannel: GQL.DialogIsChannelArgs,
             isPremium: GQL.DialogIsPremiumArgs,
+            premiumSubscription: GQL.DialogPremiumSubscriptionArgs,
             title: GQL.DialogTitleArgs,
             photo: GQL.DialogPhotoArgs,
             featured: GQL.DialogFeaturedArgs,
