@@ -62,8 +62,11 @@ export const Resolver: GQLResolver = {
             return !!(room && room.isPremium);
         },
         premiumSubscription: async (src: { cid: number }, args: {}, ctx: Context) => {
-            let subscriptions = await Store.WalletSubscription.user.findAll(ctx, ctx.auth.uid!);
-            return subscriptions.find(s => s.proudct.type === 'group' && s.proudct.gid === src.cid) || null;
+            let pass = await Store.PremiumChatUserPass.findById(ctx, src.cid, ctx.auth.uid!);
+            if (pass && pass.sid) {
+                return await Store.WalletSubscription.findById(ctx, pass.sid);
+            }
+            return null;
         },
 
         title: async (src: { cid: number }, args: {}, ctx: Context) => {
