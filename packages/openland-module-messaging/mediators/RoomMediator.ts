@@ -2,7 +2,7 @@
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { EventsMediator } from './../mediators/EventsMediator';
 import { ChatUpdatedEvent, ConversationRoom } from 'openland-module-db/store';
-import { inTx, transactional } from '@openland/foundationdb';
+import { getTransaction, inTx, transactional } from '@openland/foundationdb';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { RoomRepository, WelcomeMessageT } from 'openland-module-messaging/repositories/RoomRepository';
@@ -666,6 +666,9 @@ export class RoomMediator {
                     await this.messaging.readRoom(ctx, uid, cid, lastMessage.id);
                 }
                 await this.delivery.onDialogDelete(ctx, uid, cid);
+                getTransaction(ctx).afterCommit(() => {
+                    EventBus.publish('default', `chat_leave_${cid}`, { uid, cid });
+                });
             } else {
                 if (lastMessage) {
                     await this.messaging.readRoom(ctx, chat.uid1, cid, lastMessage.id);
@@ -673,6 +676,11 @@ export class RoomMediator {
                 }
                 await this.delivery.onDialogDelete(ctx, chat.uid1, cid);
                 await this.delivery.onDialogDelete(ctx, chat.uid2, cid);
+
+                getTransaction(ctx).afterCommit(() => {
+                    EventBus.publish('default', `chat_leave_${cid}`, { uid: chat!.uid1, cid });
+                    EventBus.publish('default', `chat_leave_${cid}`, { uid: chat!.uid2, cid });
+                });
             }
         });
     }
