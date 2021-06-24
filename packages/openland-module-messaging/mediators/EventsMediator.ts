@@ -68,6 +68,10 @@ export class EventsMediator {
         await Modules.Events.postToChat(ctx, cid, UpdateRoomChanged.create({ cid }));
     }
 
+    async onGroupChatLostAccess(ctx: Context, cid: number, forUid: number) {
+        this.messagingEvents.postChatLostAccess(ctx, cid, forUid);
+    }
+
     //
     // Private Updates
     //

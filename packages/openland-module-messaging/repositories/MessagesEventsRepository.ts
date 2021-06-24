@@ -1,5 +1,10 @@
 import { Context } from '@openland/context';
-import { MessageReceivedEvent, MessageUpdatedEvent, MessageDeletedEvent } from 'openland-module-db/store';
+import {
+    MessageReceivedEvent,
+    MessageUpdatedEvent,
+    MessageDeletedEvent,
+    ChatLostAccess
+} from 'openland-module-db/store';
 import { Store } from 'openland-module-db/FDB';
 import { injectable } from 'inversify';
 
@@ -28,5 +33,9 @@ export class MessagesEventsRepository {
             mid,
             visibleOnlyForUids
         }));
+    }
+
+    postChatLostAccess(ctx: Context, cid: number, forUid: number) {
+        Store.ConversationEventStore.post(ctx, cid, ChatLostAccess.create({ cid, forUid }));
     }
 }

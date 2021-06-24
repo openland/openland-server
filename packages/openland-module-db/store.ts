@@ -23249,10 +23249,12 @@ export class VoiceChatUpdatedEvent extends BaseEvent {
 
 const chatLostAccessCodec = c.struct({
     cid: c.integer,
+    forUid: c.optional(c.integer),
 });
 
 interface ChatLostAccessShape {
     cid: number;
+    forUid?: number | null | undefined;
 }
 
 export class ChatLostAccess extends BaseEvent {
@@ -23278,6 +23280,7 @@ export class ChatLostAccess extends BaseEvent {
     }
 
     get cid(): number { return this.raw.cid; }
+    get forUid(): number | null { return this.raw.forUid; }
 }
 
 const chatUpdatedEventCodec = c.struct({

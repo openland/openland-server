@@ -592,6 +592,7 @@ export default declareSchema(() => {
 
     event('ChatLostAccess', () => {
         field('cid', integer());
+        field('forUid', optional(integer()));
     });
 
     event('ChatUpdatedEvent', () => {

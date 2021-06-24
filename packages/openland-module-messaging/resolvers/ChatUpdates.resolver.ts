@@ -9,10 +9,9 @@ import { IDs } from '../../openland-module-api/IDs';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { Modules } from '../../openland-modules/Modules';
 import { delay } from '../../openland-utils/timer';
-import { EventBus } from '../../openland-module-pubsub/EventBus';
 import { BaseEvent } from '@openland/foundationdb-entity';
 import { MessageReceivedEvent, MessageUpdatedEvent } from 'openland-module-db/store';
-import { isContextCancelled, onContextCancel } from '@openland/lifetime';
+import { isContextCancelled } from '@openland/lifetime';
 import { batch } from '../../openland-utils/batch';
 
 function eventCollapseKey(obj: BaseEvent) {
@@ -208,27 +207,33 @@ export const Resolver: GQLResolver = {
 
                 // New event source
                 let generator = Store.ConversationEventStore.createLiveStream(ctx, chatId, { batchSize: 20, after: after || undefined });
-                let haveAccess = true;
-                let subscription = EventBus.subscribe('default', `chat_leave_${chatId}`, (ev: { uid: number, cid: number }) => {
-                    if (ev.uid === uid) {
-                        haveAccess = false;
-                    }
-                });
-                if (isContextCancelled(ctx)) {
-                    subscription.cancel();
-                    return;
-                }
-                onContextCancel(ctx, () => {
-                    subscription.cancel();
-                });
+                // let haveAccess = true;
+                // let subscription = EventBus.subscribe('default', `chat_leave_${chatId}`, (ev: { uid: number, cid: number }) => {
+                //     if (ev.uid === uid) {
+                //         haveAccess = false;
+                //     }
+                // });
+                // if (isContextCancelled(ctx)) {
+                //     subscription.cancel();
+                //     return;
+                // }
+                // onContextCancel(ctx, () => {
+                //     subscription.cancel();
+                // });
 
                 for await (let event of generator) {
-                    if (!haveAccess) {
-                        subscription.cancel();
+                    // if (!haveAccess) {
+                    //     // subscription.cancel();
+                    //     yield lostAccessEvent;
+                    //     while (!isContextCancelled(ctx)) {
+                    //         await delay(5000);
+                    //     }
+                    //     return;
+                    // }
+
+                    let lostAccess = event.items.find(ev => ev instanceof ChatLostAccess) as ChatLostAccess;
+                    if (lostAccess && lostAccess.forUid === uid) {
                         yield lostAccessEvent;
-                        while (!isContextCancelled(ctx)) {
-                            await delay(5000);
-                        }
                         return;
                     }
 
