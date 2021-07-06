@@ -88,6 +88,7 @@ import { VoiceChatsModule } from '../openland-module-voice-chats/VoiceChatsModul
 import { createBroker } from 'openland-server/broker';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createHandyClient } from 'handy-redis';
+import { startFixer } from 'openland-server/fixer';
 
 const logger = createLogger('starting');
 
@@ -315,4 +316,7 @@ export async function startAllModules(ctx: Context) {
     // Enable API after all modules started
     logger.log(ctx, 'Starting module: API');
     await container.get(ApiModule).start();
+
+    // Start Fixer
+    await startFixer();
 }
