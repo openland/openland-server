@@ -27,11 +27,11 @@ const trace = createTracer('messaging');
 const linkifyInstance = createLinkifyInstance();
 
 const BAD_WORDS = [
-    'https://t.me/siliconpravdachat',
-    't.me/siliconpravdachat',
-    'siliconpravdachat',
-    'silicon pravda',
-    'siliconpravda',
+    // 'https://t.me/siliconpravdachat',
+    // 't.me/siliconpravdachat',
+    // 'siliconpravdachat',
+    // 'silicon pravda',
+    // 'siliconpravda',
     'li.sten.to/youngtrawmusic',
     'http://li.sten.to/youngtrawmusic',
     'https://li.sten.to/youngtrawmusic',
