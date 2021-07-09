@@ -431,19 +431,27 @@ export const Resolver: GQLResolver = {
         //
         superExportPayments: withPermission('super-admin', async (parent, args) => {
             let uid = IDs.User.parse(args.id);
-            let res: string[] = [];
+            let res: any[] = [];
             let datas = await inTx(withoutTransaction(parent), async (ctx) => {
                 let transactions = await Store.WalletTransaction.history.findAll(ctx, uid);
                 let wallet = await Store.Wallet.findByIdOrFail(ctx, uid);
+                let stripeCustomer = await Store.UserStripeCustomer.findById(ctx, uid);
                 return {
                     transactions,
-                    wallet
+                    wallet,
+                    stripeCustomer
                 };
             });
 
-            res.push(JSON.stringify({ balance: datas.wallet.balance, balanceLocked: datas.wallet.balanceLocked, isLocked: datas.wallet.isLocked }));
+            if (datas.stripeCustomer) {
+                res.push({ type: 'stripe', 'customerId': datas.stripeCustomer.stripeId });
+            }
+            res.push({ type: 'wallet', balance: datas.wallet.balance, balanceLocked: datas.wallet.balanceLocked, isLocked: datas.wallet.isLocked });
+            for (let tx of datas.transactions) {
+                res.push({ type: 'tx', id: tx.id, operation: tx.operation, status: tx.status })
+            }
 
-            return res.join('\n');
+            return JSON.stringify(res);
         })
     },
 
