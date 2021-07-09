@@ -241,7 +241,7 @@ export class SubscriptionsRepository {
 
                 // Create Payment
                 let pid = uuid();
-                await this.payments.createPayment(ctx, pid, uid, amount, {
+                await this.payments.createPayment(ctx, pid, uid, amounts.charge, {
                     type: 'subscription',
                     uid: uid,
                     subscription: id,
