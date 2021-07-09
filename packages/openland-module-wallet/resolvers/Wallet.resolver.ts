@@ -1,13 +1,13 @@
 import { LiveStreamItem, BaseEvent } from '@openland/foundationdb-entity';
 import { Modules } from 'openland-modules/Modules';
 import { Store } from 'openland-module-db/FDB';
-import { withAccount } from 'openland-module-api/Resolvers';
+import { withAccount, withPermission } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver, GQL } from 'openland-module-api/schema/SchemaSpec';
 import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged, WalletLockedChanged, WalletSubscription, WalletPurchase } from 'openland-module-db/store';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-import { inTx } from '@openland/foundationdb';
+import { inTx, withoutTransaction } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 
 export const Resolver: GQLResolver = {
@@ -426,6 +426,25 @@ export const Resolver: GQLResolver = {
             });
         }),
 
+        //
+        // Super Methods
+        //
+        superExportPayments: withPermission('super-admin', async (parent, args) => {
+            let uid = IDs.User.parse(args.id);
+            let res: string[] = [];
+            let datas = await inTx(withoutTransaction(parent), async (ctx) => {
+                let transactions = await Store.WalletTransaction.history.findAll(ctx, uid);
+                let wallet = await Store.Wallet.findByIdOrFail(ctx, uid);
+                return {
+                    transactions,
+                    wallet
+                };
+            });
+
+            res.push(JSON.stringify({ balance: datas.wallet.balance, balanceLocked: datas.wallet.balanceLocked, isLocked: datas.wallet.isLocked }));
+
+            return res.join('\n');
+        })
     },
 
     //

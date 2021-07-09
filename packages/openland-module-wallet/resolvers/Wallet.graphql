@@ -272,3 +272,7 @@ extend type Mutation {
 extend type Subscription {
     walletUpdates(fromState: String!): WalletUpdateContainer!
 }
+
+extend type Mutation {
+    superExportPayments(id: ID!): String!
+}

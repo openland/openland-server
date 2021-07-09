@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, InterfaceTypeResolver, Nullable, OptionalNullable, EnumTypeResolver } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '96ba847cdf759e9c67dfabda6e65f9bf';
+export const GQL_SPEC_VERSION = '8623ed9f3510f7610188fa02d2c30df3';
 
 export namespace GQL {
     export interface CreditCard {
@@ -2007,6 +2007,7 @@ export namespace GQL {
         paymentIntentCommit: boolean;
         paymentCancel: boolean;
         subscriptionCancel: WalletSubscription;
+        superExportPayments: string;
         alphaJoinInvite: string;
         joinAppInvite: string;
         phonebookAdd: boolean;
@@ -2380,6 +2381,9 @@ export namespace GQL {
         id: string;
     }
     export interface MutationSubscriptionCancelArgs {
+        id: string;
+    }
+    export interface MutationSuperExportPaymentsArgs {
         id: string;
     }
     export interface MutationAlphaJoinInviteArgs {
@@ -9108,6 +9112,7 @@ export interface GQLResolver {
             paymentIntentCommit: GQL.MutationPaymentIntentCommitArgs,
             paymentCancel: GQL.MutationPaymentCancelArgs,
             subscriptionCancel: GQL.MutationSubscriptionCancelArgs,
+            superExportPayments: GQL.MutationSuperExportPaymentsArgs,
             alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs,
             joinAppInvite: GQL.MutationJoinAppInviteArgs,
             phonebookAdd: GQL.MutationPhonebookAddArgs,
