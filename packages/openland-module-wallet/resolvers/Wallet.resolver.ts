@@ -436,10 +436,12 @@ export const Resolver: GQLResolver = {
                 let transactions = await Store.WalletTransaction.history.findAll(ctx, uid);
                 let wallet = await Store.Wallet.findByIdOrFail(ctx, uid);
                 let stripeCustomer = await Store.UserStripeCustomer.findById(ctx, uid);
+                let payments = await Store.Payment.user.findAll(ctx, uid);
                 return {
                     transactions,
                     wallet,
-                    stripeCustomer
+                    stripeCustomer,
+                    payments
                 };
             });
 
@@ -449,6 +451,9 @@ export const Resolver: GQLResolver = {
             res.push({ type: 'wallet', balance: datas.wallet.balance, balanceLocked: datas.wallet.balanceLocked, isLocked: datas.wallet.isLocked });
             for (let tx of datas.transactions) {
                 res.push({ type: 'tx', id: tx.id, operation: tx.operation, status: tx.status });
+            }
+            for (let payment of datas.payments) {
+                res.push({ type: 'payment', status: payment.state, stripeIntent: payment.uid, amount: payment.amount, operation: payment.operation });
             }
 
             return JSON.stringify(res);
