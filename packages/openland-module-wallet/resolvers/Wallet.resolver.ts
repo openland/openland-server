@@ -448,7 +448,7 @@ export const Resolver: GQLResolver = {
             }
             res.push({ type: 'wallet', balance: datas.wallet.balance, balanceLocked: datas.wallet.balanceLocked, isLocked: datas.wallet.isLocked });
             for (let tx of datas.transactions) {
-                res.push({ type: 'tx', id: tx.id, operation: tx.operation, status: tx.status })
+                res.push({ type: 'tx', id: tx.id, operation: tx.operation, status: tx.status });
             }
 
             return JSON.stringify(res);
