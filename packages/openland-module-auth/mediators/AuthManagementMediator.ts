@@ -113,7 +113,7 @@ export class AuthManagementMediator {
             }
 
             // Mark code user
-            await emailChangeCode.onUse(ctx, confirmationCode);
+            // await emailChangeCode.onUse(ctx, confirmationCode);
 
             // Release throttle
             await emailChangeThrottle.release(ctx, code.data.email);
@@ -199,7 +199,7 @@ export class AuthManagementMediator {
             }
 
             // Mark code used
-            await phonePairCode.onUse(ctx, confirmationCode);
+            // await phonePairCode.onUse(ctx, confirmationCode);
 
             // Release throttle
             await emailChangeThrottle.release(ctx, code.data.phone);

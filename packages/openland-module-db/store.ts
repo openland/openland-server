@@ -21538,7 +21538,7 @@ export class OneTimeCodeFactory extends EntityFactory<OneTimeCodeShape, OneTimeC
     static async open(ctx: Context, storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory(ctx, 'oneTimeCode');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'code', storageKey: 'code', type: { type: 'unique', fields: [{ name: 'service', type: 'string' }, { name: 'code', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'oneTimeCode', 'code'), condition: undefined });
+        secondaryIndexes.push({ name: 'code', storageKey: 'code', type: { type: 'unique', fields: [{ name: 'service', type: 'string' }, { name: 'code', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'oneTimeCode', 'code'), condition: (src) => !!src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'service', type: 'string' });
         primaryKeys.push({ name: 'id', type: 'string' });

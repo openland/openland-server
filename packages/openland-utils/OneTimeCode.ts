@@ -61,16 +61,16 @@ class OneTimeCodeRepo<Data> {
         });
     }
 
-    async findByCode(parent: Context, code: string) {
-        return await inTx(parent, async ctx => {
-            let now = Math.floor(Date.now() / 1000);
-            let res = await Store.OneTimeCode.code.find(ctx, this.service, code);
-            if (res && res.enabled && res.expires > now && res.attemptsCount <= this.maxAttempts) {
-                return res;
-            }
-            return null;
-        });
-    }
+    // async findByCode(parent: Context, code: string) {
+    //     return await inTx(parent, async ctx => {
+    //         let now = Math.floor(Date.now() / 1000);
+    //         let res = await Store.OneTimeCode.code.find(ctx, this.service, code);
+    //         if (res && res.enabled && res.expires > now && res.attemptsCount <= this.maxAttempts) {
+    //             return res;
+    //         }
+    //         return null;
+    //     });
+    // }
 
     async onUseAttempt(parent: Context, id: string) {
         return await inTx(parent, async ctx => {
@@ -82,15 +82,15 @@ class OneTimeCodeRepo<Data> {
         });
     }
 
-    async onUse(parent: Context, code: string) {
-        return await inTx(parent, async ctx => {
-            let res = await Store.OneTimeCode.code.find(ctx, this.service, code);
-            if (res) {
-                res.enabled = false;
-                await res.flush(ctx);
-            }
-        });
-    }
+    // async onUse(parent: Context, code: string) {
+    //     return await inTx(parent, async ctx => {
+    //         let res = await Store.OneTimeCode.code.find(ctx, this.service, code);
+    //         if (res) {
+    //             res.enabled = false;
+    //             await res.flush(ctx);
+    //         }
+    //     });
+    // }
 }
 
 export function createOneTimeCodeGenerator<T>(service: string, ttl: number, maxAttempts: number, codeLength: number) {

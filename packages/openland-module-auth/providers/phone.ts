@@ -203,7 +203,7 @@ export function initPhoneAuthProvider(app: Express) {
                 // Release throttle
                 await phoneThrottle.release(ctx, phone);
                 // Mark code used
-                await phoneCode.onUse(ctx, authCode.code);
+                // await phoneCode.onUse(ctx, authCode.code);
 
                 let existingUser = await Store.User.fromPhone.find(ctx, phone);
 

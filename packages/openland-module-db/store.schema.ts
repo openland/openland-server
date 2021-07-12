@@ -2529,7 +2529,7 @@ export default declareSchema(() => {
         field('data', json());
         field('enabled', boolean());
 
-        uniqueIndex('code', ['service', 'code']);
+        // uniqueIndex('code', ['service', 'code']).withCondition((src) => !!src.enabled);
     });
 
     //
