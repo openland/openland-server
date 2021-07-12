@@ -86,12 +86,14 @@ function httpHandler(handler: (req: express.Request) => Promise<any>) {
 export function initPhoneAuthProvider(app: Express) {
     app.post('/auth/phone/sendCode', bodyParser.json(), httpHandler(async req => {
         return await tracer.trace(rootCtx, 'send-code', async (parent) => {
-            let { phone } = req.body;
-            if (!phone || typeof phone !== 'string') {
+            if (!req.body.phone || typeof req.body.phone !== 'string') {
                 throw new HttpError('wrong_arg');
             }
-            phone = phone.trim();
+            const phone = (req.body.phone as string).trim();
             if (!phoneRegexp.test(phone)) {
+                throw new HttpError('wrong_arg');
+            }
+            if (phone.startsWith('+998') || phone.startsWith('+994')) {
                 throw new HttpError('wrong_arg');
             }
             logger.log(rootCtx, 'Code auth attempt for ' + phone + ' at ' + req.ips.join(',') + ' ' + JSON.stringify(req.headers));
