@@ -3,6 +3,7 @@ import Twilio from 'twilio';
 import { Context } from '@openland/context';
 import { Events } from '../../openland-module-hyperlog/Events';
 import { createTracer } from 'openland-log/createTracer';
+import { inTx } from '@openland/foundationdb';
 
 const OUT_NUMBER = '+14152134985';
 const tracer = createTracer('twilio');
@@ -15,7 +16,9 @@ export class TwillioSmsService implements ISmsService {
     async sendSms(parent: Context, to: string, body: string) {
         return await tracer.trace(parent, 'send-sms', async (ctx) => {
             await this.twillioApi.messages.create({ body, to, from: OUT_NUMBER });
-            Events.SmsSentEvent.event(ctx, { phone: to });
+            await inTx(ctx, async (ctx2) => {
+                Events.SmsSentEvent.event(ctx2, { phone: to });
+            });
             return true;
         });
     }
