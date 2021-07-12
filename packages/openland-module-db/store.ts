@@ -21538,7 +21538,6 @@ export class OneTimeCodeFactory extends EntityFactory<OneTimeCodeShape, OneTimeC
     static async open(ctx: Context, storage: EntityStorage) {
         let subspace = await storage.resolveEntityDirectory(ctx, 'oneTimeCode');
         let secondaryIndexes: SecondaryIndexDescriptor[] = [];
-        secondaryIndexes.push({ name: 'code', storageKey: 'code', type: { type: 'unique', fields: [{ name: 'service', type: 'string' }, { name: 'code', type: 'string' }] }, subspace: await storage.resolveEntityIndexDirectory(ctx, 'oneTimeCode', 'code'), condition: (src) => !!src.enabled });
         let primaryKeys: PrimaryKeyDescriptor[] = [];
         primaryKeys.push({ name: 'service', type: 'string' });
         primaryKeys.push({ name: 'id', type: 'string' });
@@ -21569,18 +21568,6 @@ export class OneTimeCodeFactory extends EntityFactory<OneTimeCodeShape, OneTimeC
     private constructor(descriptor: EntityDescriptor<OneTimeCodeShape>) {
         super(descriptor);
     }
-
-    readonly code = Object.freeze({
-        find: async (ctx: Context, service: string, code: string) => {
-            return this._findFromUniqueIndex(ctx, [service, code], this.descriptor.secondaryIndexes[0]);
-        },
-        findAll: async (ctx: Context, service: string) => {
-            return (await this._query(ctx, this.descriptor.secondaryIndexes[0], [service])).items;
-        },
-        query: (ctx: Context, service: string, opts?: RangeQueryOptions<string>) => {
-            return this._query(ctx, this.descriptor.secondaryIndexes[0], [service], { limit: opts && opts.limit, reverse: opts && opts.reverse, after: opts && opts.after ? [opts.after] : undefined, afterCursor: opts && opts.afterCursor ? opts.afterCursor : undefined });
-        },
-    });
 
     create(ctx: Context, service: string, id: string, src: OneTimeCodeCreateShape): Promise<OneTimeCode> {
         return this._create(ctx, [service, id], this.descriptor.codec.normalize({ service, id, ...src }));
