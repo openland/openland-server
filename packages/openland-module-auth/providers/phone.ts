@@ -15,6 +15,7 @@ import { IDs } from '../../openland-module-api/IDs';
 import { createTracer } from 'openland-log/createTracer';
 
 const tracer = createTracer('phone-auth');
+const logger = createLogger('phone-auth');
 
 const Errors = {
     wrong_arg: 'An unexpected error occurred. Please try again.',
@@ -93,6 +94,7 @@ export function initPhoneAuthProvider(app: Express) {
             if (!phoneRegexp.test(phone)) {
                 throw new HttpError('wrong_arg');
             }
+            logger.log(rootCtx, 'Code auth attempt for ' + phone);
 
             let code = await inTx(parent, async (ctx) => {
                 // Handle throttle
