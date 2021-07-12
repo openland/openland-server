@@ -85,16 +85,16 @@ function httpHandler(handler: (req: express.Request) => Promise<any>) {
 export function initPhoneAuthProvider(app: Express) {
     app.post('/auth/phone/sendCode', bodyParser.json(), httpHandler(async req => {
         return await tracer.trace(rootCtx, 'send-code', async (parent) => {
-            return await inTx(parent, async (ctx) => {
-                let { phone } = req.body;
-                if (!phone || typeof phone !== 'string') {
-                    throw new HttpError('wrong_arg');
-                }
-                phone = phone.trim();
-                if (!phoneRegexp.test(phone)) {
-                    throw new HttpError('wrong_arg');
-                }
+            let { phone } = req.body;
+            if (!phone || typeof phone !== 'string') {
+                throw new HttpError('wrong_arg');
+            }
+            phone = phone.trim();
+            if (!phoneRegexp.test(phone)) {
+                throw new HttpError('wrong_arg');
+            }
 
+            let code = await inTx(parent, async (ctx) => {
                 // Handle throttle
                 let nextEmailTime = await phoneThrottle.nextFireTimeout(ctx, phone);
                 if (nextEmailTime > 0) {
@@ -105,17 +105,22 @@ export function initPhoneAuthProvider(app: Express) {
                 await phoneThrottle.onFire(ctx, phone);
 
                 // Create one time code
-                let code = await phoneCode.create(ctx, { phone, authToken: base64.encodeBuffer(randomBytes(64)) });
-                try {
-                    await SmsService.sendSms(ctx, phone, `Openland code: ${code.code}. Valid for 5 minutes.`);
-                } catch (e) {
-                    if (e.code && e.code === 21211) {
-                        throw new HttpError('wrong_phone');
-                    } else {
-                        throw e;
-                    }
-                }
+                return await phoneCode.create(ctx, { phone, authToken: base64.encodeBuffer(randomBytes(64)) });
+            });
 
+            // Send code
+            try {
+                await SmsService.sendSms(parent, phone, `Openland code: ${code.code}. Valid for 5 minutes.`);
+            } catch (e) {
+                if (e.code && e.code === 21211) {
+                    throw new HttpError('wrong_phone');
+                } else {
+                    throw e;
+                }
+            }
+
+            // Resolve profile
+            return await inTx(parent, async (ctx) => {
                 let existingUser = await Store.User.fromPhone.find(ctx, phone);
                 if (existingUser) {
                     let profile = await Store.UserProfile.findById(ctx, existingUser.id);
