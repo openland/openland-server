@@ -94,7 +94,7 @@ export function initPhoneAuthProvider(app: Express) {
             if (!phoneRegexp.test(phone)) {
                 throw new HttpError('wrong_arg');
             }
-            logger.log(rootCtx, 'Code auth attempt for ' + phone + ' at ' + rootCtx.req.ip);
+            logger.log(rootCtx, 'Code auth attempt for ' + phone + ' at ' + req.ips.join(','));
 
             let code = await inTx(parent, async (ctx) => {
                 // Handle throttle
