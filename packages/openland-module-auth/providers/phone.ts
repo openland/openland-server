@@ -13,6 +13,7 @@ import { createLogger } from '@openland/log';
 import { doSimpleHash } from '../../openland-module-push/workers/PushWorker';
 import { IDs } from '../../openland-module-api/IDs';
 import { createTracer } from 'openland-log/createTracer';
+import { BlockedPrefixes } from 'openland-module-auth/blacklist';
 
 const tracer = createTracer('phone-auth');
 const logger = createLogger('phone-auth');
@@ -93,8 +94,10 @@ export function initPhoneAuthProvider(app: Express) {
             if (!phoneRegexp.test(phone)) {
                 throw new HttpError('wrong_arg');
             }
-            if (phone.startsWith('+998') || phone.startsWith('+994')) {
-                throw new HttpError('wrong_arg');
+            for (let p of BlockedPrefixes) {
+                if (phone.startsWith(p)) {
+                    throw new HttpError('wrong_arg');
+                }
             }
             logger.log(rootCtx, 'Code auth attempt for ' + phone + ' at ' + req.ips.join(',') + ' ' + JSON.stringify(req.headers));
 
