@@ -59,7 +59,7 @@ export class AugmentationMediator {
                 }
 
                 let urlInfo = await service.fetchURLInfo(firstUrl.url);
-                logger.log(root, 'Augmenting message: ' + message.id);
+                logger.log(root, 'Loaded augmented message: ' + message.id + ', success:' + !!urlInfo + ', from ' + firstUrl.url);
                 if (!urlInfo) {
                     return;
                 }
