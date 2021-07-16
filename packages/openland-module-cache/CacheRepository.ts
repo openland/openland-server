@@ -1,4 +1,4 @@
-import { transactional } from '@openland/foundationdb';
+import { transactional, inTx } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 
@@ -40,10 +40,8 @@ export class CacheRepository<T> {
 
     @transactional
     async deleteAll(ctx: Context) {
-        let all = await Store.ServiceCache.fromService.findAll(ctx, this.service);
-        for (let entry of all) {
-            entry.value = null;
-        }
+        Store.ServiceCache.descriptor.subspace.clearPrefixed(ctx, [this.service]);
+        Store.ServiceCache.descriptor.secondaryIndexes[0].subspace.clearPrefixed(ctx, [this.service]);
     }
 
     @transactional
