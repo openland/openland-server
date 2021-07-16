@@ -98,10 +98,10 @@ export function initPhoneAuthProvider(app: Express) {
             const blocked = (await inTx(parent, async (ctx) => {
                 let locked = (await Modules.Super.getEnvVar<string>(ctx, 'phones.blocked'));
                 if (!locked) {
-                    return null;
+                    return BlockedPrefixes;
                 }
                 return locked.split(',');
-            })) || BlockedPrefixes;
+            }));
             logger.log(rootCtx, 'Loaded blocked phones: ' + JSON.stringify(blocked));
 
             for (let p of blocked) {
