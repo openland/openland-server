@@ -94,7 +94,16 @@ export function initPhoneAuthProvider(app: Express) {
             if (!phoneRegexp.test(phone)) {
                 throw new HttpError('wrong_arg');
             }
-            for (let p of BlockedPrefixes) {
+
+            const blocked = (await inTx(parent, async (ctx) => {
+                let locked = (await Modules.Super.getEnvVar<string>(ctx, 'phones.blocked'));
+                if (!locked) {
+                    return null;
+                }
+                return locked.split(',');
+            })) || BlockedPrefixes;
+
+            for (let p of blocked) {
                 if (phone.startsWith(p)) {
                     throw new HttpError('wrong_arg');
                 }
