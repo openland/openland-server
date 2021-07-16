@@ -12,7 +12,7 @@ async function fixWalletLock(parent: Context) {
     logger.log(parent, 'Fixing Wallet Locks');
     await Store.Wallet.iterateAllItems(parent, 100, async (ctx, items) => {
         for (let item of items) {
-            logger.log(parent, 'Fixing Wallet lock for ' + item.uid);
+            // logger.log(parent, 'Fixing Wallet lock for ' + item.uid);
             await Modules.Wallet.updateIsLocked(ctx, item.uid);
         }
     });
@@ -27,7 +27,7 @@ async function cleanupSubscriptions(parent: Context) {
     logger.log(parent, 'Fixing subscriptions');
     await Store.Wallet.iterateAllItems(parent, 10, async (ctx, items) => {
         for (let item of items) {
-            logger.log(parent, 'Fixing subscriptions for ' + item.uid);
+            // logger.log(parent, 'Fixing subscriptions for ' + item.uid);
             let subscriptions = await Store.WalletSubscription.user.findAll(ctx, item.uid);
             for (let sub of subscriptions) {
                 if (sub.state === 'expired') {

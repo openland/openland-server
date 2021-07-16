@@ -1,3 +1,4 @@
+import { createLogger } from '@openland/log';
 import { MessagingMediator } from './MessagingMediator';
 import { injectable } from 'inversify';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
@@ -13,6 +14,7 @@ import * as URL from 'url';
 import { BetterWorkerQueue } from 'openland-module-workers/BetterWorkerQueue';
 
 const linkifyInstance = createLinkifyInstance();
+const logger = createLogger('augmentator');
 
 @injectable()
 export class AugmentationMediator {
@@ -30,7 +32,7 @@ export class AugmentationMediator {
 
         if (serverRoleEnabled('workers')) {
             let service = createUrlInfoService();
-            this.queue.addWorkers(100, async (root, item) => {
+            this.queue.addWorkers(10, async (root, item) => {
                 let message = await inTx(root, async ctx => await Store.Message.findById(ctx, item.messageId));
 
                 if (!message || !message.text) {
@@ -57,7 +59,7 @@ export class AugmentationMediator {
                 }
 
                 let urlInfo = await service.fetchURLInfo(firstUrl.url);
-
+                logger.log(root, 'Augmenting message: ' + message.id);
                 if (!urlInfo) {
                     return;
                 }
