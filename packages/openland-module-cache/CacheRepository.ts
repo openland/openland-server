@@ -1,4 +1,4 @@
-import { transactional, inTx } from '@openland/foundationdb';
+import { transactional } from '@openland/foundationdb';
 import { Context } from '@openland/context';
 import { Store } from 'openland-module-db/FDB';
 
