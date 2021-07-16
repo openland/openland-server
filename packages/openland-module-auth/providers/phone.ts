@@ -102,6 +102,7 @@ export function initPhoneAuthProvider(app: Express) {
                 }
                 return locked.split(',');
             })) || BlockedPrefixes;
+            logger.log(rootCtx, 'Loaded blocked phones: ' + JSON.stringify(blocked));
 
             for (let p of blocked) {
                 if (phone.startsWith(p)) {
