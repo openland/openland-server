@@ -1,3 +1,4 @@
+import { Config } from 'openland-config/Config';
 import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 import * as URL from 'url';
@@ -136,7 +137,7 @@ function createURLInfoFetcher() {
 async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: CheerioStatic } | null> {
     let { hostname } = URL.parse(url);
 
-    let res = await fetch('https://web-tools.korshakov.com/api/browser-fetch', {
+    let res = await fetch(Config.screenshotter + '/html', {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -243,7 +244,7 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
     } else {
         let imageBuffer: Buffer;
         if (!params.image) {
-            let loadedImage = await fetch('https://web-tools.korshakov.com/api/browser-image', {
+            let loadedImage = await fetch(Config.screenshotter, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
