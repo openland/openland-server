@@ -102,14 +102,14 @@ export function initPhoneAuthProvider(app: Express) {
                 }
                 return locked.split(',');
             }));
-            logger.log(rootCtx, 'Loaded blocked phones: ' + JSON.stringify(blocked));
+            logger.log(parent, 'Loaded blocked phones: ' + JSON.stringify(blocked));
 
             for (let p of blocked) {
                 if (phone.startsWith(p)) {
                     throw new HttpError('wrong_arg');
                 }
             }
-            logger.log(rootCtx, 'Code auth attempt for ' + phone + ' at ' + req.ips.join(',') + ' ' + JSON.stringify(req.headers));
+            logger.log(parent, 'Code auth attempt for ' + phone + ' at ' + req.ips.join(',') + ' ' + JSON.stringify(req.headers));
 
             let code = await inTx(parent, async (ctx) => {
                 // Handle throttle
