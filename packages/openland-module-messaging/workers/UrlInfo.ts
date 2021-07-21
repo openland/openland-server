@@ -135,7 +135,7 @@ function createURLInfoFetcher() {
 
 async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: CheerioStatic } | null> {
     let { hostname } = URL.parse(url);
-
+    logger.log(rootCtx, 'Downloading data for ' + url);
     let res = await fetch('https://web-tools.korshakov.com/api/browser-fetch', {
         method: 'POST',
         headers: {
@@ -143,10 +143,11 @@ async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: C
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            url: url,
+            url: encodeURI(url),
             width: 1280,
             height: 720
-        })
+        }),
+        timeout: 30000
     });
 
     logger.log(rootCtx, 'augmentation fetch status', res.status, url);
@@ -253,7 +254,8 @@ async function fetchImages(params: RawURLInfo | null): Promise<URLInfo | null> {
                     url: encodeURI(url),
                     width: 1280,
                     height: 720
-                })
+                }),
+                timeout: 30000
             });
             imageBuffer = await loadedImage.buffer();
         } else {

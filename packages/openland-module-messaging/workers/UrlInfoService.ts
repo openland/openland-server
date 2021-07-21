@@ -47,6 +47,8 @@ export class UrlInfoService {
 
     public async fetchURLInfo(url: string, useCached: boolean = true): Promise<URLAugmentation | null> {
 
+        logger.log(rootCtx, 'Fetching url for ' + url);
+
         let { existing, creationTime, freshnessThreshold } = await inReadOnlyTx(rootCtx, async (ctx) => {
             let existing2 = await this.cache.read(ctx, url);
             let creationTime2 = await this.cache.getCreationTime(ctx, url);
@@ -55,6 +57,7 @@ export class UrlInfoService {
         });
 
         if (useCached && existing && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now() && (creationTime ? creationTime! >= freshnessThreshold! : true)) {
+            logger.log(rootCtx, 'Using cache for ' + url);
             return existing;
         }
 
@@ -66,6 +69,7 @@ export class UrlInfoService {
                     if (specialUrl.cache) {
                         await this.cache.write(rootCtx, url, info);
                     }
+                    logger.log(rootCtx, 'Using special for ' + url);
                     return info;
                 }
             }
