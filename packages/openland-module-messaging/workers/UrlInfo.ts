@@ -143,7 +143,7 @@ async function fetchRawURLInfo(url: string): Promise<{ info: RawURLInfo, doc?: C
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            url: encodeURI(url),
+            url: url,
             width: 1280,
             height: 720
         })

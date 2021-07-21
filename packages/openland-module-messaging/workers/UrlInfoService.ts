@@ -1,3 +1,4 @@
+import { createLogger } from '@openland/log';
 import { inHybridTx, inReadOnlyTx, inTx } from '@openland/foundationdb';
 import { IDs, IdsFactory } from '../../openland-module-api/IDs';
 import * as URL from 'url';
@@ -16,6 +17,7 @@ import { formatMoneyWithInterval } from 'openland-module-wallet/repo/utils/forma
 export const makePhotoFallback = (id: string, text: string) => ({ photo: 'ph://' + doSimpleHash(id) % 6, text });
 
 const rootCtx = createNamedContext('url-info');
+const logger = createLogger('augmentator');
 
 export interface URLAugmentation {
     url: string;
@@ -87,6 +89,7 @@ export class UrlInfoService {
 
             return { ...info };
         } catch (e) {
+            logger.warn(rootCtx, e);
             return null;
         }
     }
