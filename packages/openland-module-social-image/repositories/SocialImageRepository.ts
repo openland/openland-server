@@ -1,4 +1,3 @@
-import { Config } from 'openland-config/Config';
 import fetch from 'node-fetch';
 import { Context, createNamedContext } from '@openland/context';
 import { createLogger } from '@openland/log';
@@ -7,6 +6,7 @@ import { buildBaseImageUrl, ImageRef } from '../../openland-module-media/ImageRe
 import { Store } from 'openland-module-db/FDB';
 import { injectable } from 'inversify';
 import { Modules } from '../../openland-modules/Modules';
+import { createSocialImageLayout } from './createSocialImageLayout';
 
 const rootCtx = createNamedContext('social-image');
 const logger = createLogger('social-image');
@@ -37,7 +37,7 @@ export class SocialImageRepository {
         }
 
         // truncate conv title
-        let title =  conv.title;
+        let title = conv.title;
         if (title.length > 20) {
             title = title.slice(0, 17) + '...';
         }
@@ -114,32 +114,34 @@ export class SocialImageRepository {
         return generated;
     }
 
-    private renderSocialImage = async (title: string, image: string|null, subTitle: string): Promise<ImageRef | null> => {
+    private renderSocialImage = async (title: string, image: string | null, subTitle: string): Promise<ImageRef | null> => {
         try {
-            let res = await fetch(Config.screenshotter + '/render', {
+            let res = await fetch('https://web-tools.korshakov.com/api/browser-render', {
                 method: 'POST',
                 headers: {
-                    'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    template: 'sharing2',
-                    args: {
-                        title,
-                        image,
-                        subTitle
-                    }
-                })
+                    body: createSocialImageLayout({ title, image, subtitle: subTitle }),
+                    width: 600,
+                    height: 300,
+                    scale: 2
+                }),
+                timeout: 30000
             });
 
             logger.log(rootCtx, 'social image fetch status ', res.status, title);
             if (res.status !== 200) {
                 return null;
             }
-            let json = await res.json();
 
+            // Upload image
+            let imageData = await res.buffer();
+            let uploaded = await Modules.Media.upload(rootCtx, imageData, 'png');
+
+            // Result
             return {
-                uuid: json.file,
+                uuid: uploaded.file,
                 crop: null,
             };
         } catch (e) {
