@@ -98,7 +98,7 @@ export function initPhoneAuthProvider(app: Express) {
             if (typeof req.headers['user-agent'] !== 'string') {
                 throw new HttpError('wrong_arg');
             }
-            if (req.headers['user-agent'].startsWith('okhttp')) {
+            if (req.headers['user-agent'].toLocaleLowerCase().startsWith('okhttp')) {
                 throw new HttpError('wrong_arg');
             }
 
