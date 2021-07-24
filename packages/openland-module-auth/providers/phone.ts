@@ -95,6 +95,13 @@ export function initPhoneAuthProvider(app: Express) {
                 throw new HttpError('wrong_arg');
             }
 
+            if (typeof req.headers['user-agent'] !== 'string') {
+                throw new HttpError('wrong_arg');
+            }
+            if (req.headers['user-agent'].startsWith('okhttp')) {
+                throw new HttpError('wrong_arg');
+            }
+
             const blocked = (await inTx(parent, async (ctx) => {
                 let locked = (await Modules.Super.getEnvVar<string>(ctx, 'phones.blocked'));
                 if (!locked) {
