@@ -94,29 +94,39 @@ export function initPhoneAuthProvider(app: Express) {
             if (!phoneRegexp.test(phone)) {
                 throw new HttpError('wrong_arg');
             }
-
             if (typeof req.headers['user-agent'] !== 'string') {
                 throw new HttpError('wrong_arg');
             }
-            if (req.headers['user-agent'].toLocaleLowerCase().startsWith('okhttp')) {
-                throw new HttpError('wrong_arg');
-            }
 
-            const blocked = (await inTx(parent, async (ctx) => {
-                let locked = (await Modules.Super.getEnvVar<string>(ctx, 'phones.blocked'));
-                if (!locked) {
-                    return BlockedPrefixes;
-                }
-                return locked.split(',');
-            }));
-            logger.log(parent, 'Loaded blocked phones: ' + JSON.stringify(blocked));
+            // Check if user exists
+            let exists = await inTx(parent, async (ctx) => {
+                return !!(await Store.User.fromPhone.find(ctx, phone));
+            });
 
-            for (let p of blocked) {
-                if (phone.startsWith(p)) {
+            // If user does not exist - check
+            if (!exists) {
+                if (req.headers['user-agent'].toLocaleLowerCase().startsWith('okhttp')) {
+
                     throw new HttpError('wrong_arg');
+
                 }
+
+                const blocked = (await inTx(parent, async (ctx) => {
+                    let locked = (await Modules.Super.getEnvVar<string>(ctx, 'phones.blocked'));
+                    if (!locked) {
+                        return BlockedPrefixes;
+                    }
+                    return locked.split(',');
+                }));
+                logger.log(parent, 'Loaded blocked phones: ' + JSON.stringify(blocked));
+
+                for (let p of blocked) {
+                    if (phone.startsWith(p)) {
+                        throw new HttpError('wrong_arg');
+                    }
+                }
+                logger.log(parent, 'Code auth attempt for ' + phone + ' at ' + req.ips.join(',') + ' ' + JSON.stringify(req.headers));
             }
-            logger.log(parent, 'Code auth attempt for ' + phone + ' at ' + req.ips.join(',') + ' ' + JSON.stringify(req.headers));
 
             let code = await inTx(parent, async (ctx) => {
                 // Handle throttle
