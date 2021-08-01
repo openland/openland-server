@@ -1485,4 +1485,13 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '208-reset-wallet-updates',
+    migration: async (parent) => {
+        await inTx(parent, async (ctx) => {
+            Store.UserWalletUpdates.descriptor.subspace.clearPrefixed(ctx, Buffer.from([]));
+        });
+    }
+});
+
 export default migrations;

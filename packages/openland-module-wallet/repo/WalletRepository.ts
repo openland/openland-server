@@ -37,10 +37,10 @@ export class WalletRepository {
             let oldState = !!wallet.isLocked;
             let failingPaymentsCount = await this.getFailingPaymentsCount(parent, uid);
             let isLocked = failingPaymentsCount > 0;
-            wallet.isLocked = isLocked;
-            await wallet.flush(ctx);
-            this.store.UserWalletUpdates.post(ctx, uid, WalletLockedChanged.create({ isLocked, failingPaymentsCount }));
             if (oldState !== isLocked) {
+                wallet.isLocked = isLocked;
+                await wallet.flush(ctx);
+                this.store.UserWalletUpdates.post(ctx, uid, WalletLockedChanged.create({ isLocked, failingPaymentsCount }));
                 if (isLocked) {
                     Modules.Push.pushWork(ctx, {
                         uid: uid,
