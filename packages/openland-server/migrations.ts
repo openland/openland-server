@@ -1486,9 +1486,10 @@ migrations.push({
 });
 
 migrations.push({
-    key: '208-reset-wallet-updates',
+    key: '209-reset-wallet-updates',
     migration: async (parent) => {
         await inTx(parent, async (ctx) => {
+            logger.log(ctx, 'Deleting wallet updates');
             Store.UserWalletUpdates.descriptor.subspace.clearPrefixed(ctx, Buffer.from([]));
         });
     }
