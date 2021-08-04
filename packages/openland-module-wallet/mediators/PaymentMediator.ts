@@ -525,7 +525,7 @@ export class PaymentMediator {
 
     tryCancelPayment = async (parent: Context, id: string) => {
         let piid = await inTx(parent, async (ctx) => {
-            let p = (await Store.Payment.findById(parent, id))!;
+            let p = (await Store.Payment.findById(ctx, id))!;
             if (!p.piid) {
                 await this.payments.handlePaymentCanceled(ctx, id);
                 return null;
