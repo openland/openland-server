@@ -1,3 +1,4 @@
+import { isContextCancelled } from '@openland/lifetime';
 import { Context } from '@openland/context';
 import { BaseEvent, LiveStreamItem } from '@openland/foundationdb-entity';
 import { IDs } from 'openland-module-api/IDs';
@@ -203,6 +204,9 @@ export const Resolver: GQLResolver = {
                 for await (let event of zipedGenerator) {
                     subscribeAfter = event.cursor;
                     yield Store.UserDialogEventStore.encodeRawLiveStreamItem(event);
+                }
+                if (isContextCancelled(ctx)) {
+                    return;
                 }
                 let stream = Store.UserDialogEventStore.createLiveStream(ctx, ctx.auth.uid!, { batchSize: 20, after: subscribeAfter || undefined });
                 for await (let event of stream) {

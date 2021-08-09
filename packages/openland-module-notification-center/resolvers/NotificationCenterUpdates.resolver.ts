@@ -1,3 +1,4 @@
+import { isContextCancelled } from '@openland/lifetime';
 import { Context } from '@openland/context';
 import { NotificationCenterEvent } from './../../openland-module-db/store';
 import { Store } from './../../openland-module-db/FDB';
@@ -98,6 +99,9 @@ export const Resolver: GQLResolver = {
                 }
                 let center = await Modules.NotificationCenter.notificationCenterForUser(ctx, uid);
 
+                if (isContextCancelled(ctx)) {
+                    return;
+                }
                 const stream = Store.NotificationCenterEvent.notificationCenter.liveStream(ctx, center.id, { batchSize: 20, after: args.fromState || undefined });
                 for await (let b of stream) {
                     yield { cursror: b.cursor, items: b.items.map((v) => ({ ncid: v.ncid, seq: v.seq })) } as any;
