@@ -46,6 +46,8 @@ export type WelcomeMessageT = {
 
 const log = createLogger('room-repository');
 
+const BLOCKED = [IDs.Conversation.parse('k4awPklKRQcOKgMEBoJOIn9okk')];
+
 @injectable()
 export class RoomRepository {
     // @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
@@ -137,6 +139,9 @@ export class RoomRepository {
 
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
+
+            // Check if room able to join
+            await this.checkRoomAbleToJoin(ctx, cid);
 
             let activeMembersCount = await this.roomMembersCount(ctx, cid, 'joined');
             let isAsyncMember = activeMembersCount >= 50;
@@ -244,6 +249,9 @@ export class RoomRepository {
         return await inTx(parent, async (ctx) => {
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
+
+            // Check if room able to join
+            await this.checkRoomAbleToJoin(ctx, cid);
 
             let activeMembersCount = await this.roomMembersCount(ctx, cid, 'joined');
             let isAsyncMember = activeMembersCount >= 50;
@@ -680,6 +688,13 @@ export class RoomRepository {
         }
     }
 
+    async checkRoomAbleToJoin(ctx: Context, cid: number) {
+        for (let b of BLOCKED) {
+            if (b === cid) {
+                throw new Error('Room blocked');
+            }
+        }
+    }
     async isActiveMember(ctx: Context, uid: number, cid: number) {
         let p = await Store.RoomParticipant.findById(ctx, cid, uid);
         if (!p) {
