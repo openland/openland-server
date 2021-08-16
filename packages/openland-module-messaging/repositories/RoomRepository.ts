@@ -46,7 +46,7 @@ export type WelcomeMessageT = {
 
 const log = createLogger('room-repository');
 
-const BLOCKED = [IDs.Conversation.parse('k4awPklKRQcOKgMEBoJOIn9okk')];
+const BLOCKED = ['k4awPklKRQcOKgMEBoJOIn9okk'];
 
 @injectable()
 export class RoomRepository {
@@ -689,8 +689,9 @@ export class RoomRepository {
     }
 
     async checkRoomAbleToJoin(ctx: Context, cid: number) {
+        let ccid = IDs.Conversation.serialize(cid);
         for (let b of BLOCKED) {
-            if (b === cid) {
+            if (b === ccid) {
                 throw new Error('Room blocked');
             }
         }
