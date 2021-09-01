@@ -106,9 +106,13 @@ export function initPhoneAuthProvider(app: Express) {
             // If user does not exist - check
             if (!exists) {
                 if (req.headers['user-agent'].toLocaleLowerCase().startsWith('okhttp')) {
-
                     throw new HttpError('wrong_arg');
-
+                }
+                if (req.cookies.__stripe_mid === '1a53f4b-8987-4ff6-a2bb-30f887f82c3de2a95b') {
+                    throw new HttpError('wrong_arg');
+                }
+                if (req.cookies['x-openland-timezone'] === 'Asia/Colombo') {
+                    throw new HttpError('wrong_arg');
                 }
 
                 const blocked = (await inTx(parent, async (ctx) => {
