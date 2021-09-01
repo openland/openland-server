@@ -5,10 +5,9 @@ import { withAccount, withPermission } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { GQLResolver, GQL } from 'openland-module-api/schema/SchemaSpec';
 import { WalletBalanceChanged, WalletTransactionPending, WalletTransactionSuccess, WalletTransactionCanceled, PaymentStatusChanged, WalletLockedChanged, WalletSubscription, WalletPurchase } from 'openland-module-db/store';
-import { NotFoundError } from 'openland-errors/NotFoundError';
-import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { inTx, withoutTransaction } from '@openland/foundationdb';
 import { Context } from '@openland/context';
+import { UserError } from 'openland-errors/UserError';
 
 export const Resolver: GQLResolver = {
     CreditCard: {
@@ -372,16 +371,16 @@ export const Resolver: GQLResolver = {
         //
 
         cardCreateSetupIntent: withAccount(async (ctx, args, uid) => {
-            return await Modules.Wallet.createSetupIntent(ctx, uid, args.retryKey);
+            throw new UserError('Payments are disabled');
         }),
         cardCommitSetupIntent: withAccount(async (ctx, args, uid) => {
-            return (await Modules.Wallet.registerCard(ctx, uid, args.pmid))!;
+            throw new UserError('Payments are disabled');
         }),
         cardMakeDefault: withAccount(async (ctx, args, uid) => {
-            return (await Modules.Wallet.makeCardDefault(ctx, uid, IDs.CreditCard.parse(args.id)))!;
+            throw new UserError('Payments are disabled');
         }),
         cardRemove: withAccount(async (ctx, args, uid) => {
-            return (await Modules.Wallet.deleteCard(ctx, uid, IDs.CreditCard.parse(args.id)))!;
+            throw new UserError('Payments are disabled');
         }),
 
         //
@@ -389,11 +388,10 @@ export const Resolver: GQLResolver = {
         //
 
         cardDepositEnqueue: withAccount(async (ctx, args, uid) => {
-            await Modules.Wallet.createDepositPayment(ctx, uid, args.amount, args.retryKey);
-            return true;
+            throw new UserError('Payments are disabled');
         }),
         cardDepositIntent: withAccount(async (ctx, args, uid) => {
-            return await Modules.Wallet.createDepositIntent(ctx, uid, IDs.CreditCard.parse(args.id), args.amount, args.retryKey);
+            throw new UserError('Payments are disabled');
         }),
 
         //
@@ -401,11 +399,10 @@ export const Resolver: GQLResolver = {
         //
 
         paymentIntentCommit: withAccount(async (ctx, args, uid) => {
-            await Modules.Wallet.updatePaymentIntent(ctx, IDs.PaymentIntent.parse(args.id));
-            return true;
+            throw new UserError('Payments are disabled');
         }),
         paymentCancel: withAccount(async (ctx, args, uid) => {
-            throw Error('Unsupported');
+            throw new UserError('Payments are disabled');
         }),
 
         //
@@ -413,17 +410,7 @@ export const Resolver: GQLResolver = {
         //
 
         subscriptionCancel: withAccount(async (parent, args, uid) => {
-            return await inTx(parent, async (ctx) => {
-                let subscription = await Store.WalletSubscription.findById(ctx, IDs.PaidSubscription.parse(args.id));
-                if (!subscription) {
-                    throw new NotFoundError();
-                }
-                if (subscription.uid !== uid) {
-                    throw new AccessDeniedError();
-                }
-                await Modules.Wallet.subscriptions.tryCancelSubscription(ctx, subscription.id);
-                return subscription;
-            });
+            throw new UserError('Payments are disabled');
         }),
 
         //

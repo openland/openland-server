@@ -16,7 +16,7 @@ import { startCardSyncWorker } from './workers/CardSyncWorker';
 import { startEventsReaderWorker } from './workers/EventsReaderWorker';
 import { startPaymentIntentCommiter } from './workers/PaymentIntentCommiter';
 import { PaymentsRepository } from './repo/PaymentsRepository';
-import { startPaymentScheduler } from './workers/startPaymentScheduler';
+// import { startPaymentScheduler } from './workers/startPaymentScheduler';
 import { startSubscriptionsScheduler } from './workers/startSubscriptionsScheduler';
 import { PurchaseRepository } from './repo/PurchaseRepository';
 import { inTx } from '@openland/foundationdb';
@@ -58,7 +58,7 @@ export class WalletModule {
             startCardSyncWorker(this.paymentsMediator.syncCardQueue, this.paymentsMediator);
             startEventsReaderWorker(this.paymentsMediator);
             startPaymentIntentCommiter(this.paymentsMediator);
-            startPaymentScheduler(this.paymentsMediator);
+            // startPaymentScheduler(this.paymentsMediator);
             startSubscriptionsScheduler(this.subscriptions, this.paymentsMediator);
         }
     }
