@@ -13,10 +13,10 @@ import { createLogger } from '@openland/log';
 import { doSimpleHash } from '../../openland-module-push/workers/PushWorker';
 import { IDs } from '../../openland-module-api/IDs';
 import { createTracer } from 'openland-log/createTracer';
-import { BlockedPrefixes } from 'openland-module-auth/blacklist';
+// import { BlockedPrefixes } from 'openland-module-auth/blacklist';
 
 const tracer = createTracer('phone-auth');
-const logger = createLogger('phone-auth');
+// const logger = createLogger('phone-auth');
 
 const Errors = {
     wrong_arg: 'An unexpected error occurred. Please try again.',
