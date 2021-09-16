@@ -16,7 +16,7 @@ import { createTracer } from 'openland-log/createTracer';
 // import { BlockedPrefixes } from 'openland-module-auth/blacklist';
 
 const tracer = createTracer('phone-auth');
-// const logger = createLogger('phone-auth');
+const logger = createLogger('phone-auth');
 
 const Errors = {
     wrong_arg: 'An unexpected error occurred. Please try again.',
@@ -132,6 +132,8 @@ export function initPhoneAuthProvider(app: Express) {
                 // logger.log(parent, 'Code auth attempt for ' + phone + ' at ' + req.ips.join(',') + ' ' + JSON.stringify(req.headers));
                 throw new HttpError('wrong_arg');
             }
+
+            logger.log(parent, 'Code auth attempt for ' + phone + ' at ' + req.ips.join(',') + ' ' + JSON.stringify(req.headers));
 
             let code = await inTx(parent, async (ctx) => {
                 // Handle throttle
