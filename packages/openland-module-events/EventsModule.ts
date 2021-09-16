@@ -30,7 +30,7 @@ export class EventsModule {
         log.debug(root, 'Sharding info loaded...');
         this.userService.initSharding(usersSharding.ringSize);
         this.groupService.initSharding(groupsSharding.ringSize);
-        if (serverRoleEnabled('events')) {
+        if (serverRoleEnabled('workers')) {
             this.userSharding.startShard(this.userService.createShard);
             this.groupSharding.startShard(this.groupService.createShard);
         }

@@ -27,7 +27,7 @@ export default class FeedChannelMediator {
     private readonly autoSubscriptionQueueMultiple = new BetterWorkerQueue<{ channelId: number, uids: number[] }>(Store.FeedAutoSubscriptionMultipleQueue, { type: 'transactional', maxAttempts: 'infinite' });
 
     start = () => {
-        if (serverRoleEnabled('delivery')) {
+        if (serverRoleEnabled('workers')) {
             this.autoSubscriptionQueue.addWorkers(100, async (parent, item) => {
                 await this.fanOutSubscription(parent, item.channelId, item.peerType, item.peerId);
             });

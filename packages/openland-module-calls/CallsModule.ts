@@ -39,7 +39,7 @@ export class CallsModule {
     start = async () => {
         this.mediaKitchen = new MediaKitchenService(await connectToCluster({ nc: this.nats }));
 
-        if (serverRoleEnabled('calls')) {
+        if (serverRoleEnabled('workers')) {
             startCallReaper();
             startWorkerTracker(this.mediaKitchen, this.mediaKitchenRepo);
             declareScalableWorkers(this.repo);

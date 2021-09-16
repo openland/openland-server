@@ -47,7 +47,7 @@ export class DeliveryMediator {
     @lazyInject('NeedNotificationDeliveryRepository') private readonly needNotification!: NeedNotificationDeliveryRepository;
 
     start = () => {
-        if (serverRoleEnabled('delivery')) {
+        if (serverRoleEnabled('workers')) {
             this.queueUserMultipe.addWorkers(1000, async (ctx, item) => {
                 if (item.action === 'new' || item.action === undefined) {
                     let message = (await Store.Message.findById(ctx, item.messageId))!;

@@ -67,7 +67,7 @@ export class ApiModule {
             }
         }
 
-        if (serverRoleEnabled('executor')) {
+        if (serverRoleEnabled('workers')) {
             declareRemoteQueryExecutor('default', {
                 bulkhead: {
                     enabled: true,
@@ -76,7 +76,7 @@ export class ApiModule {
                 },
             });
         }
-        if (serverRoleEnabled('executor-calls')) {
+        if (serverRoleEnabled('workers')) {
             declareRemoteQueryExecutor('calls-resolver', {
                 bulkhead: {
                     enabled: true,
@@ -85,7 +85,7 @@ export class ApiModule {
                 },
             });
         }
-        if (serverRoleEnabled('events-calls')) {
+        if (serverRoleEnabled('workers')) {
             declareRemoteQueryExecutor('calls-events', {
                 bulkhead: {
                     enabled: true,
@@ -94,7 +94,7 @@ export class ApiModule {
                 },
             });
         }
-        if (serverRoleEnabled('events-chat')) {
+        if (serverRoleEnabled('workers')) {
             declareRemoteQueryExecutor('chat-events', {
                 bulkhead: {
                     enabled: true,
@@ -104,7 +104,7 @@ export class ApiModule {
             });
         }
 
-        if (serverRoleEnabled('events')) {
+        if (serverRoleEnabled('workers')) {
             declareRemoteQueryExecutor('events', {
                 bulkhead: {
                     enabled: true,
