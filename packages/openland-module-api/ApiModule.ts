@@ -72,7 +72,7 @@ export class ApiModule {
                 bulkhead: {
                     enabled: true,
                     concurrency: 100,
-                    maxQueueSize: 50,
+                    maxQueueSize: 1000,
                 },
             });
         }
@@ -81,7 +81,7 @@ export class ApiModule {
                 bulkhead: {
                     enabled: true,
                     concurrency: 100,
-                    maxQueueSize: 50,
+                    maxQueueSize: 1000,
                 },
             });
         }
@@ -109,7 +109,7 @@ export class ApiModule {
                 bulkhead: {
                     enabled: true,
                     concurrency: 100,
-                    maxQueueSize: 50,
+                    maxQueueSize: 1000,
                 },
             });
         }
