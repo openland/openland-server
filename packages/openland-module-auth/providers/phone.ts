@@ -13,7 +13,7 @@ import { createLogger } from '@openland/log';
 import { doSimpleHash } from '../../openland-module-push/workers/PushWorker';
 import { IDs } from '../../openland-module-api/IDs';
 import { createTracer } from 'openland-log/createTracer';
-// import { BlockedPrefixes } from 'openland-module-auth/blacklist';
+import { BlockedPrefixes } from 'openland-module-auth/blacklist';
 
 const tracer = createTracer('phone-auth');
 const logger = createLogger('phone-auth');
@@ -131,6 +131,19 @@ export function initPhoneAuthProvider(app: Express) {
                 // }
                 // logger.log(parent, 'Code auth attempt for ' + phone + ' at ' + req.ips.join(',') + ' ' + JSON.stringify(req.headers));
                 throw new HttpError('wrong_arg');
+            }
+
+            const blocked = (await inTx(parent, async (ctx) => {
+                let locked = (await Modules.Super.getEnvVar<string>(ctx, 'phones.blocked'));
+                if (!locked) {
+                    return BlockedPrefixes;
+                }
+                return locked.split(',');
+            }));
+            for (let p of blocked) {
+                if (phone.startsWith(p)) {
+                    throw new HttpError('wrong_arg');
+                }
             }
 
             logger.log(parent, 'Code auth attempt for ' + phone + ' at ' + req.ips.join(',') + ' ' + JSON.stringify(req.headers));
